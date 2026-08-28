@@ -93,7 +93,7 @@
 <body class="min-h-screen py-6 md:py-12 px-4 sm:px-6 lg:px-8">
 
     <!-- האזור שיהפוך ל-PDF -->
-    <div id="pdf-container" class="max-w-3xl mx-auto space-y-6 md:space-y-8 p-2 md:p-4 bg-[var(--bg-dark)]">
+    <div id="pdf-container" class="max-w-3xl mx-auto space-y-6 md:space-y-8 p-2 md:p-4 bg-[#0B0E14]">
 
         <header class="text-center space-y-3 pt-2">
             <div class="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-3xl glass-card-accent mb-1 shadow-xl">
@@ -539,7 +539,8 @@
                     scale: 2, 
                     useCORS: true, 
                     scrollY: 0, // קריטי: מאלץ להתחיל לסרוק מראש העמוד
-                    windowWidth: 800 // קריטי לניידים: מדמה מסך רחב כדי למנוע דחיסת טקסט וירידת שורות עודפת שחותכת את הדף
+                    windowWidth: 800, // קריטי לניידים: מדמה מסך רחב כדי למנוע דחיסת טקסט וירידת שורות עודפת שחותכת את הדף
+                    backgroundColor: '#0B0E14' // הבטחת רקע שחור-כחול כהה (תואם לאתר) במסמך ה-PDF
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
