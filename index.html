@@ -31,7 +31,7 @@
             background-attachment: fixed;
         }
 
-        /* Dynamic Glassmorphism */
+        /* Glassmorphism */
         .glass-card {
             background: rgba(22, 27, 38, 0.65);
             backdrop-filter: blur(20px);
@@ -128,7 +128,6 @@
                         <input type="text" id="in_location" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm" placeholder="שם האולם / עיר">
                     </div>
 
-                    <!-- תאריך -->
                     <div>
                         <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">תאריך האירוע *</label>
                         <div class="grid grid-cols-3 gap-2">
@@ -138,7 +137,6 @@
                         </div>
                     </div>
 
-                    <!-- שעות עם נקודתיים באמצע -->
                     <div>
                         <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">שעת תחילת אירוע *</label>
                         <div class="flex items-center gap-2" dir="ltr">
@@ -173,7 +171,6 @@
                 </button>
             </form>
 
-            <!-- תוצאת קישור -->
             <div id="link-result" class="hidden p-4 bg-black/60 border border-cyan-500/30 rounded-2xl space-y-3">
                 <p class="text-xs text-cyan-400 font-bold uppercase tracking-wider">הקישור מוכן לשליחה ללקוח:</p>
                 <div class="flex gap-2">
@@ -188,7 +185,6 @@
         <!-- ==================== 2. תצוגת הצעת מחיר וחתימה (מצב לקוח) ==================== -->
         <main id="client-view" class="hidden space-y-6 md:space-y-8">
 
-            <!-- פרטי הצעת המחיר -->
             <section class="glass-card-accent p-6 md:p-8 rounded-3xl space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-white/10 pb-4">
                     <h2 class="text-xl md:text-2xl font-extrabold text-white flex items-center gap-2">
@@ -234,7 +230,6 @@
                 </div>
             </section>
 
-            <!-- מפרט החבילה -->
             <section class="glass-card p-6 md:p-8 rounded-3xl space-y-6">
                 <h2 class="text-xl md:text-2xl font-bold text-white border-b border-white/10 pb-4 flex items-center gap-2">
                     <i data-lucide="sparkles" class="w-6 h-6 text-cyan-400"></i>
@@ -277,7 +272,6 @@
                 </div>
             </section>
 
-            <!-- נספח משפטי -->
             <section class="glass-card p-6 md:p-8 rounded-3xl space-y-4">
                 <h2 class="text-lg md:text-xl font-bold text-white border-b border-white/10 pb-4 flex items-center gap-2">
                     <i data-lucide="file-text" class="w-5 h-5 text-cyan-400"></i>
@@ -288,32 +282,19 @@
                 </div>
             </section>
 
-            <!-- טופס חתימה והעברה במייל דרך Formspree -->
+            <!-- טופס חתימה -->
             <section class="glass-card p-6 md:p-8 rounded-3xl space-y-6">
                 <h2 class="text-lg md:text-xl font-bold text-white border-b border-white/10 pb-4 flex items-center gap-2">
                     <i data-lucide="pen-tool" class="w-5 h-5 text-cyan-400"></i>
                     אישור וחתימת הלקוח
                 </h2>
 
-                <form id="signature-form" action="https://formspree.io/f/xnpqqonj" method="POST" onsubmit="handleSignatureSubmit(event)" class="space-y-5">
-
-                    <!-- שדות נסתרים המועברים ישירות למייל שלך -->
-                    <input type="hidden" name="לכבוד" id="form_clientName">
-                    <input type="hidden" name="סוג_אירוע" id="form_eventType">
-                    <input type="hidden" name="מיקום" id="form_location">
-                    <input type="hidden" name="תאריך" id="form_date">
-                    <input type="hidden" name="שעות_פעילות" id="form_hours">
-                    <input type="hidden" name="מחיר" id="form_price">
-                    <input type="hidden" name="מקדמה" id="form_deposit">
-                    <input type="hidden" name="חתימה_תמונה" id="form_signature_data">
-
-                    <!-- קלט טלפון -->
+                <form id="signature-form" onsubmit="handleSignatureSubmit(event)" class="space-y-5">
                     <div>
                         <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מספר טלפון לאישור וקבלה ב-WhatsApp *</label>
-                        <input type="tel" name="טלפון_לקוח" id="sig_phone" required class="w-full glass-input px-4 py-3.5 rounded-2xl text-left font-mono text-sm" dir="ltr" placeholder="0500000000">
+                        <input type="tel" id="sig_phone" required class="w-full glass-input px-4 py-3.5 rounded-2xl text-left font-mono text-sm" dir="ltr" placeholder="0500000000">
                     </div>
 
-                    <!-- תיבת חתימה -->
                     <div class="space-y-2">
                         <div class="flex justify-between items-center">
                             <label class="text-xs uppercase font-bold text-zinc-300">חתום בתוך התיבה למטה *</label>
@@ -333,7 +314,6 @@
 
         </main>
 
-        <!-- Footer -->
         <footer class="text-center py-6 text-zinc-500 text-xs space-y-1">
             <p class="font-bold tracking-widest uppercase text-zinc-400">Snap Box Events</p>
             <p>© 2026 כל הזכויות שמורות</p>
@@ -345,7 +325,6 @@
     <script>
         lucide.createIcons();
 
-        // 1. אתחול Dropdowns
         function setupDropdowns() {
             const daySel = document.getElementById('in_day');
             const monthSel = document.getElementById('in_month');
@@ -391,7 +370,6 @@
         }
         setupDropdowns();
 
-        // 2. Canvas Signature Logic
         const canvas = document.getElementById('sig-canvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
@@ -448,7 +426,8 @@
             hasSigned = false;
         }
 
-        // 3. תצוגת לקוח / מנהל לפי פרמטר ב-URL
+        let contractData = {};
+
         const urlParams = new URLSearchParams(window.location.search);
         const dataParam = urlParams.get('q');
 
@@ -460,7 +439,7 @@
                 const raw = decodeURIComponent(atob(dataParam));
                 const parts = raw.split('|');
 
-                const data = {
+                contractData = {
                     name: parts[0],
                     type: parts[1],
                     location: parts[2],
@@ -471,23 +450,14 @@
                     deposit: Number(parts[7])
                 };
 
-                document.getElementById('view_clientName').innerText = data.name;
-                document.getElementById('view_eventType').innerText = data.type;
-                document.getElementById('view_location').innerText = data.location;
-                document.getElementById('view_date').innerText = data.date;
-                document.getElementById('view_hours').innerText = `${data.startTime} - ${data.endTime}`;
-                document.getElementById('view_price').innerText = `₪${data.price}`;
-                document.getElementById('view_deposit').innerText = `₪${data.deposit}`;
-                document.getElementById('view_balance').innerText = `₪${data.price - data.deposit}`;
-
-                // עדכון שדות נסתרים לטופס במייל
-                document.getElementById('form_clientName').value = data.name;
-                document.getElementById('form_eventType').value = data.type;
-                document.getElementById('form_location').value = data.location;
-                document.getElementById('form_date').value = data.date;
-                document.getElementById('form_hours').value = `${data.startTime} - ${data.endTime}`;
-                document.getElementById('form_price').value = data.price;
-                document.getElementById('form_deposit').value = data.deposit;
+                document.getElementById('view_clientName').innerText = contractData.name;
+                document.getElementById('view_eventType').innerText = contractData.type;
+                document.getElementById('view_location').innerText = contractData.location;
+                document.getElementById('view_date').innerText = contractData.date;
+                document.getElementById('view_hours').innerText = `${contractData.startTime} - ${contractData.endTime}`;
+                document.getElementById('view_price').innerText = `₪${contractData.price}`;
+                document.getElementById('view_deposit').innerText = `₪${contractData.deposit}`;
+                document.getElementById('view_balance').innerText = `₪${contractData.price - contractData.deposit}`;
 
                 setTimeout(resizeCanvas, 300);
             } catch (err) {
@@ -495,7 +465,6 @@
             }
         }
 
-        // 4. יצירת קישור קצר
         function generateShareLink(e) {
             e.preventDefault();
 
@@ -536,33 +505,55 @@
             alert("הקישור הועתק!");
         }
 
-        // 5. אישור, חתימה, שליחה למייל ופתיחת וואטסאפ ללקוח
-        function handleSignatureSubmit(e) {
+        async function handleSignatureSubmit(e) {
+            e.preventDefault();
+
             if (!hasSigned) {
-                e.preventDefault();
                 alert("אנא חתום בתיבה לפני אישור ההסכם.");
                 return;
             }
 
-            // שמירת חתימת ה-Base64 בשדה הנסתר למייל
-            const signatureData = canvas.toDataURL('image/png');
-            document.getElementById('form_signature_data').value = signatureData;
+            const btn = document.getElementById('submit-btn');
+            btn.innerText = "שולח אישור וחתימה...";
+            btn.disabled = true;
 
+            const signatureImage = canvas.toDataURL('image/png');
             let clientPhone = document.getElementById('sig_phone').value.replace(/[^0-9]/g, '');
+
+            // שליחה שקטה ל-Formspree ברקע via fetch
+            const payload = {
+                "שם הלקוח": contractData.name,
+                "סוג אירוע": contractData.type,
+                "מיקום האירוע": contractData.location,
+                "תאריך האירוע": contractData.date,
+                "שעות פעילות": `${contractData.startTime} - ${contractData.endTime}`,
+                "מחיר כולל": `₪${contractData.price}`,
+                "מקדמה": `₪${contractData.deposit}`,
+                "יתרה לתשלום": `₪${contractData.price - contractData.deposit}`,
+                "טלפון לקוח": clientPhone,
+                "תמונת חתימה (Base64)": signatureImage
+            };
+
+            try {
+                await fetch("https://formspree.io/f/xnpqqonj", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+            } catch (err) {
+                console.error("שגיאה בשליחה ברקע", err);
+            }
+
+            // מעבר ל-WhatsApp של הלקוח
             if (clientPhone.startsWith('0')) {
                 clientPhone = '972' + clientPhone.slice(1);
             }
 
-            const clientName = document.getElementById('view_clientName').innerText;
-            const eventDate = document.getElementById('view_date').innerText;
-
-            // פתיחת WhatsApp ישירות למספר של הלקוח
-            const waMessage = `שלום ${clientName},\nאישור החתימה שלך עבור הסכם השירות מול Snap Box לאירוע בתאריך ${eventDate} התקבל בהצלחה! 🎉\nתודה רבה!`;
-            window.open(`https://wa.me/${clientPhone}?text=${encodeURIComponent(waMessage)}`, '_blank');
-
-            const btn = document.getElementById('submit-btn');
-            btn.innerText = "שולח הסכם חתום למייל...";
-            btn.style.opacity = "0.7";
+            const waMessage = `שלום ${contractData.name},\nאישור החתימה שלך עבור הסכם השירות מול Snap Box לאירוע בתאריך ${contractData.date} התקבל בהצלחה! 🎉\nתודה רבה!`;
+            window.location.href = `https://wa.me/${clientPhone}?text=${encodeURIComponent(waMessage)}`;
         }
     </script>
 </body>
