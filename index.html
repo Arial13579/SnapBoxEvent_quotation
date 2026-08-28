@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snap Box | הצעת מחיר והסכם שירות</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --gold-primary: #D4AF37;
+            --gold-light: #F3E5AB;
+            --bg-dark: #0A0A0C;
+            --card-border: rgba(212, 175, 55, 0.2);
+        }
+
+        body {
+            font-family: 'Assistant', sans-serif;
+            background-color: var(--bg-dark);
+            color: #F4F4F5;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.03) 0%, transparent 40%);
+        }
+
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Apple Glassmorphism Effect */
+        .glass-panel {
+            background: rgba(20, 20, 25, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-panel-gold {
+            background: rgba(212, 175, 55, 0.04);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #FFF;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+            outline: none;
+        }
+
+        /* Canvas Signature */
+        canvas#sig-canvas {
+            touch-action: none;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed rgba(212, 175, 55, 0.3);
+            cursor: crosshair;
+        }
+
+        .gold-text-glow {
+            background: linear-gradient(135deg, #FFF 30%, var(--gold-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-gradient-bg {
+            background: linear-gradient(135deg, #D4AF37 0%, #AA820A 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen py-10 px-4 md:px-8">
+
+    <div class="max-w-4xl mx-auto space-y-10">
+
+        <!-- Header / Logo -->
+        <header class="text-center space-y-3 pt-4">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl glass-panel-gold mb-1 shadow-2xl">
+                <i data-lucide="camera" class="w-8 h-8 text-[#D4AF37]"></i>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-black uppercase tracking-wider gold-text-glow">Snap Box</h1>
+            <p class="text-xs uppercase tracking-[0.4em] text-zinc-400 font-semibold">בוטיק עמדות צילום & חוויות בוטיק</p>
+        </header>
+
+        <!-- ==================== 1. טופס יצירת הצעת מחיר (מצב מנהל בלבד) ==================== -->
+        <div id="admin-section" class="glass-panel p-8 md:p-10 rounded-3xl space-y-6">
+            <div class="flex items-center gap-3 border-b border-zinc-800 pb-4">
+                <i data-lucide="settings" class="w-6 h-6 text-[#D4AF37]"></i>
+                <h2 class="text-2xl font-bold text-white">מחולל הצעות מחיר (לשימוש בית העסק)</h2>
+            </div>
+
+            <form id="creator-form" onsubmit="generateShareLink(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-xs uppercase text-zinc-400 font-bold mb-2">לכבוד *</label>
+                    <input type="text" id="in_clientName" required class="w-full glass-input px-4 py-3 rounded-xl text-sm" placeholder="שם הלקוח / החברה">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-zinc-400 font-bold mb-2">סוג אירוע *</label>
+                    <input type="text" id="in_eventType" required class="w-full glass-input px-4 py-3 rounded-xl text-sm" placeholder="חתונה / בר מצווה / אירוע חברה">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-zinc-400 font-bold mb-2">מיקום האירוע *</label>
+                    <input type="text" id="in_location" required class="w-full glass-input px-4 py-3 rounded-xl text-sm" placeholder="שם האולם / עיר">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-zinc-400 font-bold mb-2">תאריך *</label>
+                    <input type="date" id="in_date" required class="w-full glass-input px-4 py-3 rounded-xl text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-zinc-400 font-bold mb-2">שעת תחילת אירוע *</label>
+                    <input type="time" id="in_startTime" required class="w-full glass-input px-4 py-3 rounded-xl text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-zinc-400 font-bold mb-2">שעת סיום אירוע *</label>
+                    <input type="time" id="in_endTime" required class="w-full glass-input px-4 py-3 rounded-xl text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-zinc-400 font-bold mb-2">מחיר כולל (₪) *</label>
+                    <input type="number" id="in_price" required class="w-full glass-input px-4 py-3 rounded-xl text-sm" placeholder="2500">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-zinc-400 font-bold mb-2">מקדמה (₪) *</label>
+                    <input type="number" id="in_deposit" required class="w-full glass-input px-4 py-3 rounded-xl text-sm" placeholder="500">
+                </div>
+
+                <div class="md:col-span-2 pt-4">
+                    <button type="submit" class="w-full py-4 gold-gradient-bg text-black font-extrabold text-base rounded-2xl shadow-xl hover:opacity-95 transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="link" class="w-5 h-5"></i>
+                        צור קישור לשליחה ללקוח
+                    </button>
+                </div>
+            </form>
+
+            <!-- אזור תוצאת הקישור -->
+            <div id="link-result" class="hidden p-5 bg-black/50 border border-[#D4AF37]/40 rounded-2xl space-y-3">
+                <p class="text-xs text-[#D4AF37] font-bold uppercase">הקישור מוכן לשליחה!</p>
+                <div class="flex gap-2">
+                    <input type="text" id="shareable-url" readonly class="w-full glass-input px-4 py-2 rounded-xl text-xs text-zinc-300">
+                    <button onclick="copyGeneratedLink()" class="px-5 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1">
+                        <i data-lucide="copy" class="w-4 h-4"></i> העתק
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==================== 2. תצוגת הצעת מחיר ללקוח ==================== -->
+        <main id="client-view" class="hidden space-y-8">
+
+            <!-- פרטי האירוע (הכרטיס האישי של הלקוח) -->
+            <section class="glass-panel-gold p-8 rounded-3xl space-y-6">
+                <div class="flex justify-between items-center border-b border-[#D4AF37]/20 pb-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="file-badge" class="w-6 h-6 text-[#D4AF37]"></i>
+                        הצעת מחיר מותאמת אישית
+                    </h2>
+                    <span class="text-xs text-[#D4AF37] font-mono border border-[#D4AF37]/30 px-3 py-1 rounded-full bg-[#D4AF37]/10">SNAP BOX VIP</span>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+                    <div>
+                        <span class="block text-xs text-zinc-400 font-bold">לכבוד:</span>
+                        <span id="view_clientName" class="font-bold text-white text-base"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs text-zinc-400 font-bold">סוג אירוע:</span>
+                        <span id="view_eventType" class="font-semibold text-zinc-200"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs text-zinc-400 font-bold">מיקום האירוע:</span>
+                        <span id="view_location" class="font-semibold text-zinc-200"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs text-zinc-400 font-bold">תאריך:</span>
+                        <span id="view_date" class="font-semibold text-zinc-200"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs text-zinc-400 font-bold">שעות פעילות:</span>
+                        <span id="view_hours" class="font-semibold text-zinc-200" dir="ltr"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs text-zinc-400 font-bold">מחיר כולל:</span>
+                        <span id="view_price" class="font-bold text-[#D4AF37] text-base"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs text-zinc-400 font-bold">מקדמה לתשלום:</span>
+                        <span id="view_deposit" class="font-semibold text-zinc-200"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs text-zinc-400 font-bold">יתרה בסיום האירוע:</span>
+                        <span id="view_balance" class="font-semibold text-zinc-200"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- מפרט החבילה -->
+            <section class="glass-panel p-8 md:p-10 rounded-3xl space-y-6">
+                <h2 class="text-2xl font-serif italic text-white flex items-center gap-3 border-b border-zinc-800 pb-4">
+                    <i data-lucide="sparkles" class="w-6 h-6 text-[#D4AF37]"></i>
+                    מפרט החבילה הכלולה
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-panel-gold">
+                        <i data-lucide="check-circle-2" class="w-6 h-6 text-[#D4AF37] shrink-0"></i>
+                        <span class="text-zinc-200 font-semibold text-sm">צילום ללא הגבלה - כל התמונות שלכם!</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-panel-gold">
+                        <i data-lucide="check-circle-2" class="w-6 h-6 text-[#D4AF37] shrink-0"></i>
+                        <span class="text-zinc-200 font-semibold text-sm">שטיח אדום יוקרתי עם 4 עמודי זהב מעוצבים</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-panel-gold">
+                        <i data-lucide="check-circle-2" class="w-6 h-6 text-[#D4AF37] shrink-0"></i>
+                        <span class="text-zinc-200 font-semibold text-sm">מפעיל מקצועי וטכנאי צמוד לכל האירוע</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-panel-gold">
+                        <i data-lucide="check-circle-2" class="w-6 h-6 text-[#D4AF37] shrink-0"></i>
+                        <span class="text-zinc-200 font-semibold text-sm">מגוון סטריפים</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-panel-gold">
+                        <i data-lucide="check-circle-2" class="w-6 h-6 text-[#D4AF37] shrink-0"></i>
+                        <span class="text-zinc-200 font-semibold text-sm">רקעים מותאמים אישית לסוג האירוע</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-panel-gold">
+                        <i data-lucide="check-circle-2" class="w-6 h-6 text-[#D4AF37] shrink-0"></i>
+                        <span class="text-zinc-200 font-semibold text-sm">אפקטים ומסגרות מיוחדות בהתאם לנושא</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-panel-gold">
+                        <i data-lucide="check-circle-2" class="w-6 h-6 text-[#D4AF37] shrink-0"></i>
+                        <span class="text-zinc-200 font-semibold text-sm">שליחת כל התמונות ללקוח ישירות לטלפון</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-panel-gold">
+                        <i data-lucide="check-circle-2" class="w-6 h-6 text-[#D4AF37] shrink-0"></i>
+                        <span class="text-zinc-200 font-semibold text-sm">שליחת הסטריפ של האורח ישירות לטלפון</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- מקטע תנאים משפטיים וביטולים -->
+            <section class="glass-panel p-8 md:p-10 rounded-3xl space-y-6">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2 border-b border-zinc-800 pb-4">
+                    <i data-lucide="file-text" class="w-5 h-5 text-[#D4AF37]"></i>
+                    תנאי הסכם והסדר ביטולים
+                </h2>
+
+                <div class="bg-black/40 border border-zinc-800 p-6 rounded-2xl text-zinc-300 text-xs md:text-sm leading-relaxed text-justify space-y-3 font-light max-h-60 overflow-y-auto">
+                    <p>
+                        בכל מקרה של ביטול, דחייה או שינוי מהותי בפרטי האירוע, שומרת לעצמה "Snap Box" את הזכות לבטל את השירות או לעדכן את מחיר העסקה בהתאם; ביטול מצד הלקוח בתוך 14 ימים או פחות ממועד האירוע יגרור חילוט מלא של המקדמה כפיצוי מוסכם מראש ללא זכות החזר. מנגד, אם השירות לא יסופק עקב נסיבות שאינן בשליטת הספק (כוח עליון), תוחזר המקדמה במלואה והספק יהיה פטור מכל פיצוי נוסף. הלקוח נושא באחריות מלאה לכל נזק או אובדן שייגרמו לציוד במהלך האירוע, ומתחייב לשאת במלוא עלות התיקון או ההחלפה. חתימה על הסכם זה מהווה אישור ל-"Snap Box" לעשות שימוש בתמונות מהאירוע לצרכי פרסום ושיווק, אלא אם הלקוח סירב לכך מראש ובכתב. כמו כן, הלקוח מתחייב לספק לעמדת הצילום חניה נגישה, מקור חשמל תקין וחיבור אינטרנט רציף (WiFi או סלולרי). יתרת התשלום תועבר לספק במלואה מיד בתום האירוע, וכל עיכוב בתשלום יגרור חיובי ריבית והוצאות גבייה כדין.
+                    </p>
+                </div>
+            </section>
+
+            <!-- אזור החתימה -->
+            <section class="glass-panel p-8 md:p-10 rounded-3xl space-y-6">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2 border-b border-zinc-800 pb-4">
+                    <i data-lucide="pen-tool" class="w-5 h-5 text-[#D4AF37]"></i>
+                    אישור וחתימת הלקוח
+                </h2>
+
+                <form onsubmit="submitClientSignature(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-xs uppercase text-zinc-400 font-bold mb-2">טלפון הלקוח לאישור *</label>
+                        <input type="tel" id="sig_phone" required class="w-full glass-input px-4 py-3 rounded-xl text-sm text-left" dir="ltr" placeholder="050-0000000">
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs uppercase text-zinc-400 font-bold">חתום באזור המסומן *</label>
+                            <button type="button" onclick="clearSignature()" class="text-xs text-zinc-500 hover:text-[#D4AF37] underline">נקה חתימה</button>
+                        </div>
+                        <div class="rounded-2xl overflow-hidden">
+                            <canvas id="sig-canvas" class="w-full h-40 rounded-2xl"></canvas>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-5 gold-gradient-bg text-black font-extrabold text-base md:text-lg rounded-2xl shadow-2xl hover:opacity-95 transition-all flex items-center justify-center gap-3">
+                        <i data-lucide="check-circle" class="w-6 h-6"></i>
+                        אישור הסכם וחתימה (שליחה בוואטסאפ)
+                    </button>
+                </form>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center py-6 border-t border-zinc-800/60 text-zinc-500 text-xs space-y-1">
+            <p class="font-bold tracking-widest uppercase text-zinc-400">Snap Box Events</p>
+            <p>© 2026 כל הזכויות שמורות</p>
+        </footer>
+
+    </div>
+
+    <!-- Script -->
+    <script>
+        lucide.createIcons();
+
+        // Canvas Setup
+        const canvas = document.getElementById('sig-canvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let hasSigned = false;
+
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            ctx.strokeStyle = '#D4AF37';
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            hasSigned = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+
+        function stopDrawing() { isDrawing = false; }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseleave', stopDrawing);
+
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hasSigned = false;
+        }
+
+        // ==================== URL Params Parsing (Client Mode vs Admin Mode) ====================
+        const urlParams = new URLSearchParams(window.location.search);
+        const dataParam = urlParams.get('q');
+
+        if (dataParam) {
+            // מצב לקוח
+            document.getElementById('admin-section').classList.add('hidden');
+            document.getElementById('client-view').classList.remove('hidden');
+
+            try {
+                const data = JSON.parse(decodeURIComponent(atob(dataParam)));
+                document.getElementById('view_clientName').innerText = data.name;
+                document.getElementById('view_eventType').innerText = data.type;
+                document.getElementById('view_location').innerText = data.location;
+                document.getElementById('view_date').innerText = data.date;
+                document.getElementById('view_hours').innerText = `${data.startTime} - ${data.endTime}`;
+                document.getElementById('view_price').innerText = `₪${data.price}`;
+                document.getElementById('view_deposit').innerText = `₪${data.deposit}`;
+                document.getElementById('view_balance').innerText = `₪${data.price - data.deposit}`;
+                
+                setTimeout(resizeCanvas, 300);
+            } catch (err) {
+                alert("קוד הצעת מחיר לא תקין.");
+            }
+        }
+
+        // יצירת הקישור ע"י המנהל
+        function generateShareLink(e) {
+            e.preventDefault();
+
+            const payload = {
+                name: document.getElementById('in_clientName').value,
+                type: document.getElementById('in_eventType').value,
+                location: document.getElementById('in_location').value,
+                date: document.getElementById('in_date').value,
+                startTime: document.getElementById('in_startTime').value,
+                endTime: document.getElementById('in_endTime').value,
+                price: Number(document.getElementById('in_price').value),
+                deposit: Number(document.getElementById('in_deposit').value)
+            };
+
+            const encoded = btoa(encodeURIComponent(JSON.stringify(payload)));
+            const fullUrl = `${window.location.origin}${window.location.pathname}?q=${encoded}`;
+
+            document.getElementById('shareable-url').value = fullUrl;
+            document.getElementById('link-result').classList.remove('hidden');
+        }
+
+        function copyGeneratedLink() {
+            const input = document.getElementById('shareable-url');
+            input.select();
+            navigator.clipboard.writeText(input.value);
+            alert("הקישור הועתק בהצלחה!");
+        }
+
+        // שליחת החתימה מוואטסאפ מצידו של הלקוח
+        function submitClientSignature(e) {
+            e.preventDefault();
+
+            if (!hasSigned) {
+                alert("אנא חתום בתיבה המיועדת לכך.");
+                return;
+            }
+
+            const clientName = document.getElementById('view_clientName').innerText;
+            const clientPhone = document.getElementById('sig_phone').value;
+            const eventDate = document.getElementById('view_date').innerText;
+
+            const message = `✨ *אישור הצעת מחיר - Snap Box* ✨\n\n` +
+                            `👤 *לכבוד:* ${clientName}\n` +
+                            `📞 *טלפון:* ${clientPhone}\n` +
+                            `📅 *תאריך האירוע:* ${eventDate}\n\n` +
+                            `✅ *הלקוח אישר וחתם על ההסכם והתנאים.*`;
+
+            window.open(`https://wa.me/972546056180?text=${encodeURIComponent(message)}`, '_blank');
+        }
+    </script>
+</body>
+</html>
