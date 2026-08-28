@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snap Box | הסכם והצעת מחיר</title>
     
-    <!-- Tailwind CSS CDN -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-    
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- HTML2PDF Library עבור מחולל קובצי PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
@@ -31,7 +32,6 @@
             background-attachment: fixed;
         }
 
-        /* Glassmorphism */
         .glass-card {
             background: rgba(22, 27, 38, 0.65);
             backdrop-filter: blur(20px);
@@ -95,7 +95,7 @@
 </head>
 <body class="min-h-screen py-6 md:py-12 px-4 sm:px-6 lg:px-8">
 
-    <div id="quotation-document" class="max-w-3xl mx-auto space-y-6 md:space-y-8">
+    <div id="pdf-container" class="max-w-3xl mx-auto space-y-6 md:space-y-8 p-4">
 
         <!-- Header -->
         <header class="text-center space-y-3 pt-2">
@@ -283,7 +283,7 @@
             </section>
 
             <!-- טופס חתימה -->
-            <section class="glass-card p-6 md:p-8 rounded-3xl space-y-6">
+            <section id="sig-section" class="glass-card p-6 md:p-8 rounded-3xl space-y-6">
                 <h2 class="text-lg md:text-xl font-bold text-white border-b border-white/10 pb-4 flex items-center gap-2">
                     <i data-lucide="pen-tool" class="w-5 h-5 text-cyan-400"></i>
                     אישור וחתימת הלקוח
@@ -321,7 +321,6 @@
 
     </div>
 
-    <!-- JavaScript -->
     <script>
         lucide.createIcons();
 
@@ -427,7 +426,6 @@
         }
 
         let contractData = {};
-
         const urlParams = new URLSearchParams(window.location.search);
         const dataParam = urlParams.get('q');
 
@@ -514,46 +512,38 @@
             }
 
             const btn = document.getElementById('submit-btn');
-            btn.innerText = "שולח אישור וחתימה...";
+            btn.innerText = "מפיק קובץ PDF ומעביר לוואצאפ...";
             btn.disabled = true;
 
-            const signatureImage = canvas.toDataURL('image/png');
             let clientPhone = document.getElementById('sig_phone').value.replace(/[^0-9]/g, '');
-
-            // שליחה שקטה ל-Formspree ברקע via fetch
-            const payload = {
-                "שם הלקוח": contractData.name,
-                "סוג אירוע": contractData.type,
-                "מיקום האירוע": contractData.location,
-                "תאריך האירוע": contractData.date,
-                "שעות פעילות": `${contractData.startTime} - ${contractData.endTime}`,
-                "מחיר כולל": `₪${contractData.price}`,
-                "מקדמה": `₪${contractData.deposit}`,
-                "יתרה לתשלום": `₪${contractData.price - contractData.deposit}`,
-                "טלפון לקוח": clientPhone,
-                "תמונת חתימה (Base64)": signatureImage
-            };
-
-            try {
-                await fetch("https://formspree.io/f/xnpqqonj", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Accept": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                });
-            } catch (err) {
-                console.error("שגיאה בשליחה ברקע", err);
-            }
-
-            // מעבר ל-WhatsApp של הלקוח
             if (clientPhone.startsWith('0')) {
                 clientPhone = '972' + clientPhone.slice(1);
             }
 
-            const waMessage = `שלום ${contractData.name},\nאישור החתימה שלך עבור הסכם השירות מול Snap Box לאירוע בתאריך ${contractData.date} התקבל בהצלחה! 🎉\nתודה רבה!`;
-            window.location.href = `https://wa.me/${clientPhone}?text=${encodeURIComponent(waMessage)}`;
+            // 1. הגדרות והפקת ה-PDF מהעמוד כולו
+            const element = document.getElementById('pdf-container');
+            const opt = {
+                margin:       [0.3, 0.3, 0.3, 0.3],
+                filename:     `SnapBox_Proposal_${contractData.name}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            // 2. הפקת הקובץ והורדתו ישירות למכשיר הלקוח
+            try {
+                await html2pdf().set(opt).from(element).save();
+            } catch (err) {
+                console.error("שגיאה בהורדת ה-PDF", err);
+            }
+
+            // 3. ניתוח הודעת WhatsApp מותאמת ללקוח
+            const waMessage = `שלום ${contractData.name},\nהצעת המחיר נרשמה אצלנו וקיבלת עותק ישירות למכשיר שלך. ניפגש באירוע! 🎉\n\n- Snap Box Events`;
+
+            // 4. מעבר אוטומטי לצ'אט ה-WhatsApp של הלקוח
+            setTimeout(() => {
+                window.location.href = `https://wa.me/${clientPhone}?text=${encodeURIComponent(waMessage)}`;
+            }, 1000);
         }
     </script>
 </body>
