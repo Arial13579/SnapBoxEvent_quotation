@@ -12,7 +12,7 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- HTML2PDF Library עבור מחולל קובצי PDF -->
+    <!-- HTML2PDF Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -33,7 +33,7 @@
         }
 
         .glass-card {
-            background: rgba(22, 27, 38, 0.65);
+            background: rgba(22, 27, 38, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -41,10 +41,9 @@
         }
 
         .glass-card-accent {
-            background: linear-gradient(135deg, rgba(10, 132, 255, 0.1) 0%, rgba(100, 210, 255, 0.03) 100%);
+            background: linear-gradient(135deg, rgba(10, 132, 255, 0.15) 0%, rgba(100, 210, 255, 0.05) 100%);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(10, 132, 255, 0.25);
-            box-shadow: 0 10px 30px rgba(10, 132, 255, 0.1);
         }
 
         .glass-input {
@@ -57,7 +56,6 @@
         .glass-input:focus {
             background: rgba(255, 255, 255, 0.09);
             border-color: var(--accent-blue);
-            box-shadow: 0 0 15px rgba(10, 132, 255, 0.3);
             outline: none;
         }
 
@@ -68,7 +66,7 @@
 
         canvas#sig-canvas {
             touch-action: none;
-            background: rgba(10, 14, 20, 0.7);
+            background: rgba(10, 14, 20, 0.9);
             border: 1.5px dashed rgba(10, 132, 255, 0.4);
             cursor: crosshair;
         }
@@ -88,14 +86,13 @@
 
         .btn-action:hover {
             opacity: 0.95;
-            box-shadow: 0 0 25px rgba(10, 132, 255, 0.4);
             transform: translateY(-1px);
         }
     </style>
 </head>
 <body class="min-h-screen py-6 md:py-12 px-4 sm:px-6 lg:px-8">
 
-    <div id="pdf-container" class="max-w-3xl mx-auto space-y-6 md:space-y-8 p-4">
+    <div id="pdf-container" class="max-w-3xl mx-auto space-y-6 md:space-y-8 p-2 md:p-4">
 
         <!-- Header -->
         <header class="text-center space-y-3 pt-2">
@@ -175,8 +172,8 @@
                 <p class="text-xs text-cyan-400 font-bold uppercase tracking-wider">הקישור מוכן לשליחה ללקוח:</p>
                 <div class="flex gap-2">
                     <input type="text" id="shareable-url" readonly class="w-full glass-input px-4 py-2.5 rounded-xl text-xs font-mono" dir="ltr">
-                    <button onclick="copyGeneratedLink()" class="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1">
-                        <i data-lucide="copy" class="w-4 h-4"></i> העתק
+                    <button id="copy-btn" onclick="copyGeneratedLink()" class="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1">
+                        <i data-lucide="copy" class="w-4 h-4"></i> <span id="copy-text">העתק</span>
                     </button>
                 </div>
             </div>
@@ -277,7 +274,7 @@
                     <i data-lucide="file-text" class="w-5 h-5 text-cyan-400"></i>
                     תנאי הסכם והסדר ביטולים
                 </h2>
-                <div class="bg-black/40 border border-white/5 p-5 rounded-2xl text-zinc-300 text-sm leading-relaxed text-justify font-normal max-h-60 overflow-y-auto">
+                <div class="bg-black/40 border border-white/5 p-5 rounded-2xl text-zinc-300 text-sm leading-relaxed text-justify font-normal">
                     בכל מקרה של ביטול, דחייה או שינוי מהותי בפרטי האירוע, שומרת לעצמה "Snap Box" את הזכות לבטל את השירות או לעדכן את מחיר העסקה בהתאם; ביטול מצד הלקוח בתוך 14 ימים או פחות ממועד האירוע יגרור חילוט מלא של המקדמה כפיצוי מוסכם מראש ללא זכות החזר. מנגד, אם השירות לא יסופק עקב נסיבות שאינן בשליטת הספק (כוח עליון), תוחזר המקדמה במלואה והספק יהיה פטור מכל פיצוי נוסף. הלקוח נושא באחריות מלאה לכל נזק או אובדן שייגרמו לציוד במהלך האירוע, ומתחייב לשאת במלוא עלות התיקון או ההחלפה. חתימה על הסכם זה מהווה אישור ל-"Snap Box" לעשות שימוש בתמונות מהאירוע לצרכי פרסום ושיווק, אלא אם הלקוח סירב לכך מראש ובכתב. כמו כן, הלקוח מתחייב לספק לעמדת הצילום חניה נגישה, מקור חשמל תקין וחיבור אינטרנט רציף. יתרת התשלום תועבר לספק במלואה מיד בתום האירוע.
                 </div>
             </section>
@@ -459,7 +456,7 @@
 
                 setTimeout(resizeCanvas, 300);
             } catch (err) {
-                alert("קישור לא תקין.");
+                console.error("שגיאה בפענוח קישור");
             }
         }
 
@@ -473,11 +470,6 @@
             const startM = document.getElementById('in_startMin').value;
             const endH = document.getElementById('in_endHour').value;
             const endM = document.getElementById('in_endMin').value;
-
-            if (!day || !month || !year || !startH || !startM || !endH || !endM) {
-                alert("נא להשלים תאריך ושעות תקינים.");
-                return;
-            }
 
             const name = document.getElementById('in_clientName').value;
             const type = document.getElementById('in_eventType').value;
@@ -496,11 +488,17 @@
             document.getElementById('link-result').classList.remove('hidden');
         }
 
+        // העתקה שקטה ללא הודעת Alert מציקה
         function copyGeneratedLink() {
             const input = document.getElementById('shareable-url');
             input.select();
             navigator.clipboard.writeText(input.value);
-            alert("הקישור הועתק!");
+            
+            const copyText = document.getElementById('copy-text');
+            copyText.innerText = "הועתק! ✓";
+            setTimeout(() => {
+                copyText.innerText = "העתק";
+            }, 2000);
         }
 
         async function handleSignatureSubmit(e) {
@@ -512,7 +510,7 @@
             }
 
             const btn = document.getElementById('submit-btn');
-            btn.innerText = "מפיק קובץ PDF ומעביר לוואצאפ...";
+            btn.innerText = "מוריד קובץ PDF...";
             btn.disabled = true;
 
             let clientPhone = document.getElementById('sig_phone').value.replace(/[^0-9]/g, '');
@@ -520,30 +518,34 @@
                 clientPhone = '972' + clientPhone.slice(1);
             }
 
-            // 1. הגדרות והפקת ה-PDF מהעמוד כולו
+            // הגדרות הפקת PDF מושלם לעמוד מלא
             const element = document.getElementById('pdf-container');
             const opt = {
-                margin:       [0.3, 0.3, 0.3, 0.3],
-                filename:     `SnapBox_Proposal_${contractData.name}.pdf`,
+                margin:       [10, 10, 10, 10],
+                filename:     `SnapBox_Contract_${contractData.name}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // 2. הפקת הקובץ והורדתו ישירות למכשיר הלקוח
             try {
+                // הורדת הקובץ למכשיר הלקוח
                 await html2pdf().set(opt).from(element).save();
+                
+                btn.innerText = "מעביר ל-WhatsApp...";
+
+                const waMessage = `שלום ${contractData.name},\nהצעת המחיר נרשמה אצלנו וקיבלת עותק ישירות למכשיר שלך. ניפגש באירוע! 🎉\n\n- Snap Box Events`;
+
+                // השהייה מבוקרת לפתיחת הוואצאפ בניידים
+                setTimeout(() => {
+                    window.location.href = `https://api.whatsapp.com/send?phone=${clientPhone}&text=${encodeURIComponent(waMessage)}`;
+                }, 1200);
+
             } catch (err) {
-                console.error("שגיאה בהורדת ה-PDF", err);
+                console.error("שגיאה בהורדה", err);
+                btn.innerText = "אישור וחתימה על ההסכם";
+                btn.disabled = false;
             }
-
-            // 3. ניתוח הודעת WhatsApp מותאמת ללקוח
-            const waMessage = `שלום ${contractData.name},\nהצעת המחיר נרשמה אצלנו וקיבלת עותק ישירות למכשיר שלך. ניפגש באירוע! 🎉\n\n- Snap Box Events`;
-
-            // 4. מעבר אוטומטי לצ'אט ה-WhatsApp של הלקוח
-            setTimeout(() => {
-                window.location.href = `https://wa.me/${clientPhone}?text=${encodeURIComponent(waMessage)}`;
-            }, 1000);
         }
     </script>
 </body>
