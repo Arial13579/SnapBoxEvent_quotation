@@ -92,9 +92,9 @@
 </head>
 <body class="min-h-screen py-6 md:py-12 px-4 sm:px-6 lg:px-8">
 
-    <div id="pdf-container" class="max-w-3xl mx-auto space-y-6 md:space-y-8 p-2 md:p-4">
+    <!-- האזור שיהפוך ל-PDF -->
+    <div id="pdf-container" class="max-w-3xl mx-auto space-y-6 md:space-y-8 p-2 md:p-4 bg-[var(--bg-dark)]">
 
-        <!-- Header -->
         <header class="text-center space-y-3 pt-2">
             <div class="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-3xl glass-card-accent mb-1 shadow-xl">
                 <i data-lucide="camera" class="w-8 h-8 md:w-10 md:h-10 text-cyan-400"></i>
@@ -279,7 +279,6 @@
                 </div>
             </section>
 
-            <!-- טופס חתימה -->
             <section id="sig-section" class="glass-card p-6 md:p-8 rounded-3xl space-y-6">
                 <h2 class="text-lg md:text-xl font-bold text-white border-b border-white/10 pb-4 flex items-center gap-2">
                     <i data-lucide="pen-tool" class="w-5 h-5 text-cyan-400"></i>
@@ -287,11 +286,7 @@
                 </h2>
 
                 <form id="signature-form" onsubmit="handleSignatureSubmit(event)" class="space-y-5">
-                    <div>
-                        <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מספר טלפון לאישור וקבלה ב-WhatsApp *</label>
-                        <input type="tel" id="sig_phone" required class="w-full glass-input px-4 py-3.5 rounded-2xl text-left font-mono text-sm" dir="ltr" placeholder="0500000000">
-                    </div>
-
+                    
                     <div class="space-y-2">
                         <div class="flex justify-between items-center">
                             <label class="text-xs uppercase font-bold text-zinc-300">חתום בתוך התיבה למטה *</label>
@@ -302,10 +297,19 @@
                         </div>
                     </div>
 
-                    <button type="submit" id="submit-btn" class="w-full py-5 btn-action rounded-2xl text-lg font-extrabold flex items-center justify-center gap-2 shadow-xl">
-                        <i data-lucide="check-circle-2" class="w-6 h-6"></i>
-                        אישור וחתימה על ההסכם
-                    </button>
+                    <!-- החלק הזה יוסתר ספציפית בזמן יצירת ה-PDF כדי לא להופיע בחוזה המודפס -->
+                    <div id="pdf-hide-controls" class="space-y-5">
+                        <div>
+                            <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מספר טלפון לאישור וקבלה ב-WhatsApp *</label>
+                            <input type="tel" id="sig_phone" required class="w-full glass-input px-4 py-3.5 rounded-2xl text-left font-mono text-sm" dir="ltr" placeholder="0500000000">
+                        </div>
+
+                        <button type="submit" id="submit-btn" class="w-full py-5 btn-action rounded-2xl text-lg font-extrabold flex items-center justify-center gap-2 shadow-xl">
+                            <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                            אישור, שמירה ושליחה ל-WhatsApp
+                        </button>
+                    </div>
+
                 </form>
             </section>
 
@@ -356,10 +360,11 @@
                 endH.add(new Option(val, val));
             }
 
+            // תיקון הדקות ל-15, 30, 45, 00
             startM.add(new Option('דקות', ''));
             endM.add(new Option('דקות', ''));
-            for (let i = 0; i < 60; i += 5) {
-                const val = i < 10 ? '0' + i : i;
+            for (let i = 0; i < 60; i += 15) {
+                const val = i === 0 ? '00' : i;
                 startM.add(new Option(val, val));
                 endM.add(new Option(val, val));
             }
@@ -488,7 +493,6 @@
             document.getElementById('link-result').classList.remove('hidden');
         }
 
-        // העתקה שקטה ללא הודעת Alert מציקה
         function copyGeneratedLink() {
             const input = document.getElementById('shareable-url');
             input.select();
@@ -510,7 +514,7 @@
             }
 
             const btn = document.getElementById('submit-btn');
-            btn.innerText = "מוריד קובץ PDF...";
+            btn.innerText = "מעבד מסמך PDF (נא להמתין)...";
             btn.disabled = true;
 
             let clientPhone = document.getElementById('sig_phone').value.replace(/[^0-9]/g, '');
@@ -518,33 +522,55 @@
                 clientPhone = '972' + clientPhone.slice(1);
             }
 
-            // הגדרות הפקת PDF מושלם לעמוד מלא
+            // פתרון 1: גלילה אוטומטית למעלה כדי למנוע חיתוך של המסמך!
+            window.scrollTo(0, 0);
+
+            // פתרון 2: הסתרת שדות הקלט והכפתור מה-PDF כדי שייראה כמו חוזה נקי
+            const controlsDiv = document.getElementById('pdf-hide-controls');
+            controlsDiv.style.display = 'none';
+
+            // הגדרות מתקדמות לפתרון בעיות חיתוך בניידים
             const element = document.getElementById('pdf-container');
             const opt = {
                 margin:       [10, 10, 10, 10],
                 filename:     `SnapBox_Contract_${contractData.name}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    scrollY: 0, // קריטי: מאלץ להתחיל לסרוק מראש העמוד
+                    windowWidth: 800 // קריטי לניידים: מדמה מסך רחב כדי למנוע דחיסת טקסט וירידת שורות עודפת שחותכת את הדף
+                },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             try {
-                // הורדת הקובץ למכשיר הלקוח
+                // שלב 1: הורדת ה-PDF
                 await html2pdf().set(opt).from(element).save();
                 
-                btn.innerText = "מעביר ל-WhatsApp...";
+                // החזרת הכפתורים לתצוגה
+                controlsDiv.style.display = 'block';
+                btn.innerText = "פותח WhatsApp...";
 
-                const waMessage = `שלום ${contractData.name},\nהצעת המחיר נרשמה אצלנו וקיבלת עותק ישירות למכשיר שלך. ניפגש באירוע! 🎉\n\n- Snap Box Events`;
+                const waMessage = `שלום ${contractData.name},\nהצעת המחיר נרשמה אצלנו ועותק PDF נשמר הרגע במכשיר שלך. \nניפגש באירוע! 🎉\n\n- Snap Box Events`;
 
-                // השהייה מבוקרת לפתיחת הוואצאפ בניידים
+                // פתרון 3: שימוש בקישור הישיר המומלץ של וואצאפ לניידים (wa.me) עם השהייה קלה
                 setTimeout(() => {
-                    window.location.href = `https://api.whatsapp.com/send?phone=${clientPhone}&text=${encodeURIComponent(waMessage)}`;
-                }, 1200);
+                    window.location.href = `https://wa.me/${clientPhone}?text=${encodeURIComponent(waMessage)}`;
+                    
+                    // החזרת הכפתור למצב רגיל במקרה שהמשתמש חוזר לדף
+                    setTimeout(() => {
+                        btn.innerText = "אישור, שמירה ושליחה ל-WhatsApp";
+                        btn.disabled = false;
+                    }, 2000);
+                }, 1000);
 
             } catch (err) {
                 console.error("שגיאה בהורדה", err);
-                btn.innerText = "אישור וחתימה על ההסכם";
+                controlsDiv.style.display = 'block';
+                btn.innerText = "אישור, שמירה ושליחה ל-WhatsApp";
                 btn.disabled = false;
+                alert("אירעה שגיאה ביצירת הקובץ. אנא נסה שוב.");
             }
         }
     </script>
