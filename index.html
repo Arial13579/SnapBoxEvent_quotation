@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snap Box | הסכם והצעת מחיר</title>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <!-- HTML2PDF Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -26,7 +26,7 @@
             font-family: 'Assistant', -apple-system, sans-serif;
             background-color: var(--bg-dark);
             color: #F2F2F7;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 20% 15%, rgba(10, 132, 255, 0.12) 0%, transparent 40%),
                 radial-gradient(circle at 80% 80%, rgba(100, 210, 255, 0.08) 0%, transparent 40%);
             background-attachment: fixed;
@@ -92,6 +92,8 @@
             transform: translateY(-2px);
         }
 
+        .btn-action:disabled { opacity: .7; transform: none; cursor: wait; }
+
         /* עיצוב מיוחד ומקצועי נטו להורדת ה-PDF (שחור על לבן, כמו מסמך רשמי) */
         .pdf-export-mode, .pdf-export-mode body {
             background: #FFFFFF !important;
@@ -101,8 +103,8 @@
             min-height: 100% !important;
             overflow: visible !important;
         }
-        
-        .pdf-export-mode .glass-card, 
+
+        .pdf-export-mode .glass-card,
         .pdf-export-mode .glass-card-accent {
             background: #FFFFFF !important;
             backdrop-filter: none !important;
@@ -111,7 +113,7 @@
             border: 1px solid #D1D5DB !important;
             border-radius: 8px !important;
         }
-        
+
         .pdf-export-mode .text-white,
         .pdf-export-mode .text-zinc-100,
         .pdf-export-mode .text-zinc-200,
@@ -119,12 +121,12 @@
         .pdf-export-mode .text-zinc-400 {
             color: #111827 !important;
         }
-        
+
         .pdf-export-mode .text-cyan-400,
         .pdf-export-mode .text-cyan-300 {
             color: #0284C7 !important;
         }
-        
+
         .pdf-export-mode .text-gradient {
             background: none !important;
             -webkit-text-fill-color: #000000 !important;
@@ -135,7 +137,7 @@
             background: #F9FAFB !important;
             border: 1px solid #9CA3AF !important;
         }
-        
+
         .pdf-export-mode #pdf-container {
             padding: 40px !important;
             width: 800px !important; /* כופה תצוגת מחשב רחבה על ה-PDF תמיד */
@@ -144,12 +146,17 @@
             height: max-content !important;
             overflow: visible !important;
         }
-        
+
         .pdf-export-mode .bg-black\/40,
-        .pdf-export-mode .bg-cyan-950\/20 {
+        .pdf-export-mode .bg-black\/60,
+        .pdf-export-mode .bg-cyan-950\/20,
+        .pdf-export-mode .bg-cyan-900\/20 {
             background: #F3F4F6 !important;
             border-color: #D1D5DB !important;
         }
+
+        /* מסתיר אלמנטים שאסור שיופיעו ב-PDF */
+        .pdf-export-mode .no-pdf { display: none !important; }
     </style>
 </head>
 <body class="min-h-screen py-6 md:py-12 px-4 sm:px-6 lg:px-8">
@@ -209,16 +216,16 @@
                         <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מקדמה (₪) *</label>
                         <input type="number" id="in_deposit" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="500">
                     </div>
-                    
+
                     <div class="sm:col-span-2">
                         <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">הערות / סיכומים נוספים (אופציונלי)</label>
                         <textarea id="in_notes" class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="לדוגמה: תוספת מגנטים, מיקום חופה..." rows="2"></textarea>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full py-4 btn-action rounded-2xl text-base font-bold flex items-center justify-center gap-2 shadow-lg mt-4">
+                <button type="submit" id="gen-btn" class="w-full py-4 btn-action rounded-2xl text-base font-bold flex items-center justify-center gap-2 shadow-lg mt-4">
                     <i data-lucide="link" class="w-5 h-5"></i>
-                    צור קישור מעוצב ללקוח
+                    צור קישור קצר ללקוח
                 </button>
             </form>
 
@@ -230,6 +237,12 @@
                         <i data-lucide="copy" class="w-4 h-4"></i> <span id="copy-text">העתק</span>
                     </button>
                 </div>
+                <p id="link-status" class="text-[11px] text-zinc-400 min-h-[14px]"></p>
+                <a id="wa-share-btn" href="#" target="_blank" rel="noopener"
+                   class="flex items-center justify-center gap-2 w-full py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-bold transition">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i>
+                    שלח ללקוח בוואטסאפ
+                </a>
             </div>
         </div>
 
@@ -279,7 +292,7 @@
                         <span id="view_balance" class="font-semibold text-zinc-200"></span>
                     </div>
                 </div>
-                
+
                 <div id="view_notes_container" class="hidden mt-6 bg-cyan-950/20 p-5 rounded-2xl border border-cyan-500/20">
                     <span class="block text-xs uppercase text-cyan-400 font-bold mb-2 flex items-center gap-2">
                         <i data-lucide="info" class="w-4 h-4"></i>
@@ -348,18 +361,19 @@
                 </h2>
 
                 <form id="signature-form" onsubmit="handleSignatureSubmit(event)" class="space-y-5">
-                    
+
                     <div class="space-y-2">
                         <div class="flex justify-between items-center">
                             <label class="text-xs uppercase font-bold text-zinc-300">חתום בתוך התיבה למטה *</label>
-                            <button type="button" onclick="clearSignature()" class="text-xs text-cyan-400 hover:underline font-bold">איפוס חתימה</button>
+                            <button type="button" onclick="clearSignature()" class="no-pdf text-xs text-cyan-400 hover:underline font-bold">איפוס חתימה</button>
                         </div>
-                        <div class="rounded-2xl overflow-hidden">
+                        <div id="sig-box" class="rounded-2xl overflow-hidden">
                             <canvas id="sig-canvas" class="w-full h-40 rounded-2xl"></canvas>
                         </div>
+                        <p class="text-[11px] text-zinc-500">תאריך חתימה: <span id="sign-date" dir="ltr"></span></p>
                     </div>
 
-                    <div id="pdf-hide-controls" class="space-y-5">
+                    <div id="pdf-hide-controls" class="space-y-5 no-pdf">
                         <div class="p-4 rounded-xl bg-cyan-900/20 border border-cyan-500/30 text-sm text-cyan-100">
                             <strong>הוראות סיום:</strong> לחיצה על הכפתור למטה תוריד מיידית את עותק ה-PDF המלא של ההסכם למכשיר שלך, ובמקביל תשלח את ההודעה והאישור לעסק בצורה מאובטחת.
                         </div>
@@ -385,9 +399,11 @@
     <script>
         lucide.createIcons();
 
-        // 📌 המייל המעודכן שאליו יישלחו ההודעות
+        /* ========= הגדרות ========= */
+        // המייל שאליו יישלחו ההסכמים החתומים (דרך FormSubmit)
         const SUPPLIER_EMAIL = "snapboxevent.official@gmail.com";
 
+        /* ========= קנבס חתימה ========= */
         const canvas = document.getElementById('sig-canvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
@@ -407,6 +423,7 @@
         }
 
         function resizeCanvas() {
+            const prev = canvas.toDataURL();
             const rect = canvas.getBoundingClientRect();
             canvas.width = rect.width;
             canvas.height = rect.height;
@@ -414,9 +431,13 @@
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
+            if (hasSigned) {
+                const img = new Image();
+                img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                img.src = prev;
+            }
         }
-
-        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('resize', () => setTimeout(resizeCanvas, 150));
 
         function getPos(e) {
             const rect = canvas.getBoundingClientRect();
@@ -447,7 +468,6 @@
         canvas.addEventListener('mousemove', draw);
         canvas.addEventListener('mouseup', stopDrawing);
         canvas.addEventListener('mouseleave', stopDrawing);
-
         canvas.addEventListener('touchstart', startDrawing, { passive: false });
         canvas.addEventListener('touchmove', draw, { passive: false });
         canvas.addEventListener('touchend', stopDrawing);
@@ -457,6 +477,120 @@
             hasSigned = false;
         }
 
+        /* ========= קידוד/פענוח בטוח לכתובת (base64url) ========= */
+        function b64UrlEncode(str) {
+            return btoa(encodeURIComponent(str))
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+        function b64UrlDecode(str) {
+            str = String(str).replace(/-/g, '+').replace(/_/g, '/');
+            while (str.length % 4) str += '=';
+            return decodeURIComponent(atob(str));
+        }
+
+        /* ========= קיצור כתובת (עם שרשרת גיבויים) ========= */
+        async function shortenUrl(longUrl) {
+            const attempts = [
+                async () => {
+                    const r = await fetch('https://is.gd/create.php?format=json&logstats=0&url=' + encodeURIComponent(longUrl));
+                    const d = await r.json();
+                    return d.shorturl || null;
+                },
+                async () => {
+                    const r = await fetch('https://v.gd/create.php?format=json&logstats=0&url=' + encodeURIComponent(longUrl));
+                    const d = await r.json();
+                    return d.shorturl || null;
+                },
+                async () => {
+                    const r = await fetch('https://cleanuri.com/api/v1/shorten', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'url=' + encodeURIComponent(longUrl)
+                    });
+                    const d = await r.json();
+                    return d.result_url || null;
+                }
+            ];
+            for (const run of attempts) {
+                try {
+                    const s = await run();
+                    if (s && /^https?:\/\//i.test(s)) return s;
+                } catch (e) { /* נסה את הבא */ }
+            }
+            return null;
+        }
+
+        /* ========= יצירת קישור ללקוח ========= */
+        async function generateShareLink(e) {
+            e.preventDefault();
+            const btn = document.getElementById('gen-btn');
+            const originalBtn = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> יוצר קישור...';
+            lucide.createIcons();
+
+            const g = id => document.getElementById(id).value.trim();
+            const name = g('in_clientName');
+            const type = g('in_eventType');
+            const loc = g('in_location');
+            const dateStr = g('in_date');
+            const sTime = g('in_startTime');
+            const eTime = g('in_endTime');
+            const price = document.getElementById('in_price').value;
+            const deposit = document.getElementById('in_deposit').value;
+            // מנקה תווים ששוברים את מבנה הנתונים
+            const safeNotes = (document.getElementById('in_notes').value || '').replace(/\|/g, '/');
+
+            const rawData = [name, type, loc, dateStr, sTime, eTime, price, deposit, safeNotes].join('|');
+            const encoded = b64UrlEncode(rawData);
+            const fullUrl = `${window.location.origin}${window.location.pathname}?q=${encoded}`;
+
+            // מציג מיד את הקישור המלא (עובד גם אם הקיצור ייכשל)
+            const urlInput = document.getElementById('shareable-url');
+            const statusEl = document.getElementById('link-status');
+            urlInput.value = fullUrl;
+            statusEl.textContent = 'מקצר קישור...';
+            document.getElementById('link-result').classList.remove('hidden');
+
+            let finalUrl = fullUrl;
+            const short = await shortenUrl(fullUrl);
+            if (short) {
+                finalUrl = short;
+                urlInput.value = short;
+                statusEl.textContent = '✓ קישור קצר מוכן. אפשר גם ללחוץ "העתק" או לשלוח בוואטסאפ.';
+            } else {
+                statusEl.textContent = 'לא הצלחנו לקצר כרגע — הקישור המלא שלמעלה תקין לחלוטין לשליחה.';
+            }
+
+            // כפתור וואטסאפ
+            const waMsg =
+                `היי ${name || ''}, זו הצעת המחיר וההסכם ל${type || 'אירוע'} 🎥📸\n` +
+                `לצפייה בפרטים ולחתימה דיגיטלית:\n${finalUrl}`;
+            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
+
+            btn.disabled = false;
+            btn.innerHTML = originalBtn;
+            lucide.createIcons();
+        }
+
+        function copyGeneratedLink() {
+            const input = document.getElementById('shareable-url');
+            const copyText = document.getElementById('copy-text');
+            const done = () => {
+                copyText.innerText = 'הועתק! ✓';
+                setTimeout(() => { copyText.innerText = 'העתק'; }, 2000);
+            };
+            input.select();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(input.value).then(done).catch(() => {
+                    document.execCommand('copy'); done();
+                });
+            } else {
+                document.execCommand('copy'); done();
+            }
+        }
+
+        /* ========= מצב לקוח: קריאת הנתונים מהקישור ========= */
         let contractData = {};
         const urlParams = new URLSearchParams(window.location.search);
         const dataParam = urlParams.get('q');
@@ -466,18 +600,11 @@
             document.getElementById('client-view').classList.remove('hidden');
 
             try {
-                const raw = decodeURIComponent(atob(dataParam));
-                const parts = raw.split('|');
-
+                const parts = b64UrlDecode(dataParam).split('|');
                 contractData = {
-                    name: parts[0],
-                    type: parts[1],
-                    location: parts[2],
-                    date: parts[3],
-                    startTime: parts[4],
-                    endTime: parts[5],
-                    price: Number(parts[6]),
-                    deposit: Number(parts[7]),
+                    name: parts[0], type: parts[1], location: parts[2], date: parts[3],
+                    startTime: parts[4], endTime: parts[5],
+                    price: Number(parts[6]), deposit: Number(parts[7]),
                     notes: parts[8] || ''
                 };
 
@@ -486,9 +613,10 @@
                 document.getElementById('view_location').innerText = contractData.location;
                 document.getElementById('view_date').innerText = contractData.date;
                 document.getElementById('view_hours').innerText = `${contractData.startTime} - ${contractData.endTime}`;
-                document.getElementById('view_price').innerText = `₪${contractData.price}`;
-                document.getElementById('view_deposit').innerText = `₪${contractData.deposit}`;
-                document.getElementById('view_balance').innerText = `₪${contractData.price - contractData.deposit}`;
+                document.getElementById('view_price').innerText = `₪${contractData.price.toLocaleString()}`;
+                document.getElementById('view_deposit').innerText = `₪${contractData.deposit.toLocaleString()}`;
+                document.getElementById('view_balance').innerText = `₪${(contractData.price - contractData.deposit).toLocaleString()}`;
+                document.getElementById('sign-date').innerText = new Date().toLocaleDateString('he-IL');
 
                 if (contractData.notes && contractData.notes.trim() !== '') {
                     document.getElementById('view_notes_container').classList.remove('hidden');
@@ -497,151 +625,119 @@
 
                 setTimeout(resizeCanvas, 300);
             } catch (err) {
-                console.error("שגיאה בפענוח קישור");
+                document.getElementById('client-view').innerHTML =
+                    '<div class="glass-card p-8 rounded-3xl text-center text-red-300">הקישור אינו תקין. אנא בקש מ-Snap Box קישור חדש.</div>';
+                console.error('שגיאה בפענוח קישור', err);
             }
         }
 
-        function generateShareLink(e) {
-            e.preventDefault();
+        /* ========= שליחה לעסק (FormSubmit) ========= */
+        async function sendToBusiness(pdfBlob) {
+            const fd = new FormData();
+            fd.append('_subject', `הסכם חתום חדש — ${contractData.name} (${contractData.type})`);
+            fd.append('_captcha', 'false');
+            fd.append('_template', 'table');
+            fd.append('שם לקוח', contractData.name);
+            fd.append('סוג אירוע', contractData.type);
+            fd.append('מיקום', contractData.location);
+            fd.append('תאריך האירוע', contractData.date);
+            fd.append('שעות', `${contractData.startTime} - ${contractData.endTime}`);
+            fd.append('מחיר כולל', `₪${contractData.price}`);
+            fd.append('מקדמה', `₪${contractData.deposit}`);
+            fd.append('יתרה לתשלום', `₪${contractData.price - contractData.deposit}`);
+            if (contractData.notes) fd.append('הערות', contractData.notes);
+            fd.append('תאריך חתימה', new Date().toLocaleString('he-IL'));
+            fd.append('סטטוס', pdfBlob
+                ? 'הלקוח חתם דיגיטלית. קובץ ה-PDF החתום מצורף למייל זה.'
+                : 'הלקוח חתם דיגיטלית. (צירוף ה-PDF נכשל אצל הלקוח — צור קשר לקבלת עותק).');
+            if (pdfBlob) fd.append('attachment', pdfBlob, `SnapBox_${contractData.name}.pdf`);
 
-            const name = document.getElementById('in_clientName').value;
-            const type = document.getElementById('in_eventType').value;
-            const loc = document.getElementById('in_location').value;
-            const dateStr = document.getElementById('in_date').value;
-            const sTime = document.getElementById('in_startTime').value;
-            const eTime = document.getElementById('in_endTime').value;
-            
-            // מטפל בהערות כדי שלא ישברו את המבנה של הקישור
-            const notesRaw = document.getElementById('in_notes').value || '';
-            const safeNotes = notesRaw.replace(/\|/g, '-');
-            
-            const price = document.getElementById('in_price').value;
-            const deposit = document.getElementById('in_deposit').value;
-
-            const rawData = `${name}|${type}|${loc}|${dateStr}|${sTime}|${eTime}|${price}|${deposit}|${safeNotes}`;
-            const encoded = btoa(encodeURIComponent(rawData));
-            const fullUrl = `${window.location.origin}${window.location.pathname}?q=${encoded}`;
-
-            document.getElementById('shareable-url').value = fullUrl;
-            document.getElementById('link-result').classList.remove('hidden');
+            const res = await fetch(`https://formsubmit.co/ajax/${SUPPLIER_EMAIL}`, { method: 'POST', body: fd });
+            const j = await res.json().catch(() => ({}));
+            return j.success === true || j.success === 'true';
         }
 
-        function copyGeneratedLink() {
-            const input = document.getElementById('shareable-url');
-            input.select();
-            navigator.clipboard.writeText(input.value);
-            
-            const copyText = document.getElementById('copy-text');
-            copyText.innerText = "הועתק! ✓";
-            setTimeout(() => {
-                copyText.innerText = "העתק";
-            }, 2000);
-        }
-
+        /* ========= סיום: PDF ללקוח + מייל לעסק ========= */
         async function handleSignatureSubmit(e) {
             e.preventDefault();
-
-            if (!hasSigned) {
-                alert("אנא חתום בתיבה לפני אישור ההסכם.");
-                return;
-            }
+            if (!hasSigned) { alert('אנא חתום בתיבה לפני אישור ההסכם.'); return; }
 
             const btn = document.getElementById('submit-btn');
-            btn.innerText = "מכין ומוריד את קובץ ה-PDF המלא...";
             btn.disabled = true;
+            btn.innerHTML = 'מכין את המסמך...';
 
+            // ממיר את החתימה מקנבס לתמונה קבועה (נכנס יציב ל-PDF)
+            const sigDataUrl = canvas.toDataURL('image/png');
+            const sigImg = new Image();
+            sigImg.src = sigDataUrl;
+            sigImg.className = 'w-full rounded-xl';
+            sigImg.style.border = '1px solid #9CA3AF';
+            canvas.style.display = 'none';
+            document.getElementById('sig-box').appendChild(sigImg);
+
+            // מצב הדפסה נקי
             window.scrollTo(0, 0);
             document.body.classList.add('pdf-export-mode');
-            const controlsDiv = document.getElementById('pdf-hide-controls');
-            controlsDiv.style.display = 'none';
+            await (document.fonts ? document.fonts.ready : Promise.resolve());
+            await new Promise(r => setTimeout(r, 400));
 
-            // פתרון אפשרי לבעיות חיתוך: להגדיר גובה מינימלי ספציפי למיכל
             const element = document.getElementById('pdf-container');
-            
-            // המרה זמנית של הקנבס לתמונה כדי שיעבור בטוח ל-PDF
-            const canvasImg = new Image();
-            canvasImg.src = canvas.toDataURL('image/png');
-            canvasImg.style.width = '100%';
-            canvasImg.style.borderRadius = '1rem';
-            canvasImg.style.border = '1px solid #9CA3AF';
-            const originalCanvasDisplay = canvas.style.display;
-            canvas.style.display = 'none';
-            canvas.parentNode.appendChild(canvasImg);
+            const safeName = (contractData.name || 'Client').replace(/[\\/:*?"<>|]+/g, '_');
+            const fileName = `SnapBox_Contract_${safeName}.pdf`;
 
             const opt = {
-                margin:       [15, 10, 15, 10], // שוליים גדולים יותר למנוע חיתוך
-                filename:     `SnapBox_Contract_${contractData.name || 'Client'}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                pagebreak:    { mode: 'avoid-all' }, // מונע חיתוך אלמנטים באמצע הדף
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true, 
-                    scrollY: 0,
-                    scrollX: 0,
-                    windowWidth: 800,
-                    windowHeight: element.scrollHeight + 50, // מבטיח שכל גובה המסמך יצולם
-                    backgroundColor: '#FFFFFF',
-                    logging: false 
-                },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin:      [12, 10, 14, 10],
+                filename:    fileName,
+                image:       { type: 'jpeg', quality: 0.95 },
+                html2canvas: { scale: 2, useCORS: true, backgroundColor: '#FFFFFF', windowWidth: 800, scrollX: 0, scrollY: 0 },
+                jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:   { mode: ['css', 'legacy'], avoid: ['section', '.glass-card', '.glass-card-accent'] }
             };
 
+            let pdfBlob = null, downloadOk = false;
             try {
-                // יצירת אובייקט ה-PDF
-                const pdfWorker = html2pdf().set(opt).from(element);
-                
-                // 1. הורדת קובץ ה-PDF למכשיר של הלקוח
-                await pdfWorker.save();
-                
-                // 2. יצירת ה-PDF כקובץ בזיכרון (Blob) כדי שנוכל לצרף אותו למייל!
-                const pdfBlob = await pdfWorker.output('blob');
-                
-                // החזרת המצב לקדמותו
-                canvas.parentNode.removeChild(canvasImg);
-                canvas.style.display = originalCanvasDisplay;
-                document.body.classList.remove('pdf-export-mode');
-                controlsDiv.style.display = 'block';
-
-                // 3. שליחת פרטי האישור לעסק
-                const formData = new FormData();
-                formData.append('_subject', `הסכם חתום חדש מלקוח: ${contractData.name}`);
-                formData.append('שם לקוח', contractData.name);
-                formData.append('סוג אירוע', contractData.type);
-                formData.append('מיקום', contractData.location);
-                formData.append('תאריך', contractData.date);
-                formData.append('שעות', `${contractData.startTime} - ${contractData.endTime}`);
-                formData.append('מחיר כולל', `₪${contractData.price}`);
-                formData.append('מקדמה', `₪${contractData.deposit}`);
-                formData.append('הודעה', 'הלקוח חתם על ההסכם בהצלחה וקובץ ה-PDF המלא מצורף למייל זה!');
-                
-                // הוספת הקובץ למייל בתור Attachment (השם חייב להיות 'attachment')
-                formData.append('attachment', pdfBlob, `SnapBox_Contract_${contractData.name}.pdf`);
-
-                await fetch(`https://formsubmit.co/ajax/${SUPPLIER_EMAIL}`, {
-                    method: "POST",
-                    body: formData
-                });
-
-                btn.innerHTML = `<i data-lucide="check-circle-2" class="w-6 h-6"></i> ההסכם נחתם, ה-PDF ירד ונשלח לעסק בהצלחה!`;
-                lucide.createIcons();
-
+                pdfBlob = await html2pdf().set(opt).from(element).output('blob');
+                // הורדה ידנית של אותו קובץ שנוצר
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(pdfBlob);
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+                downloadOk = true;
             } catch (err) {
-                console.error("שגיאה בשמירת או שליחת המסמך", err);
-                
-                // החזרת המצב לקדמותו גם במקרה של שגיאה
-                if(canvasImg && canvasImg.parentNode) canvas.parentNode.removeChild(canvasImg);
-                canvas.style.display = originalCanvasDisplay;
-                document.body.classList.remove('pdf-export-mode');
-                controlsDiv.style.display = 'block';
-                
-                btn.innerHTML = `<i data-lucide="alert-circle" class="w-6 h-6"></i> אירעה שגיאה, נסה שוב`;
-                lucide.createIcons();
-                btn.disabled = false;
-                
-                // הדפסת דפדפן רגילה כגיבוי אם יצירת ה-PDF נכשלת
-                alert("אירעה שגיאה ביצירת קובץ ה-PDF. נסה להדפיס את העמוד כ-PDF בעזרת חלונית ההדפסה שתיפתח.");
-                window.print();
+                console.error('PDF error', err);
             }
+
+            // מחזיר את התצוגה הרגילה
+            if (sigImg.parentNode) sigImg.remove();
+            canvas.style.display = '';
+            document.body.classList.remove('pdf-export-mode');
+
+            // שולח לעסק
+            btn.innerHTML = 'שולח אישור לעסק...';
+            let emailOk = false;
+            try {
+                emailOk = await sendToBusiness(pdfBlob);
+            } catch (err) {
+                console.error('email error', err);
+                try { emailOk = await sendToBusiness(null); } catch (e2) {}
+            }
+
+            lucide.createIcons();
+            if (downloadOk && emailOk) {
+                btn.innerHTML = '<i data-lucide="check-circle-2" class="w-6 h-6"></i> ההסכם נחתם! ה-PDF ירד למכשיר והאישור נשלח לעסק ✓';
+            } else if (downloadOk && !emailOk) {
+                btn.innerHTML = '<i data-lucide="check-circle-2" class="w-6 h-6"></i> ה-PDF ירד למכשיר. (המייל לעסק לא נשלח — שלח צילום מסך של ההסכם)';
+                document.getElementById('pdf-hide-controls').style.display = 'block';
+                btn.disabled = false;
+            } else {
+                btn.innerHTML = '<i data-lucide="alert-circle" class="w-6 h-6"></i> יצירת ה-PDF נכשלה. פותח חלון הדפסה לשמירה ידנית...';
+                document.getElementById('pdf-hide-controls').style.display = 'block';
+                btn.disabled = false;
+                setTimeout(() => window.print(), 900);
+            }
+            lucide.createIcons();
         }
     </script>
 </body>
