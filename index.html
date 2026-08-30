@@ -259,12 +259,21 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     <div><label class="lbl">לכבוד (שם הלקוח) *</label><input type="text" id="in_clientName" required class="field" placeholder="שם מלא / חברה"></div>
                     <div><label class="lbl">סוג אירוע *</label><input type="text" id="in_eventType" required class="field" placeholder="חתונה / בר מצווה"></div>
-                    <div><label class="lbl">מיקום האירוע *</label><input type="text" id="in_location" required class="field" placeholder="שם האולם / עיר"></div>
+                    <div><label class="lbl">מיקום האירוע *</label><input type="text" id="in_location" required class="field" placeholder="שם האולם / עיר" onblur="autoDistance()"></div>
                     <div><label class="lbl">תאריך האירוע *</label><input type="text" id="in_date" required class="field text-left" dir="ltr" maxlength="10" placeholder="DD/MM/YYYY" oninput="formatDate(this)"></div>
-                    <div><label class="lbl">שעת תחילה *</label><input type="text" id="in_startTime" required class="field text-left" dir="ltr" maxlength="5" placeholder="HH:MM" oninput="formatTime(this)"></div>
-                    <div><label class="lbl">שעת סיום *</label><input type="text" id="in_endTime" required class="field text-left" dir="ltr" maxlength="5" placeholder="HH:MM" oninput="formatTime(this)"></div>
-                    <div><label class="lbl">מחיר כולל (₪) *</label><input type="number" id="in_price" required class="field" placeholder="2500"></div>
-                    <div><label class="lbl">מקדמה (₪) *</label><input type="number" id="in_deposit" required class="field" placeholder="500"></div>
+                    <div><label class="lbl">שעת תחילה *</label><input type="text" id="in_startTime" required class="field text-left" dir="ltr" maxlength="5" placeholder="HH:MM" oninput="formatTime(this); onCalcInputs()"></div>
+                    <div><label class="lbl">שעת סיום *</label><input type="text" id="in_endTime" required class="field text-left" dir="ltr" maxlength="5" placeholder="HH:MM" oninput="formatTime(this); onCalcInputs()"></div>
+                    <div><label class="lbl">כמות מוזמנים (משוער) *</label><input type="number" id="in_guests" required min="1" class="field" placeholder="למשל 250" oninput="onCalcInputs()"></div>
+                    <div>
+                        <label class="lbl">מרחק מתל אביב (ק"מ) — מחושב אוטומטית</label>
+                        <input type="number" id="in_distance" min="0" class="field" placeholder="0" oninput="distanceTouched = true; onCalcInputs()">
+                        <p id="distance-status" class="text-[11px] text-zinc-500 mt-1.5 min-h-[14px]"></p>
+                    </div>
+
+                    <div id="price-breakdown" class="hidden sm:col-span-2 rounded-2xl bg-turq/[.06] border border-turq/20 p-4 text-[13px] space-y-1.5"></div>
+
+                    <div><label class="lbl">מחיר כולל (₪) * — מחושב אוטומטית, ניתן לעריכה</label><input type="number" id="in_price" required class="field" placeholder="מחושב לפי הנתונים" oninput="priceTouched = true"></div>
+                    <div><label class="lbl">מקדמה (₪) — ברירת מחדל 200, ניתן למחוק</label><input type="number" id="in_deposit" value="200" class="field" placeholder="200"></div>
                     <div class="sm:col-span-2"><label class="lbl">הערות / סיכומים (אופציונלי)</label><textarea id="in_notes" rows="2" class="field" placeholder="לדוגמה: תוספת מגנטים, מיקום חופה..."></textarea></div>
                 </div>
 
@@ -305,6 +314,7 @@
                     <div class="stat"><span class="k">מיקום</span><span id="view_location" class="v"></span></div>
                     <div class="stat"><span class="k">תאריך</span><span id="view_date" class="v" dir="ltr"></span></div>
                     <div class="stat"><span class="k">שעות פעילות</span><span id="view_hours" class="v" dir="ltr"></span></div>
+                    <div class="stat"><span class="k">כמות מוזמנים</span><span id="view_guests" class="v"></span></div>
                     <div class="stat"><span class="k">מחיר כולל</span><span id="view_price" class="v !font-black !text-turq-bright !text-xl"></span></div>
                     <div class="stat"><span class="k">מקדמה</span><span id="view_deposit" class="v"></span></div>
                     <div class="stat"><span class="k">יתרה בסיום</span><span id="view_balance" class="v"></span></div>
@@ -399,9 +409,10 @@
            באורך ~36 תווים) והדבק אותו כאן בין המרכאות. זהו — ה-PDF יגיע מצורף למייל.
            דרך ב' (גיבוי אוטומטי): אם משאירים ריק, נשלח דרך FormSubmit — צריך
            פעם אחת לאשר את מייל ההפעלה שיגיע מ-FormSubmit לתיבה של Snap Box. */
-        const WEB3FORMS_KEY = "1149cede-89b3-4169-abc7-985e4b59dd78";
+        const WEB3FORMS_KEY = "";
 
         const PKG_ITEMS = [
+            'עד שעתיים פעילות מלאה (כל שעה נוספת: 200 ש"ח)',
             'צילום ללא הגבלה - כל התמונות שלכם!',
             'שטיח אדום יוקרתי עם 4 עמודי זהב',
             'מפעיל מקצועי וטכנאי צמוד לכל האירוע',
@@ -420,6 +431,138 @@
 
         function formatDate(i){ let v=i.value.replace(/\D/g,''); if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2); if(v.length>5)v=v.slice(0,5)+'/'+v.slice(5); i.value=v; }
         function formatTime(i){ let v=i.value.replace(/\D/g,''); if(v.length>2)v=v.slice(0,2)+':'+v.slice(2); i.value=v; }
+
+        /* ================= תמחור אוטומטי ================= */
+        const PRICE_TIERS = [
+            { max: 50,       price: 999,  label: 'עד 50 מוזמנים'  },
+            { max: 100,      price: 1199, label: 'עד 100 מוזמנים' },
+            { max: 200,      price: 1249, label: 'עד 200 מוזמנים' },
+            { max: 300,      price: 1299, label: 'עד 300 מוזמנים' },
+            { max: 400,      price: 1399, label: 'עד 400 מוזמנים' },
+            { max: Infinity, price: 1499, label: 'עד 500 מוזמנים' }
+        ];
+        const TRAVEL_TIERS = [
+            { max: 30,       price: 0,   label: 'עד 30 ק"מ · ללא עלות נסיעה' },
+            { max: 60,       price: 100, label: 'עד 60 ק"מ' },
+            { max: 90,       price: 200, label: 'עד 90 ק"מ' },
+            { max: Infinity, price: 250, label: 'מעל 90 ק"מ' }
+        ];
+        const BASE_HOURS = 2, EXTRA_HOUR_PRICE = 200;
+        let priceTouched = false;
+
+        function parseHM(v){
+            const m = /^(\d{1,2}):(\d{2})$/.exec(String(v || '').trim());
+            if (!m) return null;
+            const h = +m[1], mm = +m[2];
+            if (h > 23 || mm > 59) return null;
+            return h * 60 + mm;
+        }
+        function eventDurationHours(){
+            const s = parseHM(document.getElementById('in_startTime').value);
+            const e = parseHM(document.getElementById('in_endTime').value);
+            if (s == null || e == null) return null;
+            let d = e - s; if (d <= 0) d += 24 * 60;
+            return d / 60;
+        }
+        function tierFor(tiers, n){ return tiers.find(t => n <= t.max) || tiers[tiers.length - 1]; }
+
+        function computeQuote(){
+            const g = Number(document.getElementById('in_guests').value) || 0;
+            if (g <= 0) return null;
+            const km = Number(document.getElementById('in_distance').value) || 0;
+            const gt = tierFor(PRICE_TIERS, g), tt = tierFor(TRAVEL_TIERS, km);
+            const dur = eventDurationHours();
+            const extraHours = dur == null ? 0 : Math.max(0, Math.ceil(dur - BASE_HOURS - 1e-9));
+            const extraCost = extraHours * EXTRA_HOUR_PRICE;
+            return {
+                base: gt.price, baseLabel: gt.label,
+                travel: tt.price, travelLabel: tt.label,
+                extraHours, extraCost,
+                total: gt.price + tt.price + extraCost
+            };
+        }
+
+        function onCalcInputs(){
+            const q = computeQuote();
+            const box = document.getElementById('price-breakdown');
+            if (!box) return;
+            if (!q) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+            box.classList.remove('hidden');
+            const row = (k, v) => `<div class="flex justify-between gap-3"><span class="text-zinc-400">${k}</span><span class="font-semibold text-zinc-100 whitespace-nowrap">${v.toLocaleString()} ₪</span></div>`;
+            let html = row(`מחיר בסיס · ${q.baseLabel} · עד שעתיים`, q.base);
+            if (q.travel > 0) html += row(`תוספת נסיעה · ${q.travelLabel}`, q.travel);
+            if (q.extraCost > 0) html += row(`תוספת ${q.extraHours} שעות מעבר לשעתיים`, q.extraCost);
+            html += `<div class="h-px bg-white/10 my-1.5"></div>`;
+            html += `<div class="flex justify-between gap-3 text-turq-bright font-extrabold text-base"><span>סה"כ מחיר מוצע</span><span class="whitespace-nowrap">${q.total.toLocaleString()} ₪</span></div>`;
+            html += `<button type="button" onclick="recalcPrice()" class="mt-1.5 text-xs text-turq-bright font-bold hover:underline">⟳ עדכן את שדה המחיר לסכום זה</button>`;
+            box.innerHTML = html;
+            if (!priceTouched) document.getElementById('in_price').value = q.total;
+        }
+        function recalcPrice(){ priceTouched = false; onCalcInputs(); }
+
+        /* ================= חישוב מרחק אוטומטי מתל אביב ================= */
+        const ORIGIN_TA = { lat: 32.0853, lon: 34.7818 }; // מרכז תל אביב
+        let distanceTouched = false, lastGeoQuery = '';
+
+        function haversineKm(a, b){
+            const R = 6371, toRad = d => d * Math.PI / 180;
+            const dLat = toRad(b.lat - a.lat), dLon = toRad(b.lon - a.lon);
+            const s = Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+        }
+        // מנסה כמה וריאציות של המחרוזת (העיר בסוף לרוב מזוהה מהר); Nominatim מוגבל ל-1 בקשה לשנייה
+        async function geocodeIL(raw){
+            const clean = raw.replace(/,?\s*ישראל\s*$/, '').replace(/[,،]/g, ' ').trim();
+            const w = clean.split(/\s+/).filter(Boolean);
+            const cands = [];
+            const push = s => { s = (s || '').trim(); if (s && !cands.includes(s)) cands.push(s); };
+            if (w.length >= 2) push(w.slice(-2).join(' '));
+            if (w.length >= 1) push(w.slice(-1).join(' '));
+            push(clean);
+            if (w.length >= 2) push(w.slice(1).join(' '));
+            const list = cands.slice(0, 4);
+            for (let i = 0; i < list.length; i++){
+                try {
+                    const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=il&q=' + encodeURIComponent(list[i] + ', ישראל'), { headers: { 'Accept-Language': 'he' } });
+                    const j = await r.json();
+                    if (j && j[0]) return { lat: +j[0].lat, lon: +j[0].lon, name: (j[0].display_name || '').split(',').slice(0,2).join(', ') };
+                } catch(e){}
+                if (i < list.length - 1) await new Promise(res => setTimeout(res, 1100));
+            }
+            return null;
+        }
+        async function drivingKm(from, to){
+            try {
+                const url = `https://router.project-osrm.org/route/v1/driving/${from.lon},${from.lat};${to.lon},${to.lat}?overview=false`;
+                const r = await fetch(url);
+                const j = await r.json();
+                if (j && j.routes && j.routes[0]) return j.routes[0].distance / 1000;
+            } catch(e){}
+            return null;
+        }
+        async function autoDistance(){
+            const loc = document.getElementById('in_location').value.trim();
+            const status = document.getElementById('distance-status');
+            if (!loc || distanceTouched) return;
+            if (loc === lastGeoQuery) return;
+            lastGeoQuery = loc;
+            status.textContent = 'מחשב מרחק מתל אביב…'; status.className = 'text-[11px] text-turq-bright/80 mt-1.5 min-h-[14px]';
+            try {
+                const g = await geocodeIL(loc);
+                if (!g) { status.textContent = 'לא זוהה מיקום — אפשר להזין מרחק ידנית'; status.className = 'text-[11px] text-amber-400/80 mt-1.5 min-h-[14px]'; return; }
+                let km = await drivingKm(ORIGIN_TA, g);
+                let approx = false;
+                if (km == null) { km = haversineKm(ORIGIN_TA, g) * 1.3; approx = true; }
+                km = Math.round(km);
+                if (!distanceTouched) { document.getElementById('in_distance').value = km; onCalcInputs(); }
+                status.textContent = `${approx ? '≈' : ''} ${km} ק"מ נסיעה מתל אביב · ${g.name}`;
+                status.className = 'text-[11px] text-zinc-400 mt-1.5 min-h-[14px]';
+            } catch(e){
+                console.warn('autoDistance', e);
+                status.textContent = 'לא ניתן לחשב אוטומטית — הזן מרחק ידנית';
+                status.className = 'text-[11px] text-amber-400/80 mt-1.5 min-h-[14px]';
+            }
+        }
 
         function resizeCanvas(){
             const prev = hasSigned ? canvas.toDataURL() : null;
@@ -459,7 +602,9 @@
             const raw = [
                 g('in_clientName'), g('in_eventType'), g('in_location'), g('in_date'),
                 g('in_startTime'), g('in_endTime'),
-                document.getElementById('in_price').value, document.getElementById('in_deposit').value,
+                document.getElementById('in_guests').value || '',
+                document.getElementById('in_price').value,
+                document.getElementById('in_deposit').value || '0',
                 (document.getElementById('in_notes').value || '').replace(/\|/g,'/')
             ].join('|');
 
@@ -468,8 +613,8 @@
             document.getElementById('shareable-url').value = url;
             document.getElementById('link-result').classList.remove('hidden');
 
-            const waMsg = `היי ${g('in_clientName')},\nמצורפת הצעת המחיר וההסכם עבור ${g('in_eventType') || 'האירוע'} — לצפייה בפרטים ולחתימה דיגיטלית מאובטחת:\n\n${url}\n\n— Snap Box 📸`;
-            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
+            // שיתוף בוואטסאפ — הקישור בלבד, ללא שום טקסט
+            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(url);
         }
 
         function copyGeneratedLink(){
@@ -496,13 +641,14 @@
             try {
                 const p = b64UrlDecode(dataParam).split('|');
                 contractData = { name:p[0], type:p[1], location:p[2], date:p[3], startTime:p[4], endTime:p[5],
-                    price:Number(p[6]), deposit:Number(p[7]), notes:p[8] || '' };
+                    guests:p[6] || '', price:Number(p[7]), deposit:Number(p[8]) || 0, notes:p[9] || '' };
                 const set = (id,v) => document.getElementById(id).innerText = v;
                 set('view_clientName', contractData.name);
                 set('view_eventType', contractData.type);
                 set('view_location', contractData.location);
                 set('view_date', contractData.date);
                 set('view_hours', `${contractData.startTime} - ${contractData.endTime}`);
+                set('view_guests', contractData.guests ? `עד ${Number(contractData.guests).toLocaleString()}` : '—');
                 set('view_price', `₪${contractData.price.toLocaleString()}`);
                 set('view_deposit', `₪${contractData.deposit.toLocaleString()}`);
                 set('view_balance', `₪${(contractData.price - contractData.deposit).toLocaleString()}`);
@@ -548,8 +694,9 @@
                   <table>
                     <tr><td class="k">לכבוד</td><td>${esc(c.name)}</td><td class="k">סוג אירוע</td><td>${esc(c.type)}</td></tr>
                     <tr><td class="k">מיקום</td><td>${esc(c.location)}</td><td class="k">תאריך</td><td dir="ltr">${esc(c.date)}</td></tr>
-                    <tr><td class="k">שעות</td><td dir="ltr">${esc(c.startTime)} - ${esc(c.endTime)}</td><td class="k">מחיר כולל</td><td><b>${c.price.toLocaleString()} ש"ח</b></td></tr>
-                    <tr><td class="k">מקדמה</td><td>${c.deposit.toLocaleString()} ש"ח</td><td class="k">יתרה בסיום</td><td>${bal.toLocaleString()} ש"ח</td></tr>
+                    <tr><td class="k">שעות</td><td dir="ltr">${esc(c.startTime)} - ${esc(c.endTime)}</td><td class="k">כמות מוזמנים</td><td>${c.guests ? 'עד ' + Number(c.guests).toLocaleString() : '—'}</td></tr>
+                    <tr><td class="k">מחיר כולל</td><td><b>${c.price.toLocaleString()} ש"ח</b></td><td class="k">מקדמה</td><td>${c.deposit.toLocaleString()} ש"ח</td></tr>
+                    <tr><td class="k">יתרה בסיום</td><td colspan="3">${bal.toLocaleString()} ש"ח</td></tr>
                   </table>
                 </div>
                 ${c.notes && c.notes.trim() ? `<div class="doc-section"><div class="doc-h">הערות וסיכומים נוספים</div><div class="doc-notes">${esc(c.notes)}</div></div>` : ''}
