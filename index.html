@@ -19,129 +19,169 @@
 
     <style>
         :root{
-            --bg:#070809; --bg-2:#0C0E10;
-            --turq:#2DD4BF; --turq-bright:#5EEAD4; --turq-deep:#0D9488;
-            --glow:rgba(45,212,191,.22);
-            --surface:rgba(20,23,26,.66);
-            --surface-2:rgba(30,34,38,.8);
-            --border:rgba(255,255,255,.07);
-            --border-lit:rgba(45,212,191,.30);
-            --txt:#F4F4F5; --txt-dim:#A1A1AA; --txt-faint:#5B5F66;
+            --bg:#050607;
+            --turq:#2DD4BF; --turq-br:#5EEAD4; --turq-dp:#0D9488;
+            --glow:rgba(45,212,191,.30);
+            --txt:#F1F3F5; --txt-dim:#9CA3AF; --txt-faint:#565B63;
         }
         *{ -webkit-tap-highlight-color:transparent; }
+        html,body{ background:var(--bg); }
         body{
-            font-family:'Assistant',system-ui,sans-serif;
-            background:var(--bg); color:var(--txt);
-            min-height:100vh; overflow-x:hidden;
+            font-family:'Assistant',system-ui,sans-serif; color:var(--txt);
+            min-height:100dvh; overflow-x:hidden;
             -webkit-font-smoothing:antialiased;
-        }
-        /* רקע: שחור מט + זוהר טורקיז + גרעין עדין */
-        body::before{
-            content:""; position:fixed; inset:0; z-index:-2; pointer-events:none;
-            background:
-                radial-gradient(60% 55% at 15% 0%, rgba(45,212,191,.10) 0%, transparent 55%),
-                radial-gradient(55% 50% at 100% 100%, rgba(45,212,191,.07) 0%, transparent 55%),
-                linear-gradient(180deg,#070809 0%,#0A0C0D 100%);
-        }
-        body::after{
-            content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.035;
-            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            padding-top:env(safe-area-inset-top); padding-bottom:env(safe-area-inset-bottom);
         }
 
-        .card{
-            background:var(--surface);
-            -webkit-backdrop-filter:blur(26px) saturate(1.15); backdrop-filter:blur(26px) saturate(1.15);
-            border:1px solid var(--border);
-            box-shadow:0 30px 70px -28px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.05);
-        }
-        .card-accent{
-            background:linear-gradient(160deg, rgba(45,212,191,.10) 0%, rgba(20,23,26,.7) 55%);
-            -webkit-backdrop-filter:blur(26px); backdrop-filter:blur(26px);
-            border:1px solid var(--border-lit);
-            box-shadow:0 30px 70px -28px rgba(0,0,0,.7), 0 0 0 1px rgba(45,212,191,.05), inset 0 1px 0 rgba(255,255,255,.06);
-        }
+        /* ===== רקע: שחור מט + אורבים צפים + גרעין ===== */
+        .bg{ position:fixed; inset:0; z-index:-3; background:
+            radial-gradient(72% 60% at 10% -8%, rgba(45,212,191,.14), transparent 58%),
+            radial-gradient(64% 56% at 108% 110%, rgba(45,212,191,.11), transparent 55%),
+            #050607; }
+        .orb{ position:fixed; z-index:-2; border-radius:50%; filter:blur(90px); opacity:.45; pointer-events:none; will-change:transform; }
+        .orb-a{ width:min(46vw,440px); aspect-ratio:1; top:-12%; right:-8%;
+            background:radial-gradient(circle,#2DD4BF,transparent 70%); animation:drift-a 28s ease-in-out infinite; }
+        .orb-b{ width:min(42vw,380px); aspect-ratio:1; bottom:-14%; left:-10%;
+            background:radial-gradient(circle,#0D9488,transparent 70%); animation:drift-b 34s ease-in-out infinite; }
+        @keyframes drift-a{ 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-46px,64px) scale(1.08)} }
+        @keyframes drift-b{ 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(52px,-44px) scale(1.06)} }
+        .grain{ position:fixed; inset:0; z-index:-1; opacity:.035; pointer-events:none; mix-blend-mode:overlay;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+        @media (prefers-reduced-motion:reduce){ .orb{ animation:none } }
 
+        /* ===== זכוכית נוזלית ===== */
+        .glass{
+            position:relative; border-radius:26px;
+            background:linear-gradient(158deg, rgba(255,255,255,.11) 0%, rgba(255,255,255,.028) 55%, rgba(255,255,255,.06) 100%);
+            -webkit-backdrop-filter:blur(34px) saturate(1.9) brightness(1.06);
+            backdrop-filter:blur(34px) saturate(1.9) brightness(1.06);
+            box-shadow:
+                inset 0 1.5px 0 rgba(255,255,255,.22),
+                inset 0 -1px 0 rgba(0,0,0,.4),
+                inset 0 0 60px -20px rgba(45,212,191,.12),
+                0 48px 100px -36px rgba(0,0,0,.78),
+                0 0 0 1px rgba(255,255,255,.05),
+                0 0 40px -16px rgba(45,212,191,.14);
+        }
+        .glass::before{ /* מסגרת גרדיאנט זוהרת */
+            content:""; position:absolute; inset:0; border-radius:inherit; padding:1.4px; pointer-events:none;
+            background:linear-gradient(145deg, rgba(255,255,255,.6) 0%, rgba(94,234,212,.35) 38%, transparent 66%);
+            -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite:xor; mask-composite:exclude;
+        }
+        .glass::after{ /* בוהק אלכסוני נע */
+            content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; overflow:hidden;
+            background:linear-gradient(112deg, transparent 38%, rgba(255,255,255,.09) 47%, rgba(255,255,255,.03) 52%, transparent 60%);
+        }
+        .glass-accent{
+            background:linear-gradient(158deg, rgba(45,212,191,.2) 0%, rgba(255,255,255,.04) 52%, rgba(45,212,191,.08) 100%);
+            box-shadow:
+                inset 0 1.5px 0 rgba(255,255,255,.26),
+                inset 0 0 70px -18px rgba(45,212,191,.2),
+                0 48px 100px -34px rgba(0,0,0,.72),
+                0 0 90px -16px var(--glow);
+        }
+        .glass-accent::before{ background:linear-gradient(145deg, rgba(255,255,255,.7), rgba(94,234,212,.5) 42%, transparent 74%); }
+
+        /* ===== שדות ===== */
         .field{
-            width:100%; background:rgba(255,255,255,.035);
-            border:1px solid rgba(255,255,255,.09); color:#fff;
-            border-radius:16px; padding:13px 16px; font-size:15px;
+            width:100%; border-radius:15px; color:#fff; font-size:15px; padding:13px 16px;
+            background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.1);
+            -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+            box-shadow:inset 0 2px 10px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
             transition:border-color .25s, box-shadow .25s, background .25s;
         }
         .field::placeholder{ color:var(--txt-faint); }
         .field:focus{
-            outline:none; background:rgba(255,255,255,.06);
-            border-color:var(--turq);
-            box-shadow:0 0 0 4px rgba(45,212,191,.14);
+            outline:none; background:rgba(0,0,0,.22); border-color:var(--turq);
+            box-shadow:inset 0 2px 10px rgba(0,0,0,.4), 0 0 0 4px rgba(45,212,191,.16), 0 0 26px -8px var(--glow);
         }
-        .lbl{ display:block; font-size:11px; font-weight:800; letter-spacing:.09em;
-              text-transform:uppercase; color:var(--txt-dim); margin-bottom:7px; }
+        .lbl{ display:block; font-size:11px; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+              color:var(--txt-dim); margin-bottom:7px; }
 
+        /* ===== כפתורים ===== */
         .btn{
-            width:100%; border:0; border-radius:16px; cursor:pointer;
+            position:relative; overflow:hidden; width:100%; border:0; border-radius:16px; cursor:pointer;
             font-family:inherit; font-weight:800; font-size:16px;
             display:flex; align-items:center; justify-content:center; gap:9px;
-            transition:transform .18s cubic-bezier(.3,1.2,.5,1), box-shadow .25s, filter .25s;
+            transition:transform .18s cubic-bezier(.3,1.3,.5,1), box-shadow .25s, filter .25s;
         }
         .btn:active{ transform:scale(.975); }
-        .btn:disabled{ opacity:.65; cursor:wait; transform:none; }
+        .btn:disabled{ opacity:.6; cursor:wait; transform:none; }
         .btn-primary{
-            padding:16px 20px; color:#052622;
-            background:linear-gradient(135deg,var(--turq-bright) 0%,var(--turq) 45%,var(--turq-deep) 100%);
-            box-shadow:0 12px 34px -8px var(--glow), inset 0 1px 0 rgba(255,255,255,.4);
+            padding:16px 20px; color:#04211D;
+            background:linear-gradient(135deg,var(--turq-br) 0%,var(--turq) 45%,var(--turq-dp) 100%);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.55), 0 16px 44px -10px var(--glow), 0 0 0 1px rgba(45,212,191,.4);
         }
-        .btn-primary:hover{ box-shadow:0 16px 44px -8px rgba(45,212,191,.45), inset 0 1px 0 rgba(255,255,255,.5); }
+        .btn-primary::after{
+            content:""; position:absolute; inset:0;
+            background:linear-gradient(110deg, transparent 32%, rgba(255,255,255,.45) 50%, transparent 68%);
+            transform:translateX(-130%); transition:transform .7s ease;
+        }
+        .btn-primary:hover::after{ transform:translateX(130%); }
         .btn-lg{ padding:19px 22px; font-size:17px; border-radius:18px; }
         .btn-glass{
-            padding:14px 18px; color:var(--txt);
-            background:var(--surface-2); border:1px solid var(--border);
+            padding:13px 18px; color:var(--txt);
+            background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+            -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
         }
-        .btn-glass:hover{ border-color:var(--border-lit); }
-        .btn-wa{ padding:13px; color:#fff; background:linear-gradient(135deg,#25D366,#1EA855); box-shadow:0 10px 26px -8px rgba(37,211,102,.4); }
+        .btn-glass:hover{ border-color:rgba(94,234,212,.4); }
+        .btn-wa{ padding:13px; color:#fff; background:linear-gradient(135deg,#25D366,#1EA855);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 12px 30px -10px rgba(37,211,102,.45); }
 
+        /* ===== שברי עיצוב ===== */
         .section-title{ display:flex; align-items:center; gap:12px; }
         .chip-ico{
-            width:40px; height:40px; border-radius:12px; flex:none;
-            display:grid; place-items:center;
-            background:rgba(45,212,191,.12); border:1px solid rgba(45,212,191,.22);
-            box-shadow:0 0 18px -4px var(--glow);
+            width:42px; height:42px; border-radius:13px; flex:none; display:grid; place-items:center;
+            background:linear-gradient(145deg, rgba(94,234,212,.24), rgba(45,212,191,.05));
+            border:1px solid rgba(94,234,212,.32);
+            box-shadow:0 0 26px -6px var(--glow), inset 0 1px 0 rgba(255,255,255,.18);
         }
-        .chip-ico svg{ width:20px; height:20px; color:var(--turq-bright); }
+        .chip-ico svg{ width:20px; height:20px; color:var(--turq-br); }
 
         .pkg-chip{
-            display:flex; align-items:center; gap:11px; padding:14px 15px;
-            border-radius:15px; background:rgba(255,255,255,.03); border:1px solid var(--border);
+            display:flex; align-items:center; gap:11px; padding:14px 15px; border-radius:15px;
             font-weight:600; font-size:14.5px; line-height:1.35;
+            background:linear-gradient(150deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+            border:1px solid rgba(255,255,255,.08);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.07), 0 10px 26px -14px rgba(0,0,0,.6);
+            transition:transform .2s, box-shadow .2s;
         }
+        .pkg-chip:hover{ transform:translateY(-2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 14px 32px -14px var(--glow); }
         .pkg-chip svg{ width:18px; height:18px; color:var(--turq); flex:none; }
 
-        .stat .k{ display:block; font-size:10.5px; font-weight:800; letter-spacing:.08em;
-                  text-transform:uppercase; color:var(--txt-faint); margin-bottom:4px; }
+        .stat .k{ display:block; font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+                  color:var(--txt-faint); margin-bottom:4px; }
         .stat .v{ font-weight:700; color:var(--txt); }
 
+        .divider{ height:1px; background:linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent); }
+
         canvas#sig-canvas{
-            touch-action:none; width:100%; height:170px; border-radius:16px;
-            background:rgba(8,10,11,.9);
-            border:1.5px dashed rgba(45,212,191,.4); cursor:crosshair;
+            touch-action:none; width:100%; height:170px; border-radius:18px;
+            background:rgba(0,0,0,.32);
+            border:1.5px dashed rgba(94,234,212,.45);
+            box-shadow:inset 0 2px 14px rgba(0,0,0,.5), 0 0 32px -12px var(--glow);
+            cursor:crosshair;
         }
 
         .grad-text{
-            background:linear-gradient(120deg,#fff 20%,var(--turq-bright) 60%,var(--turq) 100%);
+            background:linear-gradient(118deg,#fff 18%,var(--turq-br) 58%,var(--turq) 100%);
             -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+            text-shadow:0 0 40px rgba(45,212,191,.25);
         }
-        .glow-dot{
-            width:12px; height:12px; border-radius:50%; background:var(--turq);
-            box-shadow:0 0 20px 4px var(--glow), 0 0 40px 8px rgba(45,212,191,.15);
-            animation:pulse 2.4s ease-in-out infinite;
-        }
-        @keyframes pulse{ 0%,100%{opacity:.6;transform:scale(.9)} 50%{opacity:1;transform:scale(1.15)} }
+        .glow-dot{ width:11px; height:11px; border-radius:50%; background:var(--turq);
+            box-shadow:0 0 22px 5px var(--glow), 0 0 44px 10px rgba(45,212,191,.16);
+            animation:pulse 2.4s ease-in-out infinite; }
+        @keyframes pulse{ 0%,100%{opacity:.55;transform:scale(.85)} 50%{opacity:1;transform:scale(1.2)} }
 
-        @keyframes reveal{ from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
-        .reveal{ animation:reveal .6s cubic-bezier(.2,.7,.2,1) both; }
-        .reveal:nth-child(2){ animation-delay:.06s } .reveal:nth-child(3){ animation-delay:.12s }
-        .reveal:nth-child(4){ animation-delay:.18s } .reveal:nth-child(5){ animation-delay:.24s }
-        @media (prefers-reduced-motion:reduce){ .reveal{ animation:none } .glow-dot{ animation:none } }
+        @keyframes reveal{ from{opacity:0; transform:translateY(18px); filter:blur(6px)} to{opacity:1; transform:none; filter:blur(0)} }
+        .reveal{ animation:reveal .65s cubic-bezier(.2,.7,.2,1) both; }
+        .reveal:nth-child(2){animation-delay:.06s} .reveal:nth-child(3){animation-delay:.13s}
+        .reveal:nth-child(4){animation-delay:.2s} .reveal:nth-child(5){animation-delay:.27s}
+        @media (prefers-reduced-motion:reduce){ .reveal{animation:none} .glow-dot{animation:none} }
 
-        /* ============ מסמך ה-PDF הנקי (שחור על לבן, נבנה ב-JS) ============ */
+        /* ===== מסמך ה-PDF (שחור על לבן) ===== */
         #pdf-doc{ position:absolute; left:-10000px; top:0; width:760px; background:#fff; color:#111; font-family:'Assistant',Arial,sans-serif; z-index:-1; }
         #pdf-doc *,#pdf-doc *::before,#pdf-doc *::after{ box-sizing:border-box; margin:0; padding:0; }
         #pdf-doc .doc-inner{ padding:34px 36px; }
@@ -173,17 +213,18 @@
     </style>
 </head>
 <body class="py-6 md:py-14 px-4 sm:px-6">
+    <div class="bg"></div><div class="orb orb-a"></div><div class="orb orb-b"></div><div class="grain"></div>
 
-    <div id="pdf-overlay" class="fixed inset-0 z-[9999] bg-black/88 backdrop-blur-md flex-col items-center justify-center gap-4 text-center" style="display:none">
+    <div id="pdf-overlay" class="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-lg flex-col items-center justify-center gap-4 text-center" style="display:none">
         <i data-lucide="loader-circle" class="w-12 h-12 text-turq-bright animate-spin"></i>
-        <p class="text-white font-bold text-lg">מכין את מסמך ה-PDF...</p>
+        <p class="text-white font-bold text-lg">מכין את מסמך ה-PDF ושולח...</p>
         <p class="text-zinc-400 text-sm">רגע, אין צורך לסגור את הדף</p>
     </div>
 
     <div id="pdf-container" class="max-w-2xl mx-auto space-y-6 md:space-y-7">
 
-        <header class="text-center space-y-3 pt-1 pb-1 reveal">
-            <div class="inline-flex items-center gap-2.5">
+        <header class="text-center space-y-3 pt-1 reveal">
+            <div class="inline-flex items-center gap-3">
                 <span class="glow-dot"></span>
                 <h1 class="text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-[.14em] grad-text">Snap Box</h1>
                 <span class="glow-dot"></span>
@@ -192,8 +233,8 @@
         </header>
 
         <!-- ============ מצב מנהל ============ -->
-        <div id="admin-section" class="card p-5 sm:p-8 rounded-3xl space-y-6 reveal">
-            <div class="section-title border-b border-white/[.07] pb-4">
+        <div id="admin-section" class="glass p-5 sm:p-8 space-y-6 reveal">
+            <div class="section-title border-b border-white/[.08] pb-4">
                 <span class="chip-ico"><i data-lucide="sliders-horizontal"></i></span>
                 <h2 class="text-lg sm:text-xl font-extrabold">מחולל הצעת מחיר וחוזה</h2>
             </div>
@@ -212,19 +253,18 @@
                 </div>
 
                 <button type="submit" id="gen-btn" class="btn btn-primary btn-lg">
-                    <i data-lucide="link" class="w-5 h-5"></i> צור קישור קצר ללקוח
+                    <i data-lucide="link" class="w-5 h-5"></i> צור קישור ללקוח
                 </button>
             </form>
 
-            <div id="link-result" class="hidden rounded-2xl border border-turq/25 bg-turq/[.06] p-4 space-y-3">
-                <p class="text-[11px] font-bold uppercase tracking-widest text-turq-bright">הקישור מוכן לשליחה ללקוח</p>
+            <div id="link-result" class="hidden glass glass-accent p-4 space-y-3 !rounded-2xl">
+                <p class="text-[11px] font-bold uppercase tracking-widest text-turq-bright">הקישור מוכן — נפתח ישירות בהצעת המחיר</p>
                 <div class="flex gap-2">
                     <input type="text" id="shareable-url" readonly dir="ltr" class="field !py-2.5 !rounded-xl text-xs font-mono">
                     <button id="copy-btn" onclick="copyGeneratedLink()" class="btn-glass !w-auto !rounded-xl !px-4 !py-2.5 text-xs shrink-0 flex items-center gap-1">
                         <i data-lucide="copy" class="w-4 h-4"></i><span id="copy-text">העתק</span>
                     </button>
                 </div>
-                <p id="link-status" class="text-[11px] text-zinc-400 min-h-[14px]"></p>
                 <a id="wa-share-btn" href="#" target="_blank" rel="noopener" class="btn btn-wa">
                     <i data-lucide="message-circle" class="w-4 h-4"></i> שלח ללקוח בוואטסאפ
                 </a>
@@ -234,8 +274,8 @@
         <!-- ============ מצב לקוח ============ -->
         <main id="client-view" class="hidden space-y-6 md:space-y-7">
 
-            <section class="card-accent p-5 sm:p-8 rounded-3xl space-y-6 reveal">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[.07] pb-4">
+            <section class="glass glass-accent p-5 sm:p-8 space-y-6 reveal">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[.08] pb-4">
                     <div class="section-title">
                         <span class="chip-ico"><i data-lucide="file-check-2"></i></span>
                         <h2 class="text-lg sm:text-xl font-extrabold">פרטי הצעת המחיר וההסכם</h2>
@@ -254,30 +294,30 @@
                     <div class="stat"><span class="k">יתרה בסיום</span><span id="view_balance" class="v"></span></div>
                 </div>
 
-                <div id="view_notes_container" class="hidden rounded-2xl bg-turq/[.06] border border-turq/20 p-4">
+                <div id="view_notes_container" class="hidden rounded-2xl bg-turq/[.07] border border-turq/20 p-4">
                     <span class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-turq-bright mb-2"><i data-lucide="info" class="w-4 h-4"></i> הערות וסיכומים נוספים</span>
                     <p id="view_notes" class="text-sm font-semibold text-zinc-200 whitespace-pre-wrap leading-relaxed"></p>
                 </div>
             </section>
 
-            <section class="card p-5 sm:p-8 rounded-3xl space-y-5 reveal">
-                <div class="section-title border-b border-white/[.07] pb-4">
+            <section class="glass p-5 sm:p-8 space-y-5 reveal">
+                <div class="section-title border-b border-white/[.08] pb-4">
                     <span class="chip-ico"><i data-lucide="sparkles"></i></span>
                     <h2 class="text-lg sm:text-xl font-extrabold">מפרט החבילה הכלולה</h2>
                 </div>
                 <div id="pkg-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
             </section>
 
-            <section class="card p-5 sm:p-8 rounded-3xl space-y-4 reveal">
-                <div class="section-title border-b border-white/[.07] pb-4">
+            <section class="glass p-5 sm:p-8 space-y-4 reveal">
+                <div class="section-title border-b border-white/[.08] pb-4">
                     <span class="chip-ico"><i data-lucide="scroll-text"></i></span>
                     <h2 class="text-base sm:text-lg font-extrabold">תנאי הסכם והסדר ביטולים</h2>
                 </div>
                 <div id="terms-text" class="rounded-2xl bg-black/30 border border-white/5 p-4 sm:p-5 text-[13px] leading-relaxed text-zinc-300 text-justify"></div>
             </section>
 
-            <section id="sig-section" class="card p-5 sm:p-8 rounded-3xl space-y-5 reveal">
-                <div class="section-title border-b border-white/[.07] pb-4">
+            <section id="sig-section" class="glass p-5 sm:p-8 space-y-5 reveal">
+                <div class="section-title border-b border-white/[.08] pb-4">
                     <span class="chip-ico"><i data-lucide="pen-tool"></i></span>
                     <h2 class="text-base sm:text-lg font-extrabold">אישור וחתימת הלקוח</h2>
                 </div>
@@ -293,7 +333,7 @@
                     </div>
 
                     <div id="pdf-hide-controls" class="space-y-4">
-                        <div class="rounded-xl bg-turq/[.06] border border-turq/25 p-4 text-[13px] text-turq-bright/90 leading-relaxed">
+                        <div class="rounded-xl bg-turq/[.07] border border-turq/25 p-4 text-[13px] text-turq-bright/90 leading-relaxed">
                             <strong>סיום:</strong> לחיצה על הכפתור תוריד את ה-PDF המלא של ההסכם למכשיר שלך, ובמקביל תשלח את האישור והחתימה ל-Snap Box.
                         </div>
                         <button type="submit" id="submit-btn" class="btn btn-primary btn-lg">
@@ -310,10 +350,8 @@
         </footer>
     </div>
 
-    <!-- מסמך ה-PDF (מתמלא ב-JS) -->
     <div id="pdf-doc"></div>
 
-    <!-- שליחת מייל לעסק דרך FormSubmit (טופס נסתר + iframe — תומך בצירוף קבצים) -->
     <iframe name="fs-sink" title="sink" style="position:absolute;width:0;height:0;border:0;left:-9999px;top:0"></iframe>
     <form id="fs-form" method="POST" enctype="multipart/form-data" target="fs-sink" accept-charset="UTF-8" style="display:none">
         <input type="hidden" name="_subject" id="fs_subject">
@@ -329,6 +367,7 @@
         <input type="hidden" name="יתרה לתשלום" id="fs_balance">
         <input type="hidden" name="הערות" id="fs_notes">
         <input type="hidden" name="נחתם בתאריך" id="fs_signed">
+        <input type="hidden" name="הורדת ההסכם החתום (PDF)" id="fs_link">
         <input type="file" name="attachment" id="fs_files" multiple>
     </form>
 
@@ -337,6 +376,14 @@
 
         /* ================= הגדרות ================= */
         const SUPPLIER_EMAIL = "snapboxevent.official@gmail.com";
+
+        /* ---- קבלת ה-PDF החתום למייל ----
+           דרך א' (מומלצת, אישור אמיתי): היכנס ל-https://web3forms.com , הכנס
+           את הכתובת snapboxevent.official@gmail.com , קבל "Access Key" (מחרוזת
+           באורך ~36 תווים) והדבק אותו כאן בין המרכאות. זהו — ה-PDF יגיע מצורף למייל.
+           דרך ב' (גיבוי אוטומטי): אם משאירים ריק, נשלח דרך FormSubmit — צריך
+           פעם אחת לאשר את מייל ההפעלה שיגיע מ-FormSubmit לתיבה של Snap Box. */
+        const WEB3FORMS_KEY = "1149cede-89b3-4169-abc7-985e4b59dd78";
 
         const PKG_ITEMS = [
             'צילום ללא הגבלה - כל התמונות שלכם!',
@@ -375,7 +422,7 @@
         canvas.addEventListener('touchstart',down,{passive:false}); canvas.addEventListener('touchmove',move,{passive:false}); canvas.addEventListener('touchend',up);
         function clearSignature(){ ctx.clearRect(0,0,canvas.width,canvas.height); hasSigned=false; }
 
-        /* ================= קידוד קצר (UTF-8 → base64url) ================= */
+        /* ================= קידוד הקישור (UTF-8 → base64url) ================= */
         function b64UrlEncode(str){
             const bytes = new TextEncoder().encode(str);
             let bin = ''; bytes.forEach(b => bin += String.fromCharCode(b));
@@ -389,26 +436,9 @@
             return new TextDecoder().decode(bytes);
         }
 
-        /* ================= קיצור כתובת ================= */
-        async function shortenUrl(longUrl){
-            const enc = encodeURIComponent(longUrl);
-            const tries = [
-                async()=>{ const r=await fetch('https://is.gd/create.php?format=json&logstats=0&url='+enc); return (await r.json()).shorturl; },
-                async()=>{ const r=await fetch('https://v.gd/create.php?format=json&logstats=0&url='+enc); return (await r.json()).shorturl; },
-                async()=>{ const r=await fetch('https://da.gd/shorten?url='+enc); const t=(await r.text()).trim(); return /^https?:\/\//.test(t)?t:null; },
-                async()=>{ const r=await fetch('https://cleanuri.com/api/v1/shorten',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'url='+enc}); return (await r.json()).result_url; }
-            ];
-            for(const t of tries){ try{ const s=await t(); if(s && /^https?:\/\//i.test(s)) return s; }catch(_){} }
-            return null;
-        }
-
-        async function generateShareLink(e){
+        /* ================= יצירת קישור ללקוח (ישיר — ללא קיצור) ================= */
+        function generateShareLink(e){
             e.preventDefault();
-            const btn = document.getElementById('gen-btn'), orig = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> יוצר קישור מקוצר...';
-            lucide.createIcons();
-
             const g = id => document.getElementById(id).value.trim();
             const raw = [
                 g('in_clientName'), g('in_eventType'), g('in_location'), g('in_date'),
@@ -417,30 +447,13 @@
                 (document.getElementById('in_notes').value || '').replace(/\|/g,'/')
             ].join('|');
 
-            const fullUrl = `${location.origin}${location.pathname}?q=${b64UrlEncode(raw)}`;
+            const url = `${location.origin}${location.pathname}?q=${b64UrlEncode(raw)}`;
 
-            const box = document.getElementById('link-result');
-            const urlInput = document.getElementById('shareable-url');
-            const statusEl = document.getElementById('link-status');
-            box.classList.remove('hidden');
-            urlInput.value = '';
-            statusEl.textContent = 'מקצר...';
+            document.getElementById('shareable-url').value = url;
+            document.getElementById('link-result').classList.remove('hidden');
 
-            let finalUrl = await shortenUrl(fullUrl);
-            if (finalUrl) {
-                urlInput.value = finalUrl;
-                statusEl.innerHTML = '<span class="text-turq-bright font-bold">✓</span> קישור קצר ומוכן לשליחה';
-            } else {
-                finalUrl = fullUrl;
-                urlInput.value = fullUrl;
-                statusEl.textContent = 'שירות הקיצור לא זמין כרגע — הקישור הזה תקין לחלוטין לשליחה.';
-            }
-
-            const name = g('in_clientName'), type = g('in_eventType');
-            const waMsg = `היי ${name}, זו הצעת המחיר וההסכם ל${type || 'אירוע'} 🎥📸\nלצפייה בפרטים ולחתימה דיגיטלית:\n${finalUrl}`;
+            const waMsg = `היי ${g('in_clientName')}, זו הצעת המחיר וההסכם ל${g('in_eventType') || 'אירוע'} 🎥📸\nלצפייה בפרטים ולחתימה דיגיטלית:\n${url}`;
             document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
-
-            btn.disabled = false; btn.innerHTML = orig; lucide.createIcons();
         }
 
         function copyGeneratedLink(){
@@ -468,7 +481,6 @@
                 const p = b64UrlDecode(dataParam).split('|');
                 contractData = { name:p[0], type:p[1], location:p[2], date:p[3], startTime:p[4], endTime:p[5],
                     price:Number(p[6]), deposit:Number(p[7]), notes:p[8] || '' };
-
                 const set = (id,v) => document.getElementById(id).innerText = v;
                 set('view_clientName', contractData.name);
                 set('view_eventType', contractData.type);
@@ -479,7 +491,6 @@
                 set('view_deposit', `₪${contractData.deposit.toLocaleString()}`);
                 set('view_balance', `₪${(contractData.price - contractData.deposit).toLocaleString()}`);
                 set('sign-date', new Date().toLocaleDateString('he-IL'));
-
                 if (contractData.notes && contractData.notes.trim()) {
                     document.getElementById('view_notes_container').classList.remove('hidden');
                     document.getElementById('view_notes').innerText = contractData.notes;
@@ -487,14 +498,13 @@
                 setTimeout(resizeCanvas, 300);
             } catch (err) {
                 document.getElementById('client-view').innerHTML =
-                    '<div class="card p-8 rounded-3xl text-center text-red-300">הקישור אינו תקין. אנא בקש מ-Snap Box קישור חדש.</div>';
+                    '<div class="glass p-8 text-center text-red-300">הקישור אינו תקין. אנא בקש מ-Snap Box קישור חדש.</div>';
                 console.error(err);
             }
         }
 
         /* ================= עזרי PDF ================= */
         function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
-
         function dataUrlToBlob(dataUrl){
             const [head, b64] = dataUrl.split(',');
             const mime = (head.match(/:(.*?);/) || [])[1] || 'image/png';
@@ -502,7 +512,6 @@
             for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
             return new Blob([arr], { type: mime });
         }
-
         function triggerDownload(blob, name){
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob); a.download = name;
@@ -547,13 +556,11 @@
         }
 
         const PDF_WIDTH_PX = 760;
-
         async function generatePdfBlob(sigDataUrl){
             buildPdfDoc(sigDataUrl);
             const el = document.getElementById('pdf-doc');
             window.scrollTo(0, 0);
             el.style.cssText = `position:absolute;left:0;top:0;width:${PDF_WIDTH_PX}px;background:#fff;color:#111;z-index:1;`;
-
             if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch(e){} }
             await new Promise(res => {
                 const img = el.querySelector('img.sig');
@@ -576,7 +583,6 @@
             const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
             const M = 8, usableW = pageW - M * 2, usableH = pageH - M * 2;
             const pxPerMm = big.width / usableW, pagePx = Math.floor(usableH * pxPerMm);
-
             let y = 0, page = 0;
             while (y < big.height) {
                 const sliceH = Math.min(pagePx, big.height - y);
@@ -603,37 +609,89 @@
             setTimeout(() => window.print(), 250);
         }
 
-        /* ================= שליחה לעסק (FormSubmit — טופס נסתר + iframe) ================= */
-        function sendToBusiness(pdfBlob, sigBlob, safeName){
-            return new Promise(resolve => {
-                const c = contractData, f = document.getElementById('fs-form');
-                f.action = 'https://formsubmit.co/' + SUPPLIER_EMAIL;
-                document.getElementById('fs_subject').value = `הסכם חתום חדש — ${c.name} (${c.type})`;
-                document.getElementById('fs_name').value = c.name;
-                document.getElementById('fs_type').value = c.type;
-                document.getElementById('fs_loc').value = c.location;
-                document.getElementById('fs_date').value = c.date;
-                document.getElementById('fs_hours').value = `${c.startTime} - ${c.endTime}`;
-                document.getElementById('fs_price').value = `${c.price} ש"ח`;
-                document.getElementById('fs_deposit').value = `${c.deposit} ש"ח`;
-                document.getElementById('fs_balance').value = `${c.price - c.deposit} ש"ח`;
-                document.getElementById('fs_notes').value = c.notes || '—';
-                document.getElementById('fs_signed').value = new Date().toLocaleString('he-IL');
+        /* ================= שליחה לעסק ================= */
+        // מעלה עותק ל-tmpfiles.org — קישור הורדה מהיר לשעה הראשונה (גיבוי לצירוף במייל)
+        async function uploadPdf(blob, name){
+            try {
+                const fd = new FormData();
+                fd.append('file', blob, name);
+                const r = await fetch('https://tmpfiles.org/api/v1/upload', { method: 'POST', body: fd });
+                const j = await r.json();
+                const u = j && j.data && j.data.url;
+                if (u) return u.replace('tmpfiles.org/', 'tmpfiles.org/dl/'); // קישור הורדה ישירה
+            } catch(e){ console.warn('tmpfiles failed', e); }
+            return null;
+        }
 
+        // דרך א' — Web3Forms: מחזיר אישור אמיתי, מצרף את ה-PDF למייל
+        async function sendViaWeb3Forms(fields, pdfBlob, sigBlob, safeName){
+            if (!WEB3FORMS_KEY || WEB3FORMS_KEY.trim().length < 20) return false;
+            try {
+                const fd = new FormData();
+                fd.append('access_key', WEB3FORMS_KEY.trim());
+                fd.append('from_name', 'Snap Box · טופס חתימה');
+                fd.append('subject', fields._subject);
+                Object.entries(fields).forEach(([k, v]) => { if (k[0] !== '_') fd.append(k, v); });
+                if (pdfBlob) fd.append('attachment', new File([pdfBlob], `Contract_${safeName}.pdf`, { type: 'application/pdf' }));
+                if (sigBlob) fd.append('signature', new File([sigBlob], `Signature_${safeName}.png`, { type: 'image/png' }));
+                const r = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd });
+                const j = await r.json();
+                return !!j.success;
+            } catch(e){ console.warn('web3forms failed', e); return false; }
+        }
+
+        // דרך ב' — FormSubmit (טופס נסתר). דורש אישור חד-פעמי של מייל הפעלה.
+        function sendViaFormSubmit(fields, pdfBlob, sigBlob, safeName){
+            return new Promise(resolve => {
+                const f = document.getElementById('fs-form');
+                f.action = 'https://formsubmit.co/' + SUPPLIER_EMAIL;
+                document.getElementById('fs_subject').value = fields._subject;
+                document.getElementById('fs_name').value = fields['שם הלקוח'];
+                document.getElementById('fs_type').value = fields['סוג אירוע'];
+                document.getElementById('fs_loc').value = fields['מיקום'];
+                document.getElementById('fs_date').value = fields['תאריך האירוע'];
+                document.getElementById('fs_hours').value = fields['שעות'];
+                document.getElementById('fs_price').value = fields['מחיר כולל'];
+                document.getElementById('fs_deposit').value = fields['מקדמה'];
+                document.getElementById('fs_balance').value = fields['יתרה לתשלום'];
+                document.getElementById('fs_notes').value = fields['הערות'];
+                document.getElementById('fs_signed').value = fields['נחתם בתאריך'];
+                document.getElementById('fs_link').value = fields['הורדת ההסכם החתום (PDF)'];
                 try {
                     const dt = new DataTransfer();
-                    if (pdfBlob) dt.items.add(new File([pdfBlob], `Snapbox_Contract_${safeName}.pdf`, { type: 'application/pdf' }));
+                    if (pdfBlob) dt.items.add(new File([pdfBlob], `Contract_${safeName}.pdf`, { type: 'application/pdf' }));
                     if (sigBlob) dt.items.add(new File([sigBlob], `Signature_${safeName}.png`, { type: 'image/png' }));
                     document.getElementById('fs_files').files = dt.files;
-                } catch (e) { console.warn('file attach skipped', e); }
-
+                } catch(e){ console.warn('attach skipped', e); }
                 const sink = document.querySelector('iframe[name="fs-sink"]');
-                let settled = false;
-                const fin = ok => { if (!settled) { settled = true; resolve(ok); } };
+                let done = false;
+                const fin = ok => { if (!done) { done = true; resolve(ok); } };
                 sink.onload = () => fin(true);
-                setTimeout(() => fin(true), 9000); // FormSubmit לא תמיד מפעיל onload חוצה-מקורות
+                setTimeout(() => fin(true), 9000);
                 f.submit();
             });
+        }
+
+        async function sendToBusiness(pdfBlob, sigBlob, safeName){
+            const c = contractData;
+            const link = pdfBlob ? await uploadPdf(pdfBlob, `SnapBox_Contract_${safeName}.pdf`) : null;
+            const fields = {
+                _subject: `הסכם חתום חדש — ${c.name} (${c.type})`,
+                'שם הלקוח': c.name,
+                'סוג אירוע': c.type,
+                'מיקום': c.location,
+                'תאריך האירוע': c.date,
+                'שעות': `${c.startTime} - ${c.endTime}`,
+                'מחיר כולל': `${c.price} ש"ח`,
+                'מקדמה': `${c.deposit} ש"ח`,
+                'יתרה לתשלום': `${c.price - c.deposit} ש"ח`,
+                'הערות': c.notes || '—',
+                'נחתם בתאריך': new Date().toLocaleString('he-IL'),
+                'הורדת ההסכם החתום (PDF)': link ? link + '  (זמין בשעה הקרובה — הקובץ גם מצורף למייל)' : 'הקובץ מצורף למייל'
+            };
+            let ok = await sendViaWeb3Forms(fields, pdfBlob, sigBlob, safeName);
+            if (!ok) ok = await sendViaFormSubmit(fields, pdfBlob, sigBlob, safeName);
+            return { ok, link };
         }
 
         /* ================= סיום ================= */
@@ -656,12 +714,12 @@
                 triggerDownload(pdfBlob, `SnapBox_Contract_${safeName}.pdf`);
             } catch (err) { console.error('PDF failed', err); }
 
-            overlay.style.display = 'none';
             btn.innerHTML = 'שולח אישור לעסק...';
+            let emailOk = false, link = null;
+            try { const r = await sendToBusiness(pdfBlob, sigBlob, safeName); emailOk = r.ok; link = r.link; }
+            catch (err) { console.error(err); }
 
-            let emailOk = false;
-            try { emailOk = await sendToBusiness(pdfBlob, sigBlob, safeName); } catch (err) { console.error(err); }
-
+            overlay.style.display = 'none';
             const box = document.getElementById('pdf-hide-controls');
             if (pdfBlob && emailOk) {
                 box.innerHTML = `<div class="rounded-2xl bg-turq/10 border border-turq/40 p-5 text-center flex flex-col items-center gap-2 text-turq-bright font-bold">
