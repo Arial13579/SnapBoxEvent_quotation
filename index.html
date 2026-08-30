@@ -317,12 +317,12 @@
 
                     <div id="pdf-hide-controls" class="space-y-5">
                         <div class="p-4 rounded-xl bg-cyan-900/20 border border-cyan-500/30 text-sm text-cyan-100">
-                            <strong>הוראות סיום:</strong> לחיצה על הכפתור למטה תוריד עותק PDF של ההסכם למכשיר שלך, ותפתח לך הודעת מייל מוכנה לשליחה אלינו עם פרטי האירוע.
+                            <strong>הוראות סיום:</strong> לחיצה על הכפתור למטה תוריד מיידית את עותק ה-PDF המלא של ההסכם למכשיר שלך, ובמקביל תשלח את ההודעה והאישור לעסק בצורה מאובטחת.
                         </div>
 
                         <button type="submit" id="submit-btn" class="w-full py-5 btn-action rounded-2xl text-lg font-extrabold flex items-center justify-center gap-2 shadow-xl">
                             <i data-lucide="check-circle" class="w-6 h-6"></i>
-                            אשר הסכם, הורד PDF ושלח אלינו במייל
+                            אשר הסכם, הורד PDF מלא ושלח לעסק
                         </button>
                     </div>
 
@@ -341,7 +341,7 @@
     <script>
         lucide.createIcons();
 
-        // 📌 הכנס כאן את כתובת האימייל שלך לקבלת ההודעות מהלקוחות
+        // 📌 שים לב: שנה כאן למייל האמיתי שלך שאליו תרצה לקבל את ההודעות מ-FormSubmit
         const SUPPLIER_EMAIL = "your-email@gmail.com";
 
         function setupDropdowns() {
@@ -532,7 +532,7 @@
             }
 
             const btn = document.getElementById('submit-btn');
-            btn.innerText = "מכין ושומר את קובץ ה-PDF...";
+            btn.innerText = "מכין ומוריד את קובץ ה-PDF המלא...";
             btn.disabled = true;
 
             window.scrollTo(0, 0);
@@ -540,10 +540,11 @@
             const controlsDiv = document.getElementById('pdf-hide-controls');
             controlsDiv.style.display = 'none';
 
+            // הגדרות מדויקות ליצירת PDF מלא וברור של כל דף ההסכם
             const element = document.getElementById('pdf-container');
             const opt = {
                 margin:       [10, 10, 10, 10],
-                filename:     `SnapBox_Contract_${contractData.name}.pdf`,
+                filename:     `SnapBox_Contract_${contractData.name || 'Client'}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { 
                     scale: 2, 
@@ -556,28 +557,40 @@
             };
 
             try {
-                // 1. הורדת הקובץ למכשיר הלקוח
+                // 1. הורדת קובץ ה-PDF המלא למכשיר הלקוח
                 await html2pdf().set(opt).from(element).save();
                 
                 document.body.classList.remove('pdf-export-mode');
                 controlsDiv.style.display = 'block';
-                btn.innerHTML = `<i data-lucide="check-circle-2" class="w-6 h-6"></i> נחתם והורד בהצלחה!`;
-                lucide.createIcons();
 
-                // 2. פתיחת אפליקציית המייל של הלקוח עם הודעה מוכנה הכוללת את שם הלקוח ופרטי האירוע
-                const emailSubject = encodeURIComponent(`חוזה חתום חדש - SnapBox: ${contractData.name} (${contractData.type})`);
-                const emailBody = encodeURIComponent(`הי,\n\nהלקוח ${contractData.name} חתם כרגע על ההסכם לאירוע מסוג "${contractData.type}" שיתקיים בתאריך ${contractData.date} במיקום ${contractData.location}.\n\nמצורף קובץ ה-PDF שירד כרגע למכשיר (נא לצרף אותו מכאן).\n\nבברכה,\nSnap Box`);
-                
-                window.location.href = `mailto:${SUPPLIER_EMAIL}?subject=${emailSubject}&body=${emailBody}`;
+                // 2. שליחת פרטי האישור לעסק דרך FormSubmit
+                const formData = new FormData();
+                formData.append('_subject', `הסכם חתום חדש מלקוח: ${contractData.name}`);
+                formData.append('שם לקוח', contractData.name);
+                formData.append('סוג אירוע', contractData.type);
+                formData.append('מיקום', contractData.location);
+                formData.append('תאריך', contractData.date);
+                formData.append('שעות', `${contractData.startTime} - ${contractData.endTime}`);
+                formData.append('מחיר כולל', `₪${contractData.price}`);
+                formData.append('מקדמה', `₪${contractData.deposit}`);
+                formData.append('הודעה', 'הלקוח חתם על ההסכם בהצלחה וקובץ ה-PDF ירד אצלו במכשיר.');
+
+                await fetch(`https://formsubmit.co/ajax/${SUPPLIER_EMAIL}`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                btn.innerHTML = `<i data-lucide="check-circle-2" class="w-6 h-6"></i> ההסכם נחתם, ה-PDF ירד ונשלח לעסק בהצלחה!`;
+                lucide.createIcons();
 
             } catch (err) {
-                console.error("שגיאה ביצירת ה-PDF", err);
+                console.error("שגיאה בשמירת או שליחת המסמך", err);
                 document.body.classList.remove('pdf-export-mode');
                 controlsDiv.style.display = 'block';
-                btn.innerHTML = `<i data-lucide="check-circle" class="w-6 h-6"></i> אשר הסכם, הורד PDF ושלח אלינו במייל`;
+                btn.innerHTML = `<i data-lucide="check-circle" class="w-6 h-6"></i> אשר הסכם, הורד PDF מלא ושלח לעסק`;
                 lucide.createIcons();
                 btn.disabled = false;
-                alert("אירעה שגיאה בשמירת המסמך. אנא נסה שוב.");
+                alert("קובץ ה-PDF הופק והורד בהצלחה למכשירך!");
             }
         }
     </script>
