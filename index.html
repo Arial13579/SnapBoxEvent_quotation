@@ -183,7 +183,17 @@
 
                     <div>
                         <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">תאריך האירוע *</label>
-                        <input type="text" id="in_date" required class="w-full glass-input px-4 py-3 rounded-2xl text-left text-sm placeholder-zinc-500" placeholder="DD/MM/YYYY" dir="ltr">
+                        <input type="text" id="in_date" required class="w-full glass-input px-4 py-3 rounded-2xl text-left text-sm placeholder-zinc-500" placeholder="DD/MM/YYYY" dir="ltr" maxlength="10" oninput="formatDate(this)">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">שעת תחילת אירוע *</label>
+                        <input type="text" id="in_startTime" required class="w-full glass-input px-4 py-3 rounded-2xl text-left text-sm placeholder-zinc-500" placeholder="HH:MM" dir="ltr" maxlength="5" oninput="formatTime(this)">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">שעת סיום אירוע *</label>
+                        <input type="text" id="in_endTime" required class="w-full glass-input px-4 py-3 rounded-2xl text-left text-sm placeholder-zinc-500" placeholder="HH:MM" dir="ltr" maxlength="5" oninput="formatTime(this)">
                     </div>
 
                     <div>
@@ -380,13 +390,26 @@
     <script>
         lucide.createIcons();
 
-        // 📌 שים לב: שנה כאן למייל האמיתי שלך שאליו תרצה לקבל את ההודעות מ-FormSubmit
-        const SUPPLIER_EMAIL = "your-email@gmail.com";
+        // 📌 המייל המעודכן שאליו יישלחו ההודעות
+        const SUPPLIER_EMAIL = "snapboxevent.official@gmail.com";
 
         const canvas = document.getElementById('sig-canvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
         let hasSigned = false;
+
+        function formatDate(input) {
+            let val = input.value.replace(/\D/g, '');
+            if (val.length > 2) val = val.slice(0, 2) + '/' + val.slice(2);
+            if (val.length > 5) val = val.slice(0, 5) + '/' + val.slice(5);
+            input.value = val;
+        }
+
+        function formatTime(input) {
+            let val = input.value.replace(/\D/g, '');
+            if (val.length > 2) val = val.slice(0, 2) + ':' + val.slice(2);
+            input.value = val;
+        }
 
         function resizeCanvas() {
             const rect = canvas.getBoundingClientRect();
@@ -537,10 +560,21 @@
             const controlsDiv = document.getElementById('pdf-hide-controls');
             controlsDiv.style.display = 'none';
 
-            // הגדרות מדויקות ליצירת PDF מלא וברור של כל דף ההסכם
+            // פתרון אפשרי לבעיות חיתוך: להגדיר גובה מינימלי ספציפי למיכל
             const element = document.getElementById('pdf-container');
+            
+            // המרה זמנית של הקנבס לתמונה כדי שיעבור בטוח ל-PDF
+            const canvasImg = new Image();
+            canvasImg.src = canvas.toDataURL('image/png');
+            canvasImg.style.width = '100%';
+            canvasImg.style.borderRadius = '1rem';
+            canvasImg.style.border = '1px solid #9CA3AF';
+            const originalCanvasDisplay = canvas.style.display;
+            canvas.style.display = 'none';
+            canvas.parentNode.appendChild(canvasImg);
+
             const opt = {
-                margin:       [15, 15, 15, 15],
+                margin:       [10, 10, 10, 10], // שוליים מעט קטנים יותר
                 filename:     `SnapBox_Contract_${contractData.name || 'Client'}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { 
@@ -548,19 +582,23 @@
                     useCORS: true, 
                     scrollY: 0,
                     windowWidth: 800,
-                    backgroundColor: '#FFFFFF' // הרקע ב-PDF יהיה לבן
+                    backgroundColor: '#FFFFFF',
+                    logging: true // עוזר לראות שגיאות אם יש
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             try {
-                // 1. הורדת קובץ ה-PDF המלא למכשיר הלקוח
+                // 1. הורדת קובץ ה-PDF
                 await html2pdf().set(opt).from(element).save();
                 
+                // החזרת המצב לקדמותו
+                canvas.parentNode.removeChild(canvasImg);
+                canvas.style.display = originalCanvasDisplay;
                 document.body.classList.remove('pdf-export-mode');
                 controlsDiv.style.display = 'block';
 
-                // 2. שליחת פרטי האישור לעסק דרך FormSubmit
+                // 2. שליחת פרטי האישור לעסק
                 const formData = new FormData();
                 formData.append('_subject', `הסכם חתום חדש מלקוח: ${contractData.name}`);
                 formData.append('שם לקוח', contractData.name);
@@ -582,12 +620,20 @@
 
             } catch (err) {
                 console.error("שגיאה בשמירת או שליחת המסמך", err);
+                
+                // החזרת המצב לקדמותו גם במקרה של שגיאה
+                if(canvasImg && canvasImg.parentNode) canvas.parentNode.removeChild(canvasImg);
+                canvas.style.display = originalCanvasDisplay;
                 document.body.classList.remove('pdf-export-mode');
                 controlsDiv.style.display = 'block';
-                btn.innerHTML = `<i data-lucide="check-circle" class="w-6 h-6"></i> אשר הסכם, הורד PDF מלא ושלח לעסק`;
+                
+                btn.innerHTML = `<i data-lucide="alert-circle" class="w-6 h-6"></i> אירעה שגיאה, נסה שוב`;
                 lucide.createIcons();
                 btn.disabled = false;
-                alert("קובץ ה-PDF הופק והורד בהצלחה למכשירך!");
+                
+                // הדפסת דפדפן רגילה כגיבוי אם יצירת ה-PDF נכשלת
+                alert("אירעה שגיאה ביצירת קובץ ה-PDF. נסה להדפיס את העמוד כ-PDF בעזרת חלונית ההדפסה שתיפתח.");
+                window.print();
             }
         }
     </script>
