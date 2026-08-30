@@ -2,230 +2,340 @@
 <html lang="he" dir="rtl" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Snap Box | הסכם והצעת מחיר</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { theme: { extend: {
+            colors: { turq: { DEFAULT:'#2DD4BF', bright:'#5EEAD4', deep:'#0D9488' } },
+            fontFamily: { sans: ['Assistant', 'system-ui', 'sans-serif'] }
+        }}};
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- יצירת PDF: html2canvas + jsPDF ישירות (שליטה מלאה, ללא באג ה-container של html2pdf) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
-        :root { --accent-blue:#0A84FF; --accent-cyan:#64D2FF; --bg-dark:#0B0E14; }
-
-        body {
-            font-family:'Assistant',-apple-system,sans-serif;
-            background-color:var(--bg-dark); color:#F2F2F7;
-            background-image:
-                radial-gradient(circle at 20% 15%, rgba(10,132,255,.12) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(100,210,255,.08) 0%, transparent 40%);
-            background-attachment:fixed;
+        :root{
+            --bg:#070809; --bg-2:#0C0E10;
+            --turq:#2DD4BF; --turq-bright:#5EEAD4; --turq-deep:#0D9488;
+            --glow:rgba(45,212,191,.22);
+            --surface:rgba(20,23,26,.66);
+            --surface-2:rgba(30,34,38,.8);
+            --border:rgba(255,255,255,.07);
+            --border-lit:rgba(45,212,191,.30);
+            --txt:#F4F4F5; --txt-dim:#A1A1AA; --txt-faint:#5B5F66;
+        }
+        *{ -webkit-tap-highlight-color:transparent; }
+        body{
+            font-family:'Assistant',system-ui,sans-serif;
+            background:var(--bg); color:var(--txt);
+            min-height:100vh; overflow-x:hidden;
+            -webkit-font-smoothing:antialiased;
+        }
+        /* רקע: שחור מט + זוהר טורקיז + גרעין עדין */
+        body::before{
+            content:""; position:fixed; inset:0; z-index:-2; pointer-events:none;
+            background:
+                radial-gradient(60% 55% at 15% 0%, rgba(45,212,191,.10) 0%, transparent 55%),
+                radial-gradient(55% 50% at 100% 100%, rgba(45,212,191,.07) 0%, transparent 55%),
+                linear-gradient(180deg,#070809 0%,#0A0C0D 100%);
+        }
+        body::after{
+            content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.035;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
 
-        .glass-card { background:rgba(22,27,38,.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,.1); box-shadow:0 20px 50px rgba(0,0,0,.5); }
-        .glass-card-accent { background:linear-gradient(135deg, rgba(10,132,255,.15) 0%, rgba(100,210,255,.05) 100%); backdrop-filter:blur(20px); border:1px solid rgba(10,132,255,.25); }
-        .glass-input { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); color:#FFF; transition:all .3s ease; box-shadow:inset 0 2px 4px rgba(0,0,0,.1); }
-        .glass-input:focus { background:rgba(255,255,255,.09); border-color:var(--accent-cyan); box-shadow:0 0 0 3px rgba(100,210,255,.2), inset 0 2px 4px rgba(0,0,0,.1); outline:none; }
-        select.glass-input option { background-color:#161B26; color:#FFF; }
-
-        canvas#sig-canvas { touch-action:none; background:rgba(10,14,20,.9); border:1.5px dashed rgba(10,132,255,.4); cursor:crosshair; }
-
-        .text-gradient { background:linear-gradient(135deg,#FFFFFF 30%,#64D2FF 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-        .btn-action { background:linear-gradient(135deg,#0A84FF 0%,#0066CC 100%); color:#FFF; font-weight:700; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 4px 15px rgba(10,132,255,.3); }
-        .btn-action:hover { box-shadow:0 6px 20px rgba(10,132,255,.5); transform:translateY(-2px); }
-        .btn-action:disabled { opacity:.7; transform:none; cursor:wait; }
-
-        /* ============ מסמך ה-PDF הנקי (נבנה בזמן החתימה, יושב מחוץ למסך) ============ */
-        #pdf-doc {
-            position:absolute; left:-10000px; top:0;
-            width:760px; background:#ffffff; color:#111111;
-            font-family:'Assistant',Arial,sans-serif; z-index:-1;
+        .card{
+            background:var(--surface);
+            -webkit-backdrop-filter:blur(26px) saturate(1.15); backdrop-filter:blur(26px) saturate(1.15);
+            border:1px solid var(--border);
+            box-shadow:0 30px 70px -28px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.05);
         }
-        #pdf-doc *, #pdf-doc *::before, #pdf-doc *::after { box-sizing:border-box; margin:0; padding:0; }
-        #pdf-doc .doc-inner { padding:34px 36px; }
-        #pdf-doc .doc-section { margin-bottom:20px; page-break-inside:avoid; }
-        #pdf-doc .doc-head { text-align:center; border-bottom:2px solid #0A84FF; padding-bottom:14px; }
-        #pdf-doc .doc-brand { font-size:34px; font-weight:900; letter-spacing:3px; color:#0A2540; }
-        #pdf-doc .doc-sub { font-size:11px; letter-spacing:3px; color:#0284C7; font-weight:700; margin-top:5px; }
-        #pdf-doc .doc-title { font-size:16px; font-weight:700; margin-top:10px; color:#374151; }
-        #pdf-doc table { width:100%; border-collapse:collapse; }
-        #pdf-doc td { border:1px solid #D1D5DB; padding:9px 11px; font-size:13.5px; vertical-align:top; }
-        #pdf-doc td.k { background:#F3F4F6; font-weight:700; width:88px; white-space:nowrap; color:#374151; }
-        #pdf-doc .doc-h { font-size:15px; font-weight:800; color:#0A2540; border-right:4px solid #0A84FF; padding-right:9px; margin-bottom:11px; }
-        #pdf-doc ul { list-style:disc; padding-right:22px; margin-right:4px; }
-        #pdf-doc li { font-size:12.5px; margin-bottom:5px; line-height:1.5; color:#374151; list-style:disc; }
-        #pdf-doc .doc-notes { font-size:12.5px; line-height:1.6; white-space:pre-wrap; background:#F9FAFB; border:1px solid #E5E7EB; padding:10px 12px; border-radius:6px; color:#374151; }
-        #pdf-doc .terms { font-size:11.5px; line-height:1.8; text-align:justify; color:#4B5563; }
-        #pdf-doc .doc-sign { border:1px solid #D1D5DB; border-radius:8px; padding:16px; }
-        #pdf-doc .doc-sign p { font-size:13px; line-height:1.6; margin-bottom:11px; color:#374151; }
-        #pdf-doc img.sig { display:block; width:300px; height:120px; object-fit:contain; border:1px solid #9CA3AF; background:#fff; border-radius:4px; }
-        #pdf-doc .doc-meta { font-size:11px; color:#6B7280; margin-top:9px; }
-        #pdf-doc .doc-foot { text-align:center; font-size:10px; color:#9CA3AF; letter-spacing:1px; margin-top:26px; border-top:1px solid #E5E7EB; padding-top:12px; }
+        .card-accent{
+            background:linear-gradient(160deg, rgba(45,212,191,.10) 0%, rgba(20,23,26,.7) 55%);
+            -webkit-backdrop-filter:blur(26px); backdrop-filter:blur(26px);
+            border:1px solid var(--border-lit);
+            box-shadow:0 30px 70px -28px rgba(0,0,0,.7), 0 0 0 1px rgba(45,212,191,.05), inset 0 1px 0 rgba(255,255,255,.06);
+        }
 
-        /* ============ גיבוי: הדפסה מקורית של הדפדפן ============ */
-        @media print {
-            body.printing-doc { background:#fff !important; }
-            body.printing-doc > *:not(#pdf-doc) { display:none !important; }
-            body.printing-doc #pdf-doc {
-                position:static !important; left:0 !important; top:0 !important;
-                width:100% !important; z-index:auto !important;
-            }
-            #pdf-doc { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        .field{
+            width:100%; background:rgba(255,255,255,.035);
+            border:1px solid rgba(255,255,255,.09); color:#fff;
+            border-radius:16px; padding:13px 16px; font-size:15px;
+            transition:border-color .25s, box-shadow .25s, background .25s;
+        }
+        .field::placeholder{ color:var(--txt-faint); }
+        .field:focus{
+            outline:none; background:rgba(255,255,255,.06);
+            border-color:var(--turq);
+            box-shadow:0 0 0 4px rgba(45,212,191,.14);
+        }
+        .lbl{ display:block; font-size:11px; font-weight:800; letter-spacing:.09em;
+              text-transform:uppercase; color:var(--txt-dim); margin-bottom:7px; }
+
+        .btn{
+            width:100%; border:0; border-radius:16px; cursor:pointer;
+            font-family:inherit; font-weight:800; font-size:16px;
+            display:flex; align-items:center; justify-content:center; gap:9px;
+            transition:transform .18s cubic-bezier(.3,1.2,.5,1), box-shadow .25s, filter .25s;
+        }
+        .btn:active{ transform:scale(.975); }
+        .btn:disabled{ opacity:.65; cursor:wait; transform:none; }
+        .btn-primary{
+            padding:16px 20px; color:#052622;
+            background:linear-gradient(135deg,var(--turq-bright) 0%,var(--turq) 45%,var(--turq-deep) 100%);
+            box-shadow:0 12px 34px -8px var(--glow), inset 0 1px 0 rgba(255,255,255,.4);
+        }
+        .btn-primary:hover{ box-shadow:0 16px 44px -8px rgba(45,212,191,.45), inset 0 1px 0 rgba(255,255,255,.5); }
+        .btn-lg{ padding:19px 22px; font-size:17px; border-radius:18px; }
+        .btn-glass{
+            padding:14px 18px; color:var(--txt);
+            background:var(--surface-2); border:1px solid var(--border);
+        }
+        .btn-glass:hover{ border-color:var(--border-lit); }
+        .btn-wa{ padding:13px; color:#fff; background:linear-gradient(135deg,#25D366,#1EA855); box-shadow:0 10px 26px -8px rgba(37,211,102,.4); }
+
+        .section-title{ display:flex; align-items:center; gap:12px; }
+        .chip-ico{
+            width:40px; height:40px; border-radius:12px; flex:none;
+            display:grid; place-items:center;
+            background:rgba(45,212,191,.12); border:1px solid rgba(45,212,191,.22);
+            box-shadow:0 0 18px -4px var(--glow);
+        }
+        .chip-ico svg{ width:20px; height:20px; color:var(--turq-bright); }
+
+        .pkg-chip{
+            display:flex; align-items:center; gap:11px; padding:14px 15px;
+            border-radius:15px; background:rgba(255,255,255,.03); border:1px solid var(--border);
+            font-weight:600; font-size:14.5px; line-height:1.35;
+        }
+        .pkg-chip svg{ width:18px; height:18px; color:var(--turq); flex:none; }
+
+        .stat .k{ display:block; font-size:10.5px; font-weight:800; letter-spacing:.08em;
+                  text-transform:uppercase; color:var(--txt-faint); margin-bottom:4px; }
+        .stat .v{ font-weight:700; color:var(--txt); }
+
+        canvas#sig-canvas{
+            touch-action:none; width:100%; height:170px; border-radius:16px;
+            background:rgba(8,10,11,.9);
+            border:1.5px dashed rgba(45,212,191,.4); cursor:crosshair;
+        }
+
+        .grad-text{
+            background:linear-gradient(120deg,#fff 20%,var(--turq-bright) 60%,var(--turq) 100%);
+            -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        .glow-dot{
+            width:12px; height:12px; border-radius:50%; background:var(--turq);
+            box-shadow:0 0 20px 4px var(--glow), 0 0 40px 8px rgba(45,212,191,.15);
+            animation:pulse 2.4s ease-in-out infinite;
+        }
+        @keyframes pulse{ 0%,100%{opacity:.6;transform:scale(.9)} 50%{opacity:1;transform:scale(1.15)} }
+
+        @keyframes reveal{ from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+        .reveal{ animation:reveal .6s cubic-bezier(.2,.7,.2,1) both; }
+        .reveal:nth-child(2){ animation-delay:.06s } .reveal:nth-child(3){ animation-delay:.12s }
+        .reveal:nth-child(4){ animation-delay:.18s } .reveal:nth-child(5){ animation-delay:.24s }
+        @media (prefers-reduced-motion:reduce){ .reveal{ animation:none } .glow-dot{ animation:none } }
+
+        /* ============ מסמך ה-PDF הנקי (שחור על לבן, נבנה ב-JS) ============ */
+        #pdf-doc{ position:absolute; left:-10000px; top:0; width:760px; background:#fff; color:#111; font-family:'Assistant',Arial,sans-serif; z-index:-1; }
+        #pdf-doc *,#pdf-doc *::before,#pdf-doc *::after{ box-sizing:border-box; margin:0; padding:0; }
+        #pdf-doc .doc-inner{ padding:34px 36px; }
+        #pdf-doc .doc-section{ margin-bottom:20px; page-break-inside:avoid; }
+        #pdf-doc .doc-head{ text-align:center; border-bottom:2px solid #0D9488; padding-bottom:14px; }
+        #pdf-doc .doc-brand{ font-size:34px; font-weight:900; letter-spacing:3px; color:#0F172A; }
+        #pdf-doc .doc-sub{ font-size:11px; letter-spacing:3px; color:#0D9488; font-weight:700; margin-top:5px; }
+        #pdf-doc .doc-title{ font-size:16px; font-weight:700; margin-top:10px; color:#374151; }
+        #pdf-doc table{ width:100%; border-collapse:collapse; }
+        #pdf-doc td{ border:1px solid #D1D5DB; padding:9px 11px; font-size:13.5px; vertical-align:top; }
+        #pdf-doc td.k{ background:#F1F5F4; font-weight:700; width:88px; white-space:nowrap; color:#374151; }
+        #pdf-doc .doc-h{ font-size:15px; font-weight:800; color:#0F172A; border-right:4px solid #0D9488; padding-right:9px; margin-bottom:11px; }
+        #pdf-doc ul{ list-style:disc; padding-right:22px; margin-right:4px; }
+        #pdf-doc li{ font-size:12.5px; margin-bottom:5px; line-height:1.5; color:#374151; }
+        #pdf-doc .doc-notes{ font-size:12.5px; line-height:1.6; white-space:pre-wrap; background:#F8FAFA; border:1px solid #E2E8F0; padding:10px 12px; border-radius:6px; color:#374151; }
+        #pdf-doc .terms{ font-size:11.5px; line-height:1.8; text-align:justify; color:#4B5563; }
+        #pdf-doc .doc-sign{ border:1px solid #D1D5DB; border-radius:8px; padding:16px; }
+        #pdf-doc .doc-sign p{ font-size:13px; line-height:1.6; margin-bottom:11px; color:#374151; }
+        #pdf-doc img.sig{ display:block; width:300px; height:120px; object-fit:contain; border:1px solid #9CA3AF; background:#fff; border-radius:4px; }
+        #pdf-doc .doc-meta{ font-size:11px; color:#6B7280; margin-top:9px; }
+        #pdf-doc .doc-foot{ text-align:center; font-size:10px; color:#9CA3AF; letter-spacing:1px; margin-top:26px; border-top:1px solid #E5E7EB; padding-top:12px; }
+
+        @media print{
+            body.printing-doc{ background:#fff !important; }
+            body.printing-doc>*:not(#pdf-doc){ display:none !important; }
+            body.printing-doc #pdf-doc{ position:static !important; left:0 !important; top:0 !important; width:100% !important; z-index:auto !important; }
+            #pdf-doc{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
         }
     </style>
 </head>
-<body class="min-h-screen py-6 md:py-12 px-4 sm:px-6 lg:px-8">
+<body class="py-6 md:py-14 px-4 sm:px-6">
 
-    <!-- שכבת טעינה ליצירת PDF -->
-    <div id="pdf-overlay" class="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex-col items-center justify-center gap-4" style="display:none">
-        <i data-lucide="loader-circle" class="w-12 h-12 text-cyan-400 animate-spin"></i>
+    <div id="pdf-overlay" class="fixed inset-0 z-[9999] bg-black/88 backdrop-blur-md flex-col items-center justify-center gap-4 text-center" style="display:none">
+        <i data-lucide="loader-circle" class="w-12 h-12 text-turq-bright animate-spin"></i>
         <p class="text-white font-bold text-lg">מכין את מסמך ה-PDF...</p>
         <p class="text-zinc-400 text-sm">רגע, אין צורך לסגור את הדף</p>
     </div>
 
-    <div id="pdf-container" class="max-w-3xl mx-auto space-y-6 md:space-y-8 p-2 md:p-4 rounded-3xl">
+    <div id="pdf-container" class="max-w-2xl mx-auto space-y-6 md:space-y-7">
 
-        <header class="text-center space-y-3 pt-2">
-            <div class="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-3xl glass-card-accent mb-1 shadow-xl">
-                <i data-lucide="camera" class="w-8 h-8 md:w-10 md:h-10 text-cyan-400"></i>
+        <header class="text-center space-y-3 pt-1 pb-1 reveal">
+            <div class="inline-flex items-center gap-2.5">
+                <span class="glow-dot"></span>
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-[.14em] grad-text">Snap Box</h1>
+                <span class="glow-dot"></span>
             </div>
-            <h1 class="text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-wider text-gradient">Snap Box</h1>
-            <p class="text-xs sm:text-sm uppercase tracking-[0.3em] text-cyan-300 font-bold">בוטיק עמדות צילום & חוויות אירוע</p>
+            <p class="text-[11px] sm:text-xs uppercase tracking-[.34em] text-turq/80 font-bold">Event Photo Booth Boutique</p>
         </header>
 
-        <!-- ==================== מצב מנהל: מחולל הצעות ==================== -->
-        <div id="admin-section" class="glass-card p-6 md:p-10 rounded-3xl space-y-6">
-            <div class="flex items-center gap-3 border-b border-white/10 pb-4">
-                <i data-lucide="sliders" class="w-6 h-6 text-cyan-400"></i>
-                <h2 class="text-xl md:text-2xl font-extrabold text-white">מחולל הצעת מחיר וחוזה</h2>
+        <!-- ============ מצב מנהל ============ -->
+        <div id="admin-section" class="card p-5 sm:p-8 rounded-3xl space-y-6 reveal">
+            <div class="section-title border-b border-white/[.07] pb-4">
+                <span class="chip-ico"><i data-lucide="sliders-horizontal"></i></span>
+                <h2 class="text-lg sm:text-xl font-extrabold">מחולל הצעת מחיר וחוזה</h2>
             </div>
 
             <form id="creator-form" onsubmit="generateShareLink(event)" class="space-y-5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">לכבוד (שם הלקוח) *</label>
-                        <input type="text" id="in_clientName" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm" placeholder="שם מלא / חברה"></div>
-                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">סוג אירוע *</label>
-                        <input type="text" id="in_eventType" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm" placeholder="חתונה / בר מצווה"></div>
-                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מיקום האירוע *</label>
-                        <input type="text" id="in_location" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm" placeholder="שם האולם / עיר"></div>
-                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">תאריך האירוע *</label>
-                        <input type="text" id="in_date" required class="w-full glass-input px-4 py-3 rounded-2xl text-left text-sm placeholder-zinc-500" placeholder="DD/MM/YYYY" dir="ltr" maxlength="10" oninput="formatDate(this)"></div>
-                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">שעת תחילת אירוע *</label>
-                        <input type="text" id="in_startTime" required class="w-full glass-input px-4 py-3 rounded-2xl text-left text-sm placeholder-zinc-500" placeholder="HH:MM" dir="ltr" maxlength="5" oninput="formatTime(this)"></div>
-                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">שעת סיום אירוע *</label>
-                        <input type="text" id="in_endTime" required class="w-full glass-input px-4 py-3 rounded-2xl text-left text-sm placeholder-zinc-500" placeholder="HH:MM" dir="ltr" maxlength="5" oninput="formatTime(this)"></div>
-                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מחיר כולל (₪) *</label>
-                        <input type="number" id="in_price" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="2500"></div>
-                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מקדמה (₪) *</label>
-                        <input type="number" id="in_deposit" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="500"></div>
-                    <div class="sm:col-span-2"><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">הערות / סיכומים נוספים (אופציונלי)</label>
-                        <textarea id="in_notes" class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="לדוגמה: תוספת מגנטים, מיקום חופה..." rows="2"></textarea></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div><label class="lbl">לכבוד (שם הלקוח) *</label><input type="text" id="in_clientName" required class="field" placeholder="שם מלא / חברה"></div>
+                    <div><label class="lbl">סוג אירוע *</label><input type="text" id="in_eventType" required class="field" placeholder="חתונה / בר מצווה"></div>
+                    <div><label class="lbl">מיקום האירוע *</label><input type="text" id="in_location" required class="field" placeholder="שם האולם / עיר"></div>
+                    <div><label class="lbl">תאריך האירוע *</label><input type="text" id="in_date" required class="field text-left" dir="ltr" maxlength="10" placeholder="DD/MM/YYYY" oninput="formatDate(this)"></div>
+                    <div><label class="lbl">שעת תחילה *</label><input type="text" id="in_startTime" required class="field text-left" dir="ltr" maxlength="5" placeholder="HH:MM" oninput="formatTime(this)"></div>
+                    <div><label class="lbl">שעת סיום *</label><input type="text" id="in_endTime" required class="field text-left" dir="ltr" maxlength="5" placeholder="HH:MM" oninput="formatTime(this)"></div>
+                    <div><label class="lbl">מחיר כולל (₪) *</label><input type="number" id="in_price" required class="field" placeholder="2500"></div>
+                    <div><label class="lbl">מקדמה (₪) *</label><input type="number" id="in_deposit" required class="field" placeholder="500"></div>
+                    <div class="sm:col-span-2"><label class="lbl">הערות / סיכומים (אופציונלי)</label><textarea id="in_notes" rows="2" class="field" placeholder="לדוגמה: תוספת מגנטים, מיקום חופה..."></textarea></div>
                 </div>
 
-                <button type="submit" id="gen-btn" class="w-full py-4 btn-action rounded-2xl text-base font-bold flex items-center justify-center gap-2 shadow-lg mt-4">
+                <button type="submit" id="gen-btn" class="btn btn-primary btn-lg">
                     <i data-lucide="link" class="w-5 h-5"></i> צור קישור קצר ללקוח
                 </button>
             </form>
 
-            <div id="link-result" class="hidden p-4 bg-black/60 border border-cyan-500/30 rounded-2xl space-y-3">
-                <p class="text-xs text-cyan-400 font-bold uppercase tracking-wider">הקישור מוכן לשליחה ללקוח:</p>
+            <div id="link-result" class="hidden rounded-2xl border border-turq/25 bg-turq/[.06] p-4 space-y-3">
+                <p class="text-[11px] font-bold uppercase tracking-widest text-turq-bright">הקישור מוכן לשליחה ללקוח</p>
                 <div class="flex gap-2">
-                    <input type="text" id="shareable-url" readonly class="w-full glass-input px-4 py-2.5 rounded-xl text-xs font-mono" dir="ltr">
-                    <button id="copy-btn" onclick="copyGeneratedLink()" class="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1">
-                        <i data-lucide="copy" class="w-4 h-4"></i> <span id="copy-text">העתק</span>
+                    <input type="text" id="shareable-url" readonly dir="ltr" class="field !py-2.5 !rounded-xl text-xs font-mono">
+                    <button id="copy-btn" onclick="copyGeneratedLink()" class="btn-glass !w-auto !rounded-xl !px-4 !py-2.5 text-xs shrink-0 flex items-center gap-1">
+                        <i data-lucide="copy" class="w-4 h-4"></i><span id="copy-text">העתק</span>
                     </button>
                 </div>
                 <p id="link-status" class="text-[11px] text-zinc-400 min-h-[14px]"></p>
-                <a id="wa-share-btn" href="#" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 w-full py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-bold transition">
+                <a id="wa-share-btn" href="#" target="_blank" rel="noopener" class="btn btn-wa">
                     <i data-lucide="message-circle" class="w-4 h-4"></i> שלח ללקוח בוואטסאפ
                 </a>
             </div>
         </div>
 
-        <!-- ==================== מצב לקוח ==================== -->
-        <main id="client-view" class="hidden space-y-6 md:space-y-8">
+        <!-- ============ מצב לקוח ============ -->
+        <main id="client-view" class="hidden space-y-6 md:space-y-7">
 
-            <section class="glass-card-accent p-6 md:p-8 rounded-3xl space-y-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-white/10 pb-4">
-                    <h2 class="text-xl md:text-2xl font-extrabold text-white flex items-center gap-2">
-                        <i data-lucide="file-check" class="w-6 h-6 text-cyan-400"></i> פרטי הצעת המחיר וההסכם
-                    </h2>
-                    <span class="text-xs font-mono text-cyan-300 bg-cyan-950/60 border border-cyan-500/30 px-3 py-1 rounded-full font-bold">SNAP BOX VIP</span>
+            <section class="card-accent p-5 sm:p-8 rounded-3xl space-y-6 reveal">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[.07] pb-4">
+                    <div class="section-title">
+                        <span class="chip-ico"><i data-lucide="file-check-2"></i></span>
+                        <h2 class="text-lg sm:text-xl font-extrabold">פרטי הצעת המחיר וההסכם</h2>
+                    </div>
+                    <span class="self-start text-[10px] font-mono font-bold tracking-widest text-turq-bright border border-turq/30 bg-turq/10 px-3 py-1 rounded-full">SNAP BOX · VIP</span>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-sm">
-                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">לכבוד</span><span id="view_clientName" class="font-extrabold text-white text-base sm:text-lg"></span></div>
-                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">סוג אירוע</span><span id="view_eventType" class="font-semibold text-zinc-200"></span></div>
-                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">מיקום</span><span id="view_location" class="font-semibold text-zinc-200"></span></div>
-                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">תאריך</span><span id="view_date" class="font-semibold text-zinc-200"></span></div>
-                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">שעות פעילות</span><span id="view_hours" class="font-semibold text-zinc-200" dir="ltr"></span></div>
-                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">מחיר כולל</span><span id="view_price" class="font-black text-cyan-400 text-xl"></span></div>
-                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">מקדמה</span><span id="view_deposit" class="font-semibold text-zinc-200"></span></div>
-                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">יתרה בסיום</span><span id="view_balance" class="font-semibold text-zinc-200"></span></div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-5 text-sm">
+                    <div class="stat"><span class="k">לכבוד</span><span id="view_clientName" class="v !font-extrabold !text-base"></span></div>
+                    <div class="stat"><span class="k">סוג אירוע</span><span id="view_eventType" class="v"></span></div>
+                    <div class="stat"><span class="k">מיקום</span><span id="view_location" class="v"></span></div>
+                    <div class="stat"><span class="k">תאריך</span><span id="view_date" class="v" dir="ltr"></span></div>
+                    <div class="stat"><span class="k">שעות פעילות</span><span id="view_hours" class="v" dir="ltr"></span></div>
+                    <div class="stat"><span class="k">מחיר כולל</span><span id="view_price" class="v !font-black !text-turq-bright !text-xl"></span></div>
+                    <div class="stat"><span class="k">מקדמה</span><span id="view_deposit" class="v"></span></div>
+                    <div class="stat"><span class="k">יתרה בסיום</span><span id="view_balance" class="v"></span></div>
                 </div>
 
-                <div id="view_notes_container" class="hidden mt-6 bg-cyan-950/20 p-5 rounded-2xl border border-cyan-500/20">
-                    <span class="block text-xs uppercase text-cyan-400 font-bold mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> הערות וסיכומים נוספים</span>
+                <div id="view_notes_container" class="hidden rounded-2xl bg-turq/[.06] border border-turq/20 p-4">
+                    <span class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-turq-bright mb-2"><i data-lucide="info" class="w-4 h-4"></i> הערות וסיכומים נוספים</span>
                     <p id="view_notes" class="text-sm font-semibold text-zinc-200 whitespace-pre-wrap leading-relaxed"></p>
                 </div>
             </section>
 
-            <section class="glass-card p-6 md:p-8 rounded-3xl space-y-6">
-                <h2 class="text-xl md:text-2xl font-bold text-white border-b border-white/10 pb-4 flex items-center gap-2">
-                    <i data-lucide="sparkles" class="w-6 h-6 text-cyan-400"></i> מפרט החבילה הכלולה
-                </h2>
-                <div id="pkg-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm md:text-base"></div>
+            <section class="card p-5 sm:p-8 rounded-3xl space-y-5 reveal">
+                <div class="section-title border-b border-white/[.07] pb-4">
+                    <span class="chip-ico"><i data-lucide="sparkles"></i></span>
+                    <h2 class="text-lg sm:text-xl font-extrabold">מפרט החבילה הכלולה</h2>
+                </div>
+                <div id="pkg-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
             </section>
 
-            <section class="glass-card p-6 md:p-8 rounded-3xl space-y-4">
-                <h2 class="text-lg md:text-xl font-bold text-white border-b border-white/10 pb-4 flex items-center gap-2">
-                    <i data-lucide="file-text" class="w-5 h-5 text-cyan-400"></i> תנאי הסכם והסדר ביטולים
-                </h2>
-                <div id="terms-text" class="bg-black/40 border border-white/5 p-5 rounded-2xl text-zinc-300 text-sm leading-relaxed text-justify font-normal"></div>
+            <section class="card p-5 sm:p-8 rounded-3xl space-y-4 reveal">
+                <div class="section-title border-b border-white/[.07] pb-4">
+                    <span class="chip-ico"><i data-lucide="scroll-text"></i></span>
+                    <h2 class="text-base sm:text-lg font-extrabold">תנאי הסכם והסדר ביטולים</h2>
+                </div>
+                <div id="terms-text" class="rounded-2xl bg-black/30 border border-white/5 p-4 sm:p-5 text-[13px] leading-relaxed text-zinc-300 text-justify"></div>
             </section>
 
-            <section id="sig-section" class="glass-card p-6 md:p-8 rounded-3xl space-y-6">
-                <h2 class="text-lg md:text-xl font-bold text-white border-b border-white/10 pb-4 flex items-center gap-2">
-                    <i data-lucide="pen-tool" class="w-5 h-5 text-cyan-400"></i> אישור וחתימת הלקוח
-                </h2>
+            <section id="sig-section" class="card p-5 sm:p-8 rounded-3xl space-y-5 reveal">
+                <div class="section-title border-b border-white/[.07] pb-4">
+                    <span class="chip-ico"><i data-lucide="pen-tool"></i></span>
+                    <h2 class="text-base sm:text-lg font-extrabold">אישור וחתימת הלקוח</h2>
+                </div>
 
                 <form id="signature-form" onsubmit="handleSignatureSubmit(event)" class="space-y-5">
                     <div class="space-y-2">
                         <div class="flex justify-between items-center">
-                            <label class="text-xs uppercase font-bold text-zinc-300">חתום בתוך התיבה למטה *</label>
-                            <button type="button" onclick="clearSignature()" class="text-xs text-cyan-400 hover:underline font-bold">איפוס חתימה</button>
+                            <label class="lbl !mb-0">חתום בתוך התיבה *</label>
+                            <button type="button" onclick="clearSignature()" class="text-xs text-turq-bright hover:underline font-bold">איפוס</button>
                         </div>
-                        <div class="rounded-2xl overflow-hidden"><canvas id="sig-canvas" class="w-full h-40 rounded-2xl"></canvas></div>
+                        <canvas id="sig-canvas"></canvas>
                         <p class="text-[11px] text-zinc-500">תאריך: <span id="sign-date" dir="ltr"></span></p>
                     </div>
 
-                    <div id="pdf-hide-controls" class="space-y-5">
-                        <div class="p-4 rounded-xl bg-cyan-900/20 border border-cyan-500/30 text-sm text-cyan-100">
-                            <strong>הוראות סיום:</strong> לחיצה על הכפתור תוריד את עותק ה-PDF המלא של ההסכם למכשיר שלך, ובמקביל תשלח את האישור והחתימה לעסק.
+                    <div id="pdf-hide-controls" class="space-y-4">
+                        <div class="rounded-xl bg-turq/[.06] border border-turq/25 p-4 text-[13px] text-turq-bright/90 leading-relaxed">
+                            <strong>סיום:</strong> לחיצה על הכפתור תוריד את ה-PDF המלא של ההסכם למכשיר שלך, ובמקביל תשלח את האישור והחתימה ל-Snap Box.
                         </div>
-                        <button type="submit" id="submit-btn" class="w-full py-5 btn-action rounded-2xl text-lg font-extrabold flex items-center justify-center gap-2 shadow-xl">
-                            <i data-lucide="check-circle" class="w-6 h-6"></i> אשר הסכם, הורד PDF ושלח לעסק
+                        <button type="submit" id="submit-btn" class="btn btn-primary btn-lg">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i> אשר הסכם, הורד PDF ושלח
                         </button>
                     </div>
                 </form>
             </section>
         </main>
 
-        <footer class="text-center py-6 text-zinc-500 text-xs space-y-1">
-            <p class="font-bold tracking-widest uppercase text-zinc-400">Snap Box Events</p>
-            <p>© 2026 כל הזכויות שמורות</p>
+        <footer class="text-center pt-2 pb-6 text-zinc-600 text-xs space-y-1">
+            <p class="font-bold tracking-[.2em] uppercase text-zinc-500">Snap Box Events</p>
+            <p>© 2026 · כל הזכויות שמורות</p>
         </footer>
     </div>
 
-    <!-- מסמך ה-PDF הנקי (מתמלא ב-JS) -->
+    <!-- מסמך ה-PDF (מתמלא ב-JS) -->
     <div id="pdf-doc"></div>
+
+    <!-- שליחת מייל לעסק דרך FormSubmit (טופס נסתר + iframe — תומך בצירוף קבצים) -->
+    <iframe name="fs-sink" title="sink" style="position:absolute;width:0;height:0;border:0;left:-9999px;top:0"></iframe>
+    <form id="fs-form" method="POST" enctype="multipart/form-data" target="fs-sink" accept-charset="UTF-8" style="display:none">
+        <input type="hidden" name="_subject" id="fs_subject">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="שם הלקוח" id="fs_name">
+        <input type="hidden" name="סוג אירוע" id="fs_type">
+        <input type="hidden" name="מיקום" id="fs_loc">
+        <input type="hidden" name="תאריך האירוע" id="fs_date">
+        <input type="hidden" name="שעות" id="fs_hours">
+        <input type="hidden" name="מחיר כולל" id="fs_price">
+        <input type="hidden" name="מקדמה" id="fs_deposit">
+        <input type="hidden" name="יתרה לתשלום" id="fs_balance">
+        <input type="hidden" name="הערות" id="fs_notes">
+        <input type="hidden" name="נחתם בתאריך" id="fs_signed">
+        <input type="file" name="attachment" id="fs_files" multiple>
+    </form>
 
     <script>
         lucide.createIcons();
 
-        /* ========= הגדרות ========= */
+        /* ================= הגדרות ================= */
         const SUPPLIER_EMAIL = "snapboxevent.official@gmail.com";
 
         const PKG_ITEMS = [
@@ -238,10 +348,9 @@
             'שליחת כל התמונות ללקוח לטלפון',
             'שליחת הסטריפ של האורח לטלפון'
         ];
-
         const TERMS_TEXT = 'בכל מקרה של ביטול, דחייה או שינוי מהותי בפרטי האירוע, שומרת לעצמה "Snap Box" את הזכות לבטל את השירות או לעדכן את מחיר העסקה בהתאם; ביטול מצד הלקוח בתוך 14 ימים או פחות ממועד האירוע יגרור חילוט מלא של המקדמה כפיצוי מוסכם מראש ללא זכות החזר. מנגד, אם השירות לא יסופק עקב נסיבות שאינן בשליטת הספק (כוח עליון), תוחזר המקדמה במלואה והספק יהיה פטור מכל פיצוי נוסף. הלקוח נושא באחריות מלאה לכל נזק או אובדן שייגרמו לציוד במהלך האירוע, ומתחייב לשאת במלוא עלות התיקון או ההחלפה. חתימה על הסכם זה מהווה אישור ל-"Snap Box" לעשות שימוש בתמונות מהאירוע לצרכי פרסום ושיווק, אלא אם הלקוח סירב לכך מראש ובכתב. כמו כן, הלקוח מתחייב לספק לעמדת הצילום חניה נגישה, מקור חשמל תקין וחיבור אינטרנט רציף. יתרת התשלום תועבר לספק במלואה מיד בתום האירוע.';
 
-        /* ========= קנבס חתימה ========= */
+        /* ================= חתימה ================= */
         const canvas = document.getElementById('sig-canvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false, hasSigned = false, lastSigDataUrl = '';
@@ -251,136 +360,158 @@
 
         function resizeCanvas(){
             const prev = hasSigned ? canvas.toDataURL() : null;
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width; canvas.height = rect.height;
-            ctx.strokeStyle='#64D2FF'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.lineJoin='round';
-            if(prev){ const img=new Image(); img.onload=()=>ctx.drawImage(img,0,0,canvas.width,canvas.height); img.src=prev; }
+            const r = canvas.getBoundingClientRect();
+            canvas.width = r.width; canvas.height = r.height;
+            ctx.strokeStyle = '#5EEAD4'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            if(prev){ const im = new Image(); im.onload = () => ctx.drawImage(im,0,0,canvas.width,canvas.height); im.src = prev; }
         }
-        window.addEventListener('resize', ()=>setTimeout(resizeCanvas,150));
+        window.addEventListener('resize', () => setTimeout(resizeCanvas, 150));
 
-        function getPos(e){ const r=canvas.getBoundingClientRect(); const x=e.touches?e.touches[0].clientX:e.clientX; const y=e.touches?e.touches[0].clientY:e.clientY; return {x:x-r.left,y:y-r.top}; }
-        function startDrawing(e){ isDrawing=true; hasSigned=true; const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); }
-        function draw(e){ if(!isDrawing)return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); }
-        function stopDrawing(){ isDrawing=false; }
-        canvas.addEventListener('mousedown',startDrawing); canvas.addEventListener('mousemove',draw);
-        canvas.addEventListener('mouseup',stopDrawing); canvas.addEventListener('mouseleave',stopDrawing);
-        canvas.addEventListener('touchstart',startDrawing,{passive:false}); canvas.addEventListener('touchmove',draw,{passive:false}); canvas.addEventListener('touchend',stopDrawing);
+        function pos(e){ const r=canvas.getBoundingClientRect(); const x=e.touches?e.touches[0].clientX:e.clientX; const y=e.touches?e.touches[0].clientY:e.clientY; return {x:x-r.left,y:y-r.top}; }
+        function down(e){ isDrawing=true; hasSigned=true; const p=pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); }
+        function move(e){ if(!isDrawing) return; e.preventDefault(); const p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); }
+        function up(){ isDrawing=false; }
+        canvas.addEventListener('mousedown',down); canvas.addEventListener('mousemove',move); canvas.addEventListener('mouseup',up); canvas.addEventListener('mouseleave',up);
+        canvas.addEventListener('touchstart',down,{passive:false}); canvas.addEventListener('touchmove',move,{passive:false}); canvas.addEventListener('touchend',up);
         function clearSignature(){ ctx.clearRect(0,0,canvas.width,canvas.height); hasSigned=false; }
 
-        /* ========= base64url + קיצור כתובת ========= */
-        function b64UrlEncode(s){ return btoa(encodeURIComponent(s)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-        function b64UrlDecode(s){ s=String(s).replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4)s+='='; return decodeURIComponent(atob(s)); }
+        /* ================= קידוד קצר (UTF-8 → base64url) ================= */
+        function b64UrlEncode(str){
+            const bytes = new TextEncoder().encode(str);
+            let bin = ''; bytes.forEach(b => bin += String.fromCharCode(b));
+            return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+        }
+        function b64UrlDecode(str){
+            str = String(str).replace(/-/g,'+').replace(/_/g,'/');
+            while(str.length % 4) str += '=';
+            const bin = atob(str), bytes = new Uint8Array(bin.length);
+            for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+            return new TextDecoder().decode(bytes);
+        }
 
+        /* ================= קיצור כתובת ================= */
         async function shortenUrl(longUrl){
+            const enc = encodeURIComponent(longUrl);
             const tries = [
-                async()=>{ const r=await fetch('https://is.gd/create.php?format=json&logstats=0&url='+encodeURIComponent(longUrl)); return (await r.json()).shorturl||null; },
-                async()=>{ const r=await fetch('https://v.gd/create.php?format=json&logstats=0&url='+encodeURIComponent(longUrl)); return (await r.json()).shorturl||null; },
-                async()=>{ const r=await fetch('https://cleanuri.com/api/v1/shorten',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'url='+encodeURIComponent(longUrl)}); return (await r.json()).result_url||null; }
+                async()=>{ const r=await fetch('https://is.gd/create.php?format=json&logstats=0&url='+enc); return (await r.json()).shorturl; },
+                async()=>{ const r=await fetch('https://v.gd/create.php?format=json&logstats=0&url='+enc); return (await r.json()).shorturl; },
+                async()=>{ const r=await fetch('https://da.gd/shorten?url='+enc); const t=(await r.text()).trim(); return /^https?:\/\//.test(t)?t:null; },
+                async()=>{ const r=await fetch('https://cleanuri.com/api/v1/shorten',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'url='+enc}); return (await r.json()).result_url; }
             ];
-            for(const t of tries){ try{ const s=await t(); if(s && /^https?:\/\//i.test(s)) return s; }catch(e){} }
+            for(const t of tries){ try{ const s=await t(); if(s && /^https?:\/\//i.test(s)) return s; }catch(_){} }
             return null;
         }
 
         async function generateShareLink(e){
             e.preventDefault();
-            const btn=document.getElementById('gen-btn'), orig=btn.innerHTML;
-            btn.disabled=true; btn.innerHTML='<i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> יוצר קישור...'; lucide.createIcons();
+            const btn = document.getElementById('gen-btn'), orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> יוצר קישור מקוצר...';
+            lucide.createIcons();
 
-            const g=id=>document.getElementById(id).value.trim();
-            const name=g('in_clientName'), type=g('in_eventType'), loc=g('in_location'),
-                  dateStr=g('in_date'), sTime=g('in_startTime'), eTime=g('in_endTime');
-            const price=document.getElementById('in_price').value, deposit=document.getElementById('in_deposit').value;
-            const safeNotes=(document.getElementById('in_notes').value||'').replace(/\|/g,'/');
+            const g = id => document.getElementById(id).value.trim();
+            const raw = [
+                g('in_clientName'), g('in_eventType'), g('in_location'), g('in_date'),
+                g('in_startTime'), g('in_endTime'),
+                document.getElementById('in_price').value, document.getElementById('in_deposit').value,
+                (document.getElementById('in_notes').value || '').replace(/\|/g,'/')
+            ].join('|');
 
-            const raw=[name,type,loc,dateStr,sTime,eTime,price,deposit,safeNotes].join('|');
-            const fullUrl=`${window.location.origin}${window.location.pathname}?q=${b64UrlEncode(raw)}`;
+            const fullUrl = `${location.origin}${location.pathname}?q=${b64UrlEncode(raw)}`;
 
-            const urlInput=document.getElementById('shareable-url'), statusEl=document.getElementById('link-status');
-            urlInput.value=fullUrl; statusEl.textContent='מקצר קישור...';
-            document.getElementById('link-result').classList.remove('hidden');
+            const box = document.getElementById('link-result');
+            const urlInput = document.getElementById('shareable-url');
+            const statusEl = document.getElementById('link-status');
+            box.classList.remove('hidden');
+            urlInput.value = '';
+            statusEl.textContent = 'מקצר...';
 
-            let finalUrl=fullUrl;
-            const short=await shortenUrl(fullUrl);
-            if(short){ finalUrl=short; urlInput.value=short; statusEl.textContent='✓ קישור קצר מוכן.'; }
-            else { statusEl.textContent='לא הצלחנו לקצר כרגע — הקישור המלא שלמעלה תקין לחלוטין לשליחה.'; }
+            let finalUrl = await shortenUrl(fullUrl);
+            if (finalUrl) {
+                urlInput.value = finalUrl;
+                statusEl.innerHTML = '<span class="text-turq-bright font-bold">✓</span> קישור קצר ומוכן לשליחה';
+            } else {
+                finalUrl = fullUrl;
+                urlInput.value = fullUrl;
+                statusEl.textContent = 'שירות הקיצור לא זמין כרגע — הקישור הזה תקין לחלוטין לשליחה.';
+            }
 
-            const waMsg=`היי ${name||''}, זו הצעת המחיר וההסכם ל${type||'אירוע'} 🎥📸\nלצפייה בפרטים ולחתימה דיגיטלית:\n${finalUrl}`;
-            document.getElementById('wa-share-btn').href='https://wa.me/?text='+encodeURIComponent(waMsg);
+            const name = g('in_clientName'), type = g('in_eventType');
+            const waMsg = `היי ${name}, זו הצעת המחיר וההסכם ל${type || 'אירוע'} 🎥📸\nלצפייה בפרטים ולחתימה דיגיטלית:\n${finalUrl}`;
+            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
 
-            btn.disabled=false; btn.innerHTML=orig; lucide.createIcons();
+            btn.disabled = false; btn.innerHTML = orig; lucide.createIcons();
         }
 
         function copyGeneratedLink(){
-            const input=document.getElementById('shareable-url'), t=document.getElementById('copy-text');
-            const done=()=>{ t.innerText='הועתק! ✓'; setTimeout(()=>t.innerText='העתק',2000); };
+            const input = document.getElementById('shareable-url'), t = document.getElementById('copy-text');
+            const done = () => { t.innerText = 'הועתק ✓'; setTimeout(() => t.innerText = 'העתק', 2000); };
             input.select();
-            if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(input.value).then(done).catch(()=>{document.execCommand('copy');done();}); }
+            if (navigator.clipboard && navigator.clipboard.writeText)
+                navigator.clipboard.writeText(input.value).then(done).catch(() => { document.execCommand('copy'); done(); });
             else { document.execCommand('copy'); done(); }
         }
 
-        /* ========= קריאת הנתונים מהקישור (מצב לקוח) ========= */
+        /* ================= קריאת הנתונים (מצב לקוח) ================= */
         let contractData = {};
-        const dataParam = new URLSearchParams(window.location.search).get('q');
+        const dataParam = new URLSearchParams(location.search).get('q');
 
-        // ממלא רשימת חבילה + תנאים בכל מקרה
-        document.getElementById('pkg-list').innerHTML = PKG_ITEMS.map(x=>`
-            <div class="flex items-center gap-3 p-4 rounded-2xl glass-card-accent">
-                <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400 shrink-0"></i>
-                <span class="text-zinc-100 font-semibold">${x}</span>
-            </div>`).join('');
+        document.getElementById('pkg-list').innerHTML = PKG_ITEMS.map(x => `
+            <div class="pkg-chip"><i data-lucide="check-circle-2"></i><span class="text-zinc-100">${x}</span></div>`).join('');
         document.getElementById('terms-text').textContent = TERMS_TEXT;
         lucide.createIcons();
 
-        if(dataParam){
+        if (dataParam) {
             document.getElementById('admin-section').classList.add('hidden');
             document.getElementById('client-view').classList.remove('hidden');
-            try{
-                const p=b64UrlDecode(dataParam).split('|');
-                contractData={ name:p[0],type:p[1],location:p[2],date:p[3],startTime:p[4],endTime:p[5],
-                    price:Number(p[6]),deposit:Number(p[7]),notes:p[8]||'' };
+            try {
+                const p = b64UrlDecode(dataParam).split('|');
+                contractData = { name:p[0], type:p[1], location:p[2], date:p[3], startTime:p[4], endTime:p[5],
+                    price:Number(p[6]), deposit:Number(p[7]), notes:p[8] || '' };
 
-                document.getElementById('view_clientName').innerText=contractData.name;
-                document.getElementById('view_eventType').innerText=contractData.type;
-                document.getElementById('view_location').innerText=contractData.location;
-                document.getElementById('view_date').innerText=contractData.date;
-                document.getElementById('view_hours').innerText=`${contractData.startTime} - ${contractData.endTime}`;
-                document.getElementById('view_price').innerText=`₪${contractData.price.toLocaleString()}`;
-                document.getElementById('view_deposit').innerText=`₪${contractData.deposit.toLocaleString()}`;
-                document.getElementById('view_balance').innerText=`₪${(contractData.price-contractData.deposit).toLocaleString()}`;
-                document.getElementById('sign-date').innerText=new Date().toLocaleDateString('he-IL');
+                const set = (id,v) => document.getElementById(id).innerText = v;
+                set('view_clientName', contractData.name);
+                set('view_eventType', contractData.type);
+                set('view_location', contractData.location);
+                set('view_date', contractData.date);
+                set('view_hours', `${contractData.startTime} - ${contractData.endTime}`);
+                set('view_price', `₪${contractData.price.toLocaleString()}`);
+                set('view_deposit', `₪${contractData.deposit.toLocaleString()}`);
+                set('view_balance', `₪${(contractData.price - contractData.deposit).toLocaleString()}`);
+                set('sign-date', new Date().toLocaleDateString('he-IL'));
 
-                if(contractData.notes && contractData.notes.trim()!==''){
+                if (contractData.notes && contractData.notes.trim()) {
                     document.getElementById('view_notes_container').classList.remove('hidden');
-                    document.getElementById('view_notes').innerText=contractData.notes;
+                    document.getElementById('view_notes').innerText = contractData.notes;
                 }
-                setTimeout(resizeCanvas,300);
-            }catch(err){
-                document.getElementById('client-view').innerHTML='<div class="glass-card p-8 rounded-3xl text-center text-red-300">הקישור אינו תקין. אנא בקש מ-Snap Box קישור חדש.</div>';
+                setTimeout(resizeCanvas, 300);
+            } catch (err) {
+                document.getElementById('client-view').innerHTML =
+                    '<div class="card p-8 rounded-3xl text-center text-red-300">הקישור אינו תקין. אנא בקש מ-Snap Box קישור חדש.</div>';
                 console.error(err);
             }
         }
 
-        /* ========= עזרי PDF ========= */
-        function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+        /* ================= עזרי PDF ================= */
+        function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
 
         function dataUrlToBlob(dataUrl){
-            const [head,b64]=dataUrl.split(',');
-            const mime=(head.match(/:(.*?);/)||[])[1]||'image/png';
-            const bin=atob(b64), arr=new Uint8Array(bin.length);
-            for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
-            return new Blob([arr],{type:mime});
+            const [head, b64] = dataUrl.split(',');
+            const mime = (head.match(/:(.*?);/) || [])[1] || 'image/png';
+            const bin = atob(b64), arr = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+            return new Blob([arr], { type: mime });
         }
 
-        function triggerDownload(blob,name){
-            const a=document.createElement('a');
-            a.href=URL.createObjectURL(blob); a.download=name;
+        function triggerDownload(blob, name){
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob); a.download = name;
             document.body.appendChild(a); a.click();
-            setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },6000);
+            setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 6000);
         }
 
         function buildPdfDoc(sigDataUrl){
-            const c=contractData, bal=c.price-c.deposit;
-            const now=new Date();
+            const c = contractData, bal = c.price - c.deposit, now = new Date();
             document.getElementById('pdf-doc').innerHTML = `
               <div class="doc-inner">
                 <div class="doc-section doc-head">
@@ -388,35 +519,29 @@
                   <div class="doc-sub">EVENT PHOTO BOOTH BOUTIQUE</div>
                   <div class="doc-title">הסכם והצעת מחיר לאירוע</div>
                 </div>
-
                 <div class="doc-section">
                   <table>
                     <tr><td class="k">לכבוד</td><td>${esc(c.name)}</td><td class="k">סוג אירוע</td><td>${esc(c.type)}</td></tr>
                     <tr><td class="k">מיקום</td><td>${esc(c.location)}</td><td class="k">תאריך</td><td dir="ltr">${esc(c.date)}</td></tr>
-                    <tr><td class="k">שעות</td><td dir="ltr">${esc(c.startTime)} - ${esc(c.endTime)}</td><td class="k">מחיר כולל</td><td><b>₪${c.price.toLocaleString()}</b></td></tr>
-                    <tr><td class="k">מקדמה</td><td>₪${c.deposit.toLocaleString()}</td><td class="k">יתרה בסיום</td><td>₪${bal.toLocaleString()}</td></tr>
+                    <tr><td class="k">שעות</td><td dir="ltr">${esc(c.startTime)} - ${esc(c.endTime)}</td><td class="k">מחיר כולל</td><td><b>${c.price.toLocaleString()} ש"ח</b></td></tr>
+                    <tr><td class="k">מקדמה</td><td>${c.deposit.toLocaleString()} ש"ח</td><td class="k">יתרה בסיום</td><td>${bal.toLocaleString()} ש"ח</td></tr>
                   </table>
                 </div>
-
                 ${c.notes && c.notes.trim() ? `<div class="doc-section"><div class="doc-h">הערות וסיכומים נוספים</div><div class="doc-notes">${esc(c.notes)}</div></div>` : ''}
-
                 <div class="doc-section">
                   <div class="doc-h">מפרט החבילה הכלולה</div>
-                  <ul>${PKG_ITEMS.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+                  <ul>${PKG_ITEMS.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
                 </div>
-
                 <div class="doc-section">
                   <div class="doc-h">תנאי הסכם והסדר ביטולים</div>
                   <div class="terms">${esc(TERMS_TEXT)}</div>
                 </div>
-
                 <div class="doc-section doc-sign">
                   <div class="doc-h">אישור וחתימת הלקוח</div>
                   <p>אני, <b>${esc(c.name)}</b>, מאשר/ת בזאת את פרטי הצעת המחיר ואת תנאי ההסכם המפורטים במסמך זה, וחותם/ת עליהם בחתימה דיגיטלית מחייבת.</p>
                   <img class="sig" src="${sigDataUrl}" alt="חתימת הלקוח">
                   <div class="doc-meta">חתימה דיגיטלית · תאריך: ${now.toLocaleDateString('he-IL')} · שעה: ${now.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}</div>
                 </div>
-
                 <div class="doc-foot">Snap Box Events · ${SUPPLIER_EMAIL} · © 2026 כל הזכויות שמורות</div>
               </div>`;
         }
@@ -426,10 +551,8 @@
         async function generatePdfBlob(sigDataUrl){
             buildPdfDoc(sigDataUrl);
             const el = document.getElementById('pdf-doc');
-
-            // מביא את המסמך למיקום תקין על המסך (מוסתר מאחורי #pdf-overlay) — חובה כדי ש-html2canvas יצלם
             window.scrollTo(0, 0);
-            el.style.cssText = `position:absolute;left:0;top:0;width:${PDF_WIDTH_PX}px;background:#ffffff;color:#111111;z-index:1;`;
+            el.style.cssText = `position:absolute;left:0;top:0;width:${PDF_WIDTH_PX}px;background:#fff;color:#111;z-index:1;`;
 
             if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch(e){} }
             await new Promise(res => {
@@ -439,50 +562,36 @@
             });
             await new Promise(r => setTimeout(r, 200));
 
-            const SCALE = 2;
-            let bigCanvas;
+            let big;
             try {
-                bigCanvas = await html2canvas(el, {
-                    scale: SCALE, useCORS: true, backgroundColor: '#ffffff', logging: false,
-                    width: PDF_WIDTH_PX, windowWidth: PDF_WIDTH_PX,
-                    x: 0, y: 0, scrollX: 0, scrollY: 0
-                });
+                big = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false,
+                    width: PDF_WIDTH_PX, windowWidth: PDF_WIDTH_PX, x: 0, y: 0, scrollX: 0, scrollY: 0 });
             } finally {
                 el.style.cssText = `position:absolute;left:-10000px;top:0;width:${PDF_WIDTH_PX}px;`;
             }
+            if (!big || big.height < 40) throw new Error('empty canvas');
 
-            if (!bigCanvas || bigCanvas.height < 40) throw new Error('empty canvas');
-
-            // בונה PDF A4 מרובה-עמודים ידנית מהקנבס (חיתוך לפי גובה עמוד)
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
-            const pageW = pdf.internal.pageSize.getWidth();
-            const pageH = pdf.internal.pageSize.getHeight();
-            const M = 8;
-            const usableW = pageW - M * 2;
-            const usableH = pageH - M * 2;
-            const pxPerMm = bigCanvas.width / usableW;
-            const pagePx = Math.floor(usableH * pxPerMm);
+            const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
+            const M = 8, usableW = pageW - M * 2, usableH = pageH - M * 2;
+            const pxPerMm = big.width / usableW, pagePx = Math.floor(usableH * pxPerMm);
 
             let y = 0, page = 0;
-            while (y < bigCanvas.height) {
-                const sliceH = Math.min(pagePx, bigCanvas.height - y);
-                const slice = document.createElement('canvas');
-                slice.width = bigCanvas.width;
-                slice.height = sliceH;
-                const sc = slice.getContext('2d');
-                sc.fillStyle = '#ffffff';
-                sc.fillRect(0, 0, slice.width, slice.height);
-                sc.drawImage(bigCanvas, 0, y, bigCanvas.width, sliceH, 0, 0, bigCanvas.width, sliceH);
+            while (y < big.height) {
+                const sliceH = Math.min(pagePx, big.height - y);
+                const s = document.createElement('canvas');
+                s.width = big.width; s.height = sliceH;
+                const sc = s.getContext('2d');
+                sc.fillStyle = '#fff'; sc.fillRect(0, 0, s.width, s.height);
+                sc.drawImage(big, 0, y, big.width, sliceH, 0, 0, big.width, sliceH);
                 if (page > 0) pdf.addPage();
-                pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', M, M, usableW, sliceH / pxPerMm);
-                y += sliceH;
-                page++;
-                if (page > 20) break; // בטיחות
+                pdf.addImage(s.toDataURL('image/jpeg', 0.95), 'JPEG', M, M, usableW, sliceH / pxPerMm);
+                y += sliceH; page++;
+                if (page > 20) break;
             }
-
             const blob = pdf.output('blob');
-            if (!blob || blob.size < 12000) throw new Error('PDF appears blank (size ' + (blob ? blob.size : 0) + ')');
+            if (!blob || blob.size < 12000) throw new Error('PDF blank (' + (blob ? blob.size : 0) + ')');
             return blob;
         }
 
@@ -490,85 +599,85 @@
             const sig = hasSigned ? canvas.toDataURL('image/png') : (lastSigDataUrl || '');
             buildPdfDoc(sig);
             document.body.classList.add('printing-doc');
-            const done=()=>document.body.classList.remove('printing-doc');
-            window.addEventListener('afterprint', done, { once:true });
-            setTimeout(()=>window.print(), 250);
+            window.addEventListener('afterprint', () => document.body.classList.remove('printing-doc'), { once: true });
+            setTimeout(() => window.print(), 250);
         }
 
-        /* ========= שליחה לעסק ========= */
-        async function sendToBusiness(pdfBlob, sigBlob, safeName){
-            const c=contractData, fd=new FormData();
-            fd.append('_subject', `הסכם חתום חדש — ${c.name} (${c.type})`);
-            fd.append('_captcha','false');
-            fd.append('_template','table');
-            fd.append('שם לקוח', c.name);
-            fd.append('סוג אירוע', c.type);
-            fd.append('מיקום', c.location);
-            fd.append('תאריך האירוע', c.date);
-            fd.append('שעות', `${c.startTime} - ${c.endTime}`);
-            fd.append('מחיר כולל', `₪${c.price}`);
-            fd.append('מקדמה', `₪${c.deposit}`);
-            fd.append('יתרה לתשלום', `₪${c.price - c.deposit}`);
-            if(c.notes) fd.append('הערות', c.notes);
-            fd.append('נחתם בתאריך', new Date().toLocaleString('he-IL'));
-            fd.append('סטטוס', pdfBlob
-                ? 'הלקוח חתם דיגיטלית. מצורפים: הסכם PDF + תמונת חתימה.'
-                : 'הלקוח חתם דיגיטלית. מצורפת תמונת החתימה (יצירת ה-PDF נכשלה במכשיר הלקוח).');
-            // הקובץ החשוב ביותר ראשון
-            if(pdfBlob) fd.append('attachment', pdfBlob, `Contract_${safeName}.pdf`);
-            if(sigBlob) fd.append('attachment', sigBlob, `Signature_${safeName}.png`);
+        /* ================= שליחה לעסק (FormSubmit — טופס נסתר + iframe) ================= */
+        function sendToBusiness(pdfBlob, sigBlob, safeName){
+            return new Promise(resolve => {
+                const c = contractData, f = document.getElementById('fs-form');
+                f.action = 'https://formsubmit.co/' + SUPPLIER_EMAIL;
+                document.getElementById('fs_subject').value = `הסכם חתום חדש — ${c.name} (${c.type})`;
+                document.getElementById('fs_name').value = c.name;
+                document.getElementById('fs_type').value = c.type;
+                document.getElementById('fs_loc').value = c.location;
+                document.getElementById('fs_date').value = c.date;
+                document.getElementById('fs_hours').value = `${c.startTime} - ${c.endTime}`;
+                document.getElementById('fs_price').value = `${c.price} ש"ח`;
+                document.getElementById('fs_deposit').value = `${c.deposit} ש"ח`;
+                document.getElementById('fs_balance').value = `${c.price - c.deposit} ש"ח`;
+                document.getElementById('fs_notes').value = c.notes || '—';
+                document.getElementById('fs_signed').value = new Date().toLocaleString('he-IL');
 
-            const res=await fetch(`https://formsubmit.co/ajax/${SUPPLIER_EMAIL}`, { method:'POST', body:fd });
-            const j=await res.json().catch(()=>({}));
-            return j.success===true || j.success==='true';
+                try {
+                    const dt = new DataTransfer();
+                    if (pdfBlob) dt.items.add(new File([pdfBlob], `Snapbox_Contract_${safeName}.pdf`, { type: 'application/pdf' }));
+                    if (sigBlob) dt.items.add(new File([sigBlob], `Signature_${safeName}.png`, { type: 'image/png' }));
+                    document.getElementById('fs_files').files = dt.files;
+                } catch (e) { console.warn('file attach skipped', e); }
+
+                const sink = document.querySelector('iframe[name="fs-sink"]');
+                let settled = false;
+                const fin = ok => { if (!settled) { settled = true; resolve(ok); } };
+                sink.onload = () => fin(true);
+                setTimeout(() => fin(true), 9000); // FormSubmit לא תמיד מפעיל onload חוצה-מקורות
+                f.submit();
+            });
         }
 
-        /* ========= סיום: PDF ללקוח + מייל לעסק ========= */
+        /* ================= סיום ================= */
         async function handleSignatureSubmit(e){
             e.preventDefault();
-            if(!hasSigned){ alert('אנא חתום בתיבה לפני אישור ההסכם.'); return; }
+            if (!hasSigned) { alert('אנא חתום בתיבה לפני אישור ההסכם.'); return; }
 
-            const btn=document.getElementById('submit-btn');
-            const overlay=document.getElementById('pdf-overlay');
-            btn.disabled=true; btn.innerHTML='מעבד...';
-            overlay.style.display='flex';
+            const btn = document.getElementById('submit-btn');
+            const overlay = document.getElementById('pdf-overlay');
+            btn.disabled = true; btn.innerHTML = 'מעבד...';
+            overlay.style.display = 'flex';
 
             lastSigDataUrl = canvas.toDataURL('image/png');
             const sigBlob = dataUrlToBlob(lastSigDataUrl);
-            const safeName = (contractData.name||'Client').replace(/[\\/:*?"<>|]+/g,'_');
+            const safeName = (contractData.name || 'Client').replace(/[\\/:*?"<>|]+/g, '_');
 
-            // 1) יצירת + הורדת PDF ללקוח
-            let pdfBlob=null;
-            try{
+            let pdfBlob = null;
+            try {
                 pdfBlob = await generatePdfBlob(lastSigDataUrl);
                 triggerDownload(pdfBlob, `SnapBox_Contract_${safeName}.pdf`);
-            }catch(err){ console.error('PDF generation failed', err); }
+            } catch (err) { console.error('PDF failed', err); }
 
-            overlay.style.display='none';
+            overlay.style.display = 'none';
+            btn.innerHTML = 'שולח אישור לעסק...';
 
-            // 2) מייל לעסק (תמיד — עם החתימה, ועם ה-PDF אם קיים)
-            btn.innerHTML='שולח אישור לעסק...';
-            let emailOk=false;
-            try{ emailOk = await sendToBusiness(pdfBlob, sigBlob, safeName); }
-            catch(err){ console.error('email failed', err); try{ emailOk = await sendToBusiness(null, sigBlob, safeName); }catch(e2){} }
+            let emailOk = false;
+            try { emailOk = await sendToBusiness(pdfBlob, sigBlob, safeName); } catch (err) { console.error(err); }
 
-            // 3) מצב סיום
-            const box=document.getElementById('pdf-hide-controls');
-            if(pdfBlob && emailOk){
-                box.innerHTML = `<div class="p-5 rounded-2xl bg-green-900/30 border border-green-500/40 text-green-100 text-center font-bold flex flex-col items-center gap-2">
-                    <i data-lucide="check-circle-2" class="w-8 h-8"></i>
-                    ההסכם נחתם בהצלחה!<br><span class="font-normal text-sm">ה-PDF ירד למכשיר שלך והאישור נשלח ל-Snap Box.</span></div>`;
+            const box = document.getElementById('pdf-hide-controls');
+            if (pdfBlob && emailOk) {
+                box.innerHTML = `<div class="rounded-2xl bg-turq/10 border border-turq/40 p-5 text-center flex flex-col items-center gap-2 text-turq-bright font-bold">
+                    <i data-lucide="party-popper" class="w-8 h-8"></i>
+                    ההסכם נחתם בהצלחה!<br><span class="font-normal text-sm text-zinc-300">ה-PDF ירד למכשיר שלך והאישור נשלח ל-Snap Box.</span></div>`;
             } else {
                 box.innerHTML = `
-                    <div class="p-4 rounded-xl bg-amber-900/30 border border-amber-500/40 text-amber-100 text-sm space-y-1">
+                    <div class="rounded-xl bg-amber-900/25 border border-amber-500/40 p-4 text-sm text-amber-100 space-y-1">
                         <p>${pdfBlob ? '✓ ה-PDF ירד למכשיר.' : '⚠️ יצירת ה-PDF האוטומטית נכשלה.'}</p>
-                        <p>${emailOk ? '✓ האישור והחתימה נשלחו לעסק.' : '⚠️ שליחת המייל נכשלה — צור קשר טלפוני עם Snap Box.'}</p>
-                        <p class="pt-1">אפשר להוריד/להדפיס עותק גיבוי מלא:</p>
+                        <p>${emailOk ? '✓ האישור והחתימה נשלחו לעסק.' : '⚠️ שליחת המייל לא אושרה — צור קשר טלפוני עם Snap Box.'}</p>
+                        <p class="pt-1">להורדה / הדפסה של עותק גיבוי מלא:</p>
                     </div>
-                    <button type="button" onclick="printFallback()" class="w-full py-4 btn-action rounded-2xl font-bold flex items-center justify-center gap-2">
+                    <button type="button" onclick="printFallback()" class="btn btn-primary btn-lg">
                         <i data-lucide="printer" class="w-5 h-5"></i> הורד / הדפס עותק גיבוי
                     </button>`;
-                btn.disabled=false;
+                btn.disabled = false;
             }
             lucide.createIcons();
         }
