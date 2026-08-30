@@ -88,12 +88,30 @@
             opacity: 0.95;
             transform: translateY(-1px);
         }
+
+        .pdf-export-mode {
+            background: #0B0E14 !important;
+            background-image: none !important;
+        }
+        
+        .pdf-export-mode .glass-card, 
+        .pdf-export-mode .glass-card-accent {
+            background: #11151F !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            box-shadow: none !important;
+            border: 1px solid rgba(255,255,255,0.05) !important;
+        }
+        
+        .pdf-export-mode #pdf-container {
+            padding: 20px !important;
+            max-width: 100% !important;
+        }
     </style>
 </head>
 <body class="min-h-screen py-6 md:py-12 px-4 sm:px-6 lg:px-8">
 
-    <!-- האזור שיהפוך ל-PDF -->
-    <div id="pdf-container" class="max-w-3xl mx-auto space-y-6 md:space-y-8 p-2 md:p-4 bg-[#0B0E14]">
+    <div id="pdf-container" class="max-w-3xl mx-auto space-y-6 md:space-y-8 p-2 md:p-4 rounded-3xl">
 
         <header class="text-center space-y-3 pt-2">
             <div class="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-3xl glass-card-accent mb-1 shadow-xl">
@@ -107,7 +125,7 @@
         <div id="admin-section" class="glass-card p-6 md:p-10 rounded-3xl space-y-6">
             <div class="flex items-center gap-3 border-b border-white/10 pb-4">
                 <i data-lucide="sliders" class="w-6 h-6 text-cyan-400"></i>
-                <h2 class="text-xl md:text-2xl font-extrabold text-white">מחולל הצעת מחיר</h2>
+                <h2 class="text-xl md:text-2xl font-extrabold text-white">מחולל הצעת מחיר וחוזה</h2>
             </div>
 
             <form id="creator-form" onsubmit="generateShareLink(event)" class="space-y-5">
@@ -162,7 +180,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="w-full py-4 btn-action rounded-2xl text-base font-bold flex items-center justify-center gap-2 shadow-lg">
+                <button type="submit" class="w-full py-4 btn-action rounded-2xl text-base font-bold flex items-center justify-center gap-2 shadow-lg mt-4">
                     <i data-lucide="link" class="w-5 h-5"></i>
                     צור קישור מעוצב ללקוח
                 </button>
@@ -186,7 +204,7 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-white/10 pb-4">
                     <h2 class="text-xl md:text-2xl font-extrabold text-white flex items-center gap-2">
                         <i data-lucide="file-check" class="w-6 h-6 text-cyan-400"></i>
-                        פרטי הצעת המחיר
+                        פרטי הצעת המחיר וההסכם
                     </h2>
                     <span class="text-xs font-mono text-cyan-300 bg-cyan-950/60 border border-cyan-500/30 px-3 py-1 rounded-full font-bold">SNAP BOX VIP</span>
                 </div>
@@ -297,16 +315,14 @@
                         </div>
                     </div>
 
-                    <!-- החלק הזה יוסתר ספציפית בזמן יצירת ה-PDF כדי לא להופיע בחוזה המודפס -->
                     <div id="pdf-hide-controls" class="space-y-5">
-                        <div>
-                            <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מספר טלפון לאישור וקבלה ב-WhatsApp *</label>
-                            <input type="tel" id="sig_phone" required class="w-full glass-input px-4 py-3.5 rounded-2xl text-left font-mono text-sm" dir="ltr" placeholder="0500000000">
+                        <div class="p-4 rounded-xl bg-cyan-900/20 border border-cyan-500/30 text-sm text-cyan-100">
+                            <strong>הוראות סיום:</strong> לחיצה על הכפתור למטה תוריד עותק PDF של ההסכם למכשיר שלך, ותפתח לך הודעת מייל מוכנה לשליחה אלינו עם פרטי האירוע.
                         </div>
 
                         <button type="submit" id="submit-btn" class="w-full py-5 btn-action rounded-2xl text-lg font-extrabold flex items-center justify-center gap-2 shadow-xl">
-                            <i data-lucide="check-circle-2" class="w-6 h-6"></i>
-                            אישור, שמירה ושליחה ל-WhatsApp
+                            <i data-lucide="check-circle" class="w-6 h-6"></i>
+                            אשר הסכם, הורד PDF ושלח אלינו במייל
                         </button>
                     </div>
 
@@ -324,6 +340,9 @@
 
     <script>
         lucide.createIcons();
+
+        // 📌 הכנס כאן את כתובת האימייל שלך לקבלת ההודעות מהלקוחות
+        const SUPPLIER_EMAIL = "your-email@gmail.com";
 
         function setupDropdowns() {
             const daySel = document.getElementById('in_day');
@@ -360,7 +379,6 @@
                 endH.add(new Option(val, val));
             }
 
-            // תיקון הדקות ל-15, 30, 45, 00
             startM.add(new Option('דקות', ''));
             endM.add(new Option('דקות', ''));
             for (let i = 0; i < 60; i += 15) {
@@ -514,22 +532,14 @@
             }
 
             const btn = document.getElementById('submit-btn');
-            btn.innerText = "מעבד מסמך PDF (נא להמתין)...";
+            btn.innerText = "מכין ושומר את קובץ ה-PDF...";
             btn.disabled = true;
 
-            let clientPhone = document.getElementById('sig_phone').value.replace(/[^0-9]/g, '');
-            if (clientPhone.startsWith('0')) {
-                clientPhone = '972' + clientPhone.slice(1);
-            }
-
-            // פתרון 1: גלילה אוטומטית למעלה כדי למנוע חיתוך של המסמך!
             window.scrollTo(0, 0);
-
-            // פתרון 2: הסתרת שדות הקלט והכפתור מה-PDF כדי שייראה כמו חוזה נקי
+            document.body.classList.add('pdf-export-mode');
             const controlsDiv = document.getElementById('pdf-hide-controls');
             controlsDiv.style.display = 'none';
 
-            // הגדרות מתקדמות לפתרון בעיות חיתוך בניידים
             const element = document.getElementById('pdf-container');
             const opt = {
                 margin:       [10, 10, 10, 10],
@@ -538,40 +548,36 @@
                 html2canvas:  { 
                     scale: 2, 
                     useCORS: true, 
-                    scrollY: 0, // קריטי: מאלץ להתחיל לסרוק מראש העמוד
-                    windowWidth: 800, // קריטי לניידים: מדמה מסך רחב כדי למנוע דחיסת טקסט וירידת שורות עודפת שחותכת את הדף
-                    backgroundColor: '#0B0E14' // הבטחת רקע שחור-כחול כהה (תואם לאתר) במסמך ה-PDF
+                    scrollY: 0,
+                    windowWidth: 800,
+                    backgroundColor: '#0B0E14' 
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             try {
-                // שלב 1: הורדת ה-PDF
+                // 1. הורדת הקובץ למכשיר הלקוח
                 await html2pdf().set(opt).from(element).save();
                 
-                // החזרת הכפתורים לתצוגה
+                document.body.classList.remove('pdf-export-mode');
                 controlsDiv.style.display = 'block';
-                btn.innerText = "פותח WhatsApp...";
+                btn.innerHTML = `<i data-lucide="check-circle-2" class="w-6 h-6"></i> נחתם והורד בהצלחה!`;
+                lucide.createIcons();
 
-                const waMessage = `שלום ${contractData.name},\nהצעת המחיר נרשמה אצלנו ועותק PDF נשמר הרגע במכשיר שלך. \nניפגש באירוע! 🎉\n\n- Snap Box Events`;
-
-                // פתרון 3: שימוש בקישור הישיר המומלץ של וואצאפ לניידים (wa.me) עם השהייה קלה
-                setTimeout(() => {
-                    window.location.href = `https://wa.me/${clientPhone}?text=${encodeURIComponent(waMessage)}`;
-                    
-                    // החזרת הכפתור למצב רגיל במקרה שהמשתמש חוזר לדף
-                    setTimeout(() => {
-                        btn.innerText = "אישור, שמירה ושליחה ל-WhatsApp";
-                        btn.disabled = false;
-                    }, 2000);
-                }, 1000);
+                // 2. פתיחת אפליקציית המייל של הלקוח עם הודעה מוכנה הכוללת את שם הלקוח ופרטי האירוע
+                const emailSubject = encodeURIComponent(`חוזה חתום חדש - SnapBox: ${contractData.name} (${contractData.type})`);
+                const emailBody = encodeURIComponent(`הי,\n\nהלקוח ${contractData.name} חתם כרגע על ההסכם לאירוע מסוג "${contractData.type}" שיתקיים בתאריך ${contractData.date} במיקום ${contractData.location}.\n\nמצורף קובץ ה-PDF שירד כרגע למכשיר (נא לצרף אותו מכאן).\n\nבברכה,\nSnap Box`);
+                
+                window.location.href = `mailto:${SUPPLIER_EMAIL}?subject=${emailSubject}&body=${emailBody}`;
 
             } catch (err) {
-                console.error("שגיאה בהורדה", err);
+                console.error("שגיאה ביצירת ה-PDF", err);
+                document.body.classList.remove('pdf-export-mode');
                 controlsDiv.style.display = 'block';
-                btn.innerText = "אישור, שמירה ושליחה ל-WhatsApp";
+                btn.innerHTML = `<i data-lucide="check-circle" class="w-6 h-6"></i> אשר הסכם, הורד PDF ושלח אלינו במייל`;
+                lucide.createIcons();
                 btn.disabled = false;
-                alert("אירעה שגיאה ביצירת הקובץ. אנא נסה שוב.");
+                alert("אירעה שגיאה בשמירת המסמך. אנא נסה שוב.");
             }
         }
     </script>
