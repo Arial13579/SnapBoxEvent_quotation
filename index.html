@@ -5,161 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snap Box | הסכם והצעת מחיר</title>
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- HTML2PDF Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- יצירת PDF: html2canvas + jsPDF ישירות (שליטה מלאה, ללא באג ה-container של html2pdf) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
-        :root {
-            --accent-blue: #0A84FF;
-            --accent-cyan: #64D2FF;
-            --bg-dark: #0B0E14;
-        }
+        :root { --accent-blue:#0A84FF; --accent-cyan:#64D2FF; --bg-dark:#0B0E14; }
 
         body {
-            font-family: 'Assistant', -apple-system, sans-serif;
-            background-color: var(--bg-dark);
-            color: #F2F2F7;
+            font-family:'Assistant',-apple-system,sans-serif;
+            background-color:var(--bg-dark); color:#F2F2F7;
             background-image:
-                radial-gradient(circle at 20% 15%, rgba(10, 132, 255, 0.12) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(100, 210, 255, 0.08) 0%, transparent 40%);
-            background-attachment: fixed;
+                radial-gradient(circle at 20% 15%, rgba(10,132,255,.12) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(100,210,255,.08) 0%, transparent 40%);
+            background-attachment:fixed;
         }
 
-        .glass-card {
-            background: rgba(22, 27, 38, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        .glass-card { background:rgba(22,27,38,.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,.1); box-shadow:0 20px 50px rgba(0,0,0,.5); }
+        .glass-card-accent { background:linear-gradient(135deg, rgba(10,132,255,.15) 0%, rgba(100,210,255,.05) 100%); backdrop-filter:blur(20px); border:1px solid rgba(10,132,255,.25); }
+        .glass-input { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); color:#FFF; transition:all .3s ease; box-shadow:inset 0 2px 4px rgba(0,0,0,.1); }
+        .glass-input:focus { background:rgba(255,255,255,.09); border-color:var(--accent-cyan); box-shadow:0 0 0 3px rgba(100,210,255,.2), inset 0 2px 4px rgba(0,0,0,.1); outline:none; }
+        select.glass-input option { background-color:#161B26; color:#FFF; }
+
+        canvas#sig-canvas { touch-action:none; background:rgba(10,14,20,.9); border:1.5px dashed rgba(10,132,255,.4); cursor:crosshair; }
+
+        .text-gradient { background:linear-gradient(135deg,#FFFFFF 30%,#64D2FF 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .btn-action { background:linear-gradient(135deg,#0A84FF 0%,#0066CC 100%); color:#FFF; font-weight:700; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 4px 15px rgba(10,132,255,.3); }
+        .btn-action:hover { box-shadow:0 6px 20px rgba(10,132,255,.5); transform:translateY(-2px); }
+        .btn-action:disabled { opacity:.7; transform:none; cursor:wait; }
+
+        /* ============ מסמך ה-PDF הנקי (נבנה בזמן החתימה, יושב מחוץ למסך) ============ */
+        #pdf-doc {
+            position:absolute; left:-10000px; top:0;
+            width:760px; background:#ffffff; color:#111111;
+            font-family:'Assistant',Arial,sans-serif; z-index:-1;
         }
+        #pdf-doc *, #pdf-doc *::before, #pdf-doc *::after { box-sizing:border-box; margin:0; padding:0; }
+        #pdf-doc .doc-inner { padding:34px 36px; }
+        #pdf-doc .doc-section { margin-bottom:20px; page-break-inside:avoid; }
+        #pdf-doc .doc-head { text-align:center; border-bottom:2px solid #0A84FF; padding-bottom:14px; }
+        #pdf-doc .doc-brand { font-size:34px; font-weight:900; letter-spacing:3px; color:#0A2540; }
+        #pdf-doc .doc-sub { font-size:11px; letter-spacing:3px; color:#0284C7; font-weight:700; margin-top:5px; }
+        #pdf-doc .doc-title { font-size:16px; font-weight:700; margin-top:10px; color:#374151; }
+        #pdf-doc table { width:100%; border-collapse:collapse; }
+        #pdf-doc td { border:1px solid #D1D5DB; padding:9px 11px; font-size:13.5px; vertical-align:top; }
+        #pdf-doc td.k { background:#F3F4F6; font-weight:700; width:88px; white-space:nowrap; color:#374151; }
+        #pdf-doc .doc-h { font-size:15px; font-weight:800; color:#0A2540; border-right:4px solid #0A84FF; padding-right:9px; margin-bottom:11px; }
+        #pdf-doc ul { list-style:disc; padding-right:22px; margin-right:4px; }
+        #pdf-doc li { font-size:12.5px; margin-bottom:5px; line-height:1.5; color:#374151; list-style:disc; }
+        #pdf-doc .doc-notes { font-size:12.5px; line-height:1.6; white-space:pre-wrap; background:#F9FAFB; border:1px solid #E5E7EB; padding:10px 12px; border-radius:6px; color:#374151; }
+        #pdf-doc .terms { font-size:11.5px; line-height:1.8; text-align:justify; color:#4B5563; }
+        #pdf-doc .doc-sign { border:1px solid #D1D5DB; border-radius:8px; padding:16px; }
+        #pdf-doc .doc-sign p { font-size:13px; line-height:1.6; margin-bottom:11px; color:#374151; }
+        #pdf-doc img.sig { display:block; width:300px; height:120px; object-fit:contain; border:1px solid #9CA3AF; background:#fff; border-radius:4px; }
+        #pdf-doc .doc-meta { font-size:11px; color:#6B7280; margin-top:9px; }
+        #pdf-doc .doc-foot { text-align:center; font-size:10px; color:#9CA3AF; letter-spacing:1px; margin-top:26px; border-top:1px solid #E5E7EB; padding-top:12px; }
 
-        .glass-card-accent {
-            background: linear-gradient(135deg, rgba(10, 132, 255, 0.15) 0%, rgba(100, 210, 255, 0.05) 100%);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(10, 132, 255, 0.25);
+        /* ============ גיבוי: הדפסה מקורית של הדפדפן ============ */
+        @media print {
+            body.printing-doc { background:#fff !important; }
+            body.printing-doc > *:not(#pdf-doc) { display:none !important; }
+            body.printing-doc #pdf-doc {
+                position:static !important; left:0 !important; top:0 !important;
+                width:100% !important; z-index:auto !important;
+            }
+            #pdf-doc { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
         }
-
-        .glass-input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #FFF;
-            transition: all 0.3s ease;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .glass-input:focus {
-            background: rgba(255, 255, 255, 0.09);
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 0 3px rgba(100, 210, 255, 0.2), inset 0 2px 4px rgba(0,0,0,0.1);
-            outline: none;
-        }
-
-        select.glass-input option {
-            background-color: #161B26;
-            color: #FFF;
-        }
-
-        canvas#sig-canvas {
-            touch-action: none;
-            background: rgba(10, 14, 20, 0.9);
-            border: 1.5px dashed rgba(10, 132, 255, 0.4);
-            cursor: crosshair;
-        }
-
-        .text-gradient {
-            background: linear-gradient(135deg, #FFFFFF 30%, #64D2FF 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .btn-action {
-            background: linear-gradient(135deg, #0A84FF 0%, #0066CC 100%);
-            color: #FFFFFF;
-            font-weight: 700;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3);
-        }
-
-        .btn-action:hover {
-            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.5);
-            transform: translateY(-2px);
-        }
-
-        .btn-action:disabled { opacity: .7; transform: none; cursor: wait; }
-
-        /* עיצוב מיוחד ומקצועי נטו להורדת ה-PDF (שחור על לבן, כמו מסמך רשמי) */
-        .pdf-export-mode, .pdf-export-mode body {
-            background: #FFFFFF !important;
-            background-image: none !important;
-            color: #000000 !important;
-            height: auto !important;
-            min-height: 100% !important;
-            overflow: visible !important;
-        }
-
-        .pdf-export-mode .glass-card,
-        .pdf-export-mode .glass-card-accent {
-            background: #FFFFFF !important;
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-            box-shadow: none !important;
-            border: 1px solid #D1D5DB !important;
-            border-radius: 8px !important;
-        }
-
-        .pdf-export-mode .text-white,
-        .pdf-export-mode .text-zinc-100,
-        .pdf-export-mode .text-zinc-200,
-        .pdf-export-mode .text-zinc-300,
-        .pdf-export-mode .text-zinc-400 {
-            color: #111827 !important;
-        }
-
-        .pdf-export-mode .text-cyan-400,
-        .pdf-export-mode .text-cyan-300 {
-            color: #0284C7 !important;
-        }
-
-        .pdf-export-mode .text-gradient {
-            background: none !important;
-            -webkit-text-fill-color: #000000 !important;
-            color: #000000 !important;
-        }
-
-        .pdf-export-mode canvas#sig-canvas {
-            background: #F9FAFB !important;
-            border: 1px solid #9CA3AF !important;
-        }
-
-        .pdf-export-mode #pdf-container {
-            padding: 40px !important;
-            width: 800px !important; /* כופה תצוגת מחשב רחבה על ה-PDF תמיד */
-            max-width: 800px !important;
-            margin: 0 auto !important;
-            height: max-content !important;
-            overflow: visible !important;
-        }
-
-        .pdf-export-mode .bg-black\/40,
-        .pdf-export-mode .bg-black\/60,
-        .pdf-export-mode .bg-cyan-950\/20,
-        .pdf-export-mode .bg-cyan-900\/20 {
-            background: #F3F4F6 !important;
-            border-color: #D1D5DB !important;
-        }
-
-        /* מסתיר אלמנטים שאסור שיופיעו ב-PDF */
-        .pdf-export-mode .no-pdf { display: none !important; }
     </style>
 </head>
 <body class="min-h-screen py-6 md:py-12 px-4 sm:px-6 lg:px-8">
+
+    <!-- שכבת טעינה ליצירת PDF -->
+    <div id="pdf-overlay" class="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex-col items-center justify-center gap-4" style="display:none">
+        <i data-lucide="loader-circle" class="w-12 h-12 text-cyan-400 animate-spin"></i>
+        <p class="text-white font-bold text-lg">מכין את מסמך ה-PDF...</p>
+        <p class="text-zinc-400 text-sm">רגע, אין צורך לסגור את הדף</p>
+    </div>
 
     <div id="pdf-container" class="max-w-3xl mx-auto space-y-6 md:space-y-8 p-2 md:p-4 rounded-3xl">
 
@@ -171,7 +95,7 @@
             <p class="text-xs sm:text-sm uppercase tracking-[0.3em] text-cyan-300 font-bold">בוטיק עמדות צילום & חוויות אירוע</p>
         </header>
 
-        <!-- ==================== 1. מחולל הצעות מחיר (מצב מנהל) ==================== -->
+        <!-- ==================== מצב מנהל: מחולל הצעות ==================== -->
         <div id="admin-section" class="glass-card p-6 md:p-10 rounded-3xl space-y-6">
             <div class="flex items-center gap-3 border-b border-white/10 pb-4">
                 <i data-lucide="sliders" class="w-6 h-6 text-cyan-400"></i>
@@ -180,52 +104,28 @@
 
             <form id="creator-form" onsubmit="generateShareLink(event)" class="space-y-5">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                    <div>
-                        <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">לכבוד (שם הלקוח) *</label>
-                        <input type="text" id="in_clientName" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm" placeholder="שם מלא / חברה">
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">סוג אירוע *</label>
-                        <input type="text" id="in_eventType" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm" placeholder="חתונה / בר מצווה">
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מיקום האירוע *</label>
-                        <input type="text" id="in_location" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm" placeholder="שם האולם / עיר">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">תאריך האירוע *</label>
-                        <input type="text" id="in_date" required class="w-full glass-input px-4 py-3 rounded-2xl text-left text-sm placeholder-zinc-500" placeholder="DD/MM/YYYY" dir="ltr" maxlength="10" oninput="formatDate(this)">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">שעת תחילת אירוע *</label>
-                        <input type="text" id="in_startTime" required class="w-full glass-input px-4 py-3 rounded-2xl text-left text-sm placeholder-zinc-500" placeholder="HH:MM" dir="ltr" maxlength="5" oninput="formatTime(this)">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">שעת סיום אירוע *</label>
-                        <input type="text" id="in_endTime" required class="w-full glass-input px-4 py-3 rounded-2xl text-left text-sm placeholder-zinc-500" placeholder="HH:MM" dir="ltr" maxlength="5" oninput="formatTime(this)">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מחיר כולל (₪) *</label>
-                        <input type="number" id="in_price" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="2500">
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מקדמה (₪) *</label>
-                        <input type="number" id="in_deposit" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="500">
-                    </div>
-
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">הערות / סיכומים נוספים (אופציונלי)</label>
-                        <textarea id="in_notes" class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="לדוגמה: תוספת מגנטים, מיקום חופה..." rows="2"></textarea>
-                    </div>
+                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">לכבוד (שם הלקוח) *</label>
+                        <input type="text" id="in_clientName" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm" placeholder="שם מלא / חברה"></div>
+                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">סוג אירוע *</label>
+                        <input type="text" id="in_eventType" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm" placeholder="חתונה / בר מצווה"></div>
+                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מיקום האירוע *</label>
+                        <input type="text" id="in_location" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm" placeholder="שם האולם / עיר"></div>
+                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">תאריך האירוע *</label>
+                        <input type="text" id="in_date" required class="w-full glass-input px-4 py-3 rounded-2xl text-left text-sm placeholder-zinc-500" placeholder="DD/MM/YYYY" dir="ltr" maxlength="10" oninput="formatDate(this)"></div>
+                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">שעת תחילת אירוע *</label>
+                        <input type="text" id="in_startTime" required class="w-full glass-input px-4 py-3 rounded-2xl text-left text-sm placeholder-zinc-500" placeholder="HH:MM" dir="ltr" maxlength="5" oninput="formatTime(this)"></div>
+                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">שעת סיום אירוע *</label>
+                        <input type="text" id="in_endTime" required class="w-full glass-input px-4 py-3 rounded-2xl text-left text-sm placeholder-zinc-500" placeholder="HH:MM" dir="ltr" maxlength="5" oninput="formatTime(this)"></div>
+                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מחיר כולל (₪) *</label>
+                        <input type="number" id="in_price" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="2500"></div>
+                    <div><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מקדמה (₪) *</label>
+                        <input type="number" id="in_deposit" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="500"></div>
+                    <div class="sm:col-span-2"><label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">הערות / סיכומים נוספים (אופציונלי)</label>
+                        <textarea id="in_notes" class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="לדוגמה: תוספת מגנטים, מיקום חופה..." rows="2"></textarea></div>
                 </div>
 
                 <button type="submit" id="gen-btn" class="w-full py-4 btn-action rounded-2xl text-base font-bold flex items-center justify-center gap-2 shadow-lg mt-4">
-                    <i data-lucide="link" class="w-5 h-5"></i>
-                    צור קישור קצר ללקוח
+                    <i data-lucide="link" class="w-5 h-5"></i> צור קישור קצר ללקוח
                 </button>
             </form>
 
@@ -238,504 +138,437 @@
                     </button>
                 </div>
                 <p id="link-status" class="text-[11px] text-zinc-400 min-h-[14px]"></p>
-                <a id="wa-share-btn" href="#" target="_blank" rel="noopener"
-                   class="flex items-center justify-center gap-2 w-full py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-bold transition">
-                    <i data-lucide="message-circle" class="w-4 h-4"></i>
-                    שלח ללקוח בוואטסאפ
+                <a id="wa-share-btn" href="#" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 w-full py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-bold transition">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i> שלח ללקוח בוואטסאפ
                 </a>
             </div>
         </div>
 
-        <!-- ==================== 2. תצוגת הצעת מחיר וחתימה (מצב לקוח) ==================== -->
+        <!-- ==================== מצב לקוח ==================== -->
         <main id="client-view" class="hidden space-y-6 md:space-y-8">
 
             <section class="glass-card-accent p-6 md:p-8 rounded-3xl space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-white/10 pb-4">
                     <h2 class="text-xl md:text-2xl font-extrabold text-white flex items-center gap-2">
-                        <i data-lucide="file-check" class="w-6 h-6 text-cyan-400"></i>
-                        פרטי הצעת המחיר וההסכם
+                        <i data-lucide="file-check" class="w-6 h-6 text-cyan-400"></i> פרטי הצעת המחיר וההסכם
                     </h2>
                     <span class="text-xs font-mono text-cyan-300 bg-cyan-950/60 border border-cyan-500/30 px-3 py-1 rounded-full font-bold">SNAP BOX VIP</span>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-sm">
-                    <div>
-                        <span class="block text-xs uppercase text-zinc-400 font-bold mb-1">לכבוד</span>
-                        <span id="view_clientName" class="font-extrabold text-white text-base sm:text-lg"></span>
-                    </div>
-                    <div>
-                        <span class="block text-xs uppercase text-zinc-400 font-bold mb-1">סוג אירוע</span>
-                        <span id="view_eventType" class="font-semibold text-zinc-200"></span>
-                    </div>
-                    <div>
-                        <span class="block text-xs uppercase text-zinc-400 font-bold mb-1">מיקום</span>
-                        <span id="view_location" class="font-semibold text-zinc-200"></span>
-                    </div>
-                    <div>
-                        <span class="block text-xs uppercase text-zinc-400 font-bold mb-1">תאריך</span>
-                        <span id="view_date" class="font-semibold text-zinc-200"></span>
-                    </div>
-                    <div>
-                        <span class="block text-xs uppercase text-zinc-400 font-bold mb-1">שעות פעילות</span>
-                        <span id="view_hours" class="font-semibold text-zinc-200" dir="ltr"></span>
-                    </div>
-                    <div>
-                        <span class="block text-xs uppercase text-zinc-400 font-bold mb-1">מחיר כולל</span>
-                        <span id="view_price" class="font-black text-cyan-400 text-xl"></span>
-                    </div>
-                    <div>
-                        <span class="block text-xs uppercase text-zinc-400 font-bold mb-1">מקדמה</span>
-                        <span id="view_deposit" class="font-semibold text-zinc-200"></span>
-                    </div>
-                    <div>
-                        <span class="block text-xs uppercase text-zinc-400 font-bold mb-1">יתרה בסיום</span>
-                        <span id="view_balance" class="font-semibold text-zinc-200"></span>
-                    </div>
+                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">לכבוד</span><span id="view_clientName" class="font-extrabold text-white text-base sm:text-lg"></span></div>
+                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">סוג אירוע</span><span id="view_eventType" class="font-semibold text-zinc-200"></span></div>
+                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">מיקום</span><span id="view_location" class="font-semibold text-zinc-200"></span></div>
+                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">תאריך</span><span id="view_date" class="font-semibold text-zinc-200"></span></div>
+                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">שעות פעילות</span><span id="view_hours" class="font-semibold text-zinc-200" dir="ltr"></span></div>
+                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">מחיר כולל</span><span id="view_price" class="font-black text-cyan-400 text-xl"></span></div>
+                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">מקדמה</span><span id="view_deposit" class="font-semibold text-zinc-200"></span></div>
+                    <div><span class="block text-xs uppercase text-zinc-400 font-bold mb-1">יתרה בסיום</span><span id="view_balance" class="font-semibold text-zinc-200"></span></div>
                 </div>
 
                 <div id="view_notes_container" class="hidden mt-6 bg-cyan-950/20 p-5 rounded-2xl border border-cyan-500/20">
-                    <span class="block text-xs uppercase text-cyan-400 font-bold mb-2 flex items-center gap-2">
-                        <i data-lucide="info" class="w-4 h-4"></i>
-                        הערות וסיכומים נוספים
-                    </span>
+                    <span class="block text-xs uppercase text-cyan-400 font-bold mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> הערות וסיכומים נוספים</span>
                     <p id="view_notes" class="text-sm font-semibold text-zinc-200 whitespace-pre-wrap leading-relaxed"></p>
                 </div>
             </section>
 
             <section class="glass-card p-6 md:p-8 rounded-3xl space-y-6">
                 <h2 class="text-xl md:text-2xl font-bold text-white border-b border-white/10 pb-4 flex items-center gap-2">
-                    <i data-lucide="sparkles" class="w-6 h-6 text-cyan-400"></i>
-                    מפרט החבילה הכלולה
+                    <i data-lucide="sparkles" class="w-6 h-6 text-cyan-400"></i> מפרט החבילה הכלולה
                 </h2>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm md:text-base">
-                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-card-accent">
-                        <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400 shrink-0"></i>
-                        <span class="text-zinc-100 font-semibold">צילום ללא הגבלה - כל התמונות שלכם!</span>
-                    </div>
-                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-card-accent">
-                        <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400 shrink-0"></i>
-                        <span class="text-zinc-100 font-semibold">שטיח אדום יוקרתי עם 4 עמודי זהב</span>
-                    </div>
-                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-card-accent">
-                        <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400 shrink-0"></i>
-                        <span class="text-zinc-100 font-semibold">מפעיל מקצועי וטכנאי צמוד לכל האירוע</span>
-                    </div>
-                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-card-accent">
-                        <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400 shrink-0"></i>
-                        <span class="text-zinc-100 font-semibold">מגוון סטריפים מותאמים אישית</span>
-                    </div>
-                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-card-accent">
-                        <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400 shrink-0"></i>
-                        <span class="text-zinc-100 font-semibold">רקעים מותאמים אישית לסוג האירוע</span>
-                    </div>
-                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-card-accent">
-                        <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400 shrink-0"></i>
-                        <span class="text-zinc-100 font-semibold">אפקטים ומסגרות מיוחדות לפי נושא</span>
-                    </div>
-                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-card-accent">
-                        <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400 shrink-0"></i>
-                        <span class="text-zinc-100 font-semibold">שליחת כל התמונות ללקוח לטלפון</span>
-                    </div>
-                    <div class="flex items-center gap-3 p-4 rounded-2xl glass-card-accent">
-                        <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400 shrink-0"></i>
-                        <span class="text-zinc-100 font-semibold">שליחת הסטריפ של האורח לטלפון</span>
-                    </div>
-                </div>
+                <div id="pkg-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm md:text-base"></div>
             </section>
 
             <section class="glass-card p-6 md:p-8 rounded-3xl space-y-4">
                 <h2 class="text-lg md:text-xl font-bold text-white border-b border-white/10 pb-4 flex items-center gap-2">
-                    <i data-lucide="file-text" class="w-5 h-5 text-cyan-400"></i>
-                    תנאי הסכם והסדר ביטולים
+                    <i data-lucide="file-text" class="w-5 h-5 text-cyan-400"></i> תנאי הסכם והסדר ביטולים
                 </h2>
-                <div class="bg-black/40 border border-white/5 p-5 rounded-2xl text-zinc-300 text-sm leading-relaxed text-justify font-normal">
-                    בכל מקרה של ביטול, דחייה או שינוי מהותי בפרטי האירוע, שומרת לעצמה "Snap Box" את הזכות לבטל את השירות או לעדכן את מחיר העסקה בהתאם; ביטול מצד הלקוח בתוך 14 ימים או פחות ממועד האירוע יגרור חילוט מלא של המקדמה כפיצוי מוסכם מראש ללא זכות החזר. מנגד, אם השירות לא יסופק עקב נסיבות שאינן בשליטת הספק (כוח עליון), תוחזר המקדמה במלואה והספק יהיה פטור מכל פיצוי נוסף. הלקוח נושא באחריות מלאה לכל נזק או אובדן שייגרמו לציוד במהלך האירוע, ומתחייב לשאת במלוא עלות התיקון או ההחלפה. חתימה על הסכם זה מהווה אישור ל-"Snap Box" לעשות שימוש בתמונות מהאירוע לצרכי פרסום ושיווק, אלא אם הלקוח סירב לכך מראש ובכתב. כמו כן, הלקוח מתחייב לספק לעמדת הצילום חניה נגישה, מקור חשמל תקין וחיבור אינטרנט רציף. יתרת התשלום תועבר לספק במלואה מיד בתום האירוע.
-                </div>
+                <div id="terms-text" class="bg-black/40 border border-white/5 p-5 rounded-2xl text-zinc-300 text-sm leading-relaxed text-justify font-normal"></div>
             </section>
 
             <section id="sig-section" class="glass-card p-6 md:p-8 rounded-3xl space-y-6">
                 <h2 class="text-lg md:text-xl font-bold text-white border-b border-white/10 pb-4 flex items-center gap-2">
-                    <i data-lucide="pen-tool" class="w-5 h-5 text-cyan-400"></i>
-                    אישור וחתימת הלקוח
+                    <i data-lucide="pen-tool" class="w-5 h-5 text-cyan-400"></i> אישור וחתימת הלקוח
                 </h2>
 
                 <form id="signature-form" onsubmit="handleSignatureSubmit(event)" class="space-y-5">
-
                     <div class="space-y-2">
                         <div class="flex justify-between items-center">
                             <label class="text-xs uppercase font-bold text-zinc-300">חתום בתוך התיבה למטה *</label>
-                            <button type="button" onclick="clearSignature()" class="no-pdf text-xs text-cyan-400 hover:underline font-bold">איפוס חתימה</button>
+                            <button type="button" onclick="clearSignature()" class="text-xs text-cyan-400 hover:underline font-bold">איפוס חתימה</button>
                         </div>
-                        <div id="sig-box" class="rounded-2xl overflow-hidden">
-                            <canvas id="sig-canvas" class="w-full h-40 rounded-2xl"></canvas>
-                        </div>
-                        <p class="text-[11px] text-zinc-500">תאריך חתימה: <span id="sign-date" dir="ltr"></span></p>
+                        <div class="rounded-2xl overflow-hidden"><canvas id="sig-canvas" class="w-full h-40 rounded-2xl"></canvas></div>
+                        <p class="text-[11px] text-zinc-500">תאריך: <span id="sign-date" dir="ltr"></span></p>
                     </div>
 
-                    <div id="pdf-hide-controls" class="space-y-5 no-pdf">
+                    <div id="pdf-hide-controls" class="space-y-5">
                         <div class="p-4 rounded-xl bg-cyan-900/20 border border-cyan-500/30 text-sm text-cyan-100">
-                            <strong>הוראות סיום:</strong> לחיצה על הכפתור למטה תוריד מיידית את עותק ה-PDF המלא של ההסכם למכשיר שלך, ובמקביל תשלח את ההודעה והאישור לעסק בצורה מאובטחת.
+                            <strong>הוראות סיום:</strong> לחיצה על הכפתור תוריד את עותק ה-PDF המלא של ההסכם למכשיר שלך, ובמקביל תשלח את האישור והחתימה לעסק.
                         </div>
-
                         <button type="submit" id="submit-btn" class="w-full py-5 btn-action rounded-2xl text-lg font-extrabold flex items-center justify-center gap-2 shadow-xl">
-                            <i data-lucide="check-circle" class="w-6 h-6"></i>
-                            אשר הסכם, הורד PDF מלא ושלח לעסק
+                            <i data-lucide="check-circle" class="w-6 h-6"></i> אשר הסכם, הורד PDF ושלח לעסק
                         </button>
                     </div>
-
                 </form>
             </section>
-
         </main>
 
         <footer class="text-center py-6 text-zinc-500 text-xs space-y-1">
             <p class="font-bold tracking-widest uppercase text-zinc-400">Snap Box Events</p>
             <p>© 2026 כל הזכויות שמורות</p>
         </footer>
-
     </div>
+
+    <!-- מסמך ה-PDF הנקי (מתמלא ב-JS) -->
+    <div id="pdf-doc"></div>
 
     <script>
         lucide.createIcons();
 
         /* ========= הגדרות ========= */
-        // המייל שאליו יישלחו ההסכמים החתומים (דרך FormSubmit)
         const SUPPLIER_EMAIL = "snapboxevent.official@gmail.com";
+
+        const PKG_ITEMS = [
+            'צילום ללא הגבלה - כל התמונות שלכם!',
+            'שטיח אדום יוקרתי עם 4 עמודי זהב',
+            'מפעיל מקצועי וטכנאי צמוד לכל האירוע',
+            'מגוון סטריפים מותאמים אישית',
+            'רקעים מותאמים אישית לסוג האירוע',
+            'אפקטים ומסגרות מיוחדות לפי נושא',
+            'שליחת כל התמונות ללקוח לטלפון',
+            'שליחת הסטריפ של האורח לטלפון'
+        ];
+
+        const TERMS_TEXT = 'בכל מקרה של ביטול, דחייה או שינוי מהותי בפרטי האירוע, שומרת לעצמה "Snap Box" את הזכות לבטל את השירות או לעדכן את מחיר העסקה בהתאם; ביטול מצד הלקוח בתוך 14 ימים או פחות ממועד האירוע יגרור חילוט מלא של המקדמה כפיצוי מוסכם מראש ללא זכות החזר. מנגד, אם השירות לא יסופק עקב נסיבות שאינן בשליטת הספק (כוח עליון), תוחזר המקדמה במלואה והספק יהיה פטור מכל פיצוי נוסף. הלקוח נושא באחריות מלאה לכל נזק או אובדן שייגרמו לציוד במהלך האירוע, ומתחייב לשאת במלוא עלות התיקון או ההחלפה. חתימה על הסכם זה מהווה אישור ל-"Snap Box" לעשות שימוש בתמונות מהאירוע לצרכי פרסום ושיווק, אלא אם הלקוח סירב לכך מראש ובכתב. כמו כן, הלקוח מתחייב לספק לעמדת הצילום חניה נגישה, מקור חשמל תקין וחיבור אינטרנט רציף. יתרת התשלום תועבר לספק במלואה מיד בתום האירוע.';
 
         /* ========= קנבס חתימה ========= */
         const canvas = document.getElementById('sig-canvas');
         const ctx = canvas.getContext('2d');
-        let isDrawing = false;
-        let hasSigned = false;
+        let isDrawing = false, hasSigned = false, lastSigDataUrl = '';
 
-        function formatDate(input) {
-            let val = input.value.replace(/\D/g, '');
-            if (val.length > 2) val = val.slice(0, 2) + '/' + val.slice(2);
-            if (val.length > 5) val = val.slice(0, 5) + '/' + val.slice(5);
-            input.value = val;
-        }
+        function formatDate(i){ let v=i.value.replace(/\D/g,''); if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2); if(v.length>5)v=v.slice(0,5)+'/'+v.slice(5); i.value=v; }
+        function formatTime(i){ let v=i.value.replace(/\D/g,''); if(v.length>2)v=v.slice(0,2)+':'+v.slice(2); i.value=v; }
 
-        function formatTime(input) {
-            let val = input.value.replace(/\D/g, '');
-            if (val.length > 2) val = val.slice(0, 2) + ':' + val.slice(2);
-            input.value = val;
-        }
-
-        function resizeCanvas() {
-            const prev = canvas.toDataURL();
+        function resizeCanvas(){
+            const prev = hasSigned ? canvas.toDataURL() : null;
             const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-            ctx.strokeStyle = '#64D2FF';
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            if (hasSigned) {
-                const img = new Image();
-                img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                img.src = prev;
-            }
+            canvas.width = rect.width; canvas.height = rect.height;
+            ctx.strokeStyle='#64D2FF'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.lineJoin='round';
+            if(prev){ const img=new Image(); img.onload=()=>ctx.drawImage(img,0,0,canvas.width,canvas.height); img.src=prev; }
         }
-        window.addEventListener('resize', () => setTimeout(resizeCanvas, 150));
+        window.addEventListener('resize', ()=>setTimeout(resizeCanvas,150));
 
-        function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: clientX - rect.left, y: clientY - rect.top };
-        }
+        function getPos(e){ const r=canvas.getBoundingClientRect(); const x=e.touches?e.touches[0].clientX:e.clientX; const y=e.touches?e.touches[0].clientY:e.clientY; return {x:x-r.left,y:y-r.top}; }
+        function startDrawing(e){ isDrawing=true; hasSigned=true; const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); }
+        function draw(e){ if(!isDrawing)return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); }
+        function stopDrawing(){ isDrawing=false; }
+        canvas.addEventListener('mousedown',startDrawing); canvas.addEventListener('mousemove',draw);
+        canvas.addEventListener('mouseup',stopDrawing); canvas.addEventListener('mouseleave',stopDrawing);
+        canvas.addEventListener('touchstart',startDrawing,{passive:false}); canvas.addEventListener('touchmove',draw,{passive:false}); canvas.addEventListener('touchend',stopDrawing);
+        function clearSignature(){ ctx.clearRect(0,0,canvas.width,canvas.height); hasSigned=false; }
 
-        function startDrawing(e) {
-            isDrawing = true;
-            hasSigned = true;
-            const pos = getPos(e);
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-        }
+        /* ========= base64url + קיצור כתובת ========= */
+        function b64UrlEncode(s){ return btoa(encodeURIComponent(s)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+        function b64UrlDecode(s){ s=String(s).replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4)s+='='; return decodeURIComponent(atob(s)); }
 
-        function draw(e) {
-            if (!isDrawing) return;
-            e.preventDefault();
-            const pos = getPos(e);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-        }
-
-        function stopDrawing() { isDrawing = false; }
-
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseleave', stopDrawing);
-        canvas.addEventListener('touchstart', startDrawing, { passive: false });
-        canvas.addEventListener('touchmove', draw, { passive: false });
-        canvas.addEventListener('touchend', stopDrawing);
-
-        function clearSignature() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            hasSigned = false;
-        }
-
-        /* ========= קידוד/פענוח בטוח לכתובת (base64url) ========= */
-        function b64UrlEncode(str) {
-            return btoa(encodeURIComponent(str))
-                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-        }
-        function b64UrlDecode(str) {
-            str = String(str).replace(/-/g, '+').replace(/_/g, '/');
-            while (str.length % 4) str += '=';
-            return decodeURIComponent(atob(str));
-        }
-
-        /* ========= קיצור כתובת (עם שרשרת גיבויים) ========= */
-        async function shortenUrl(longUrl) {
-            const attempts = [
-                async () => {
-                    const r = await fetch('https://is.gd/create.php?format=json&logstats=0&url=' + encodeURIComponent(longUrl));
-                    const d = await r.json();
-                    return d.shorturl || null;
-                },
-                async () => {
-                    const r = await fetch('https://v.gd/create.php?format=json&logstats=0&url=' + encodeURIComponent(longUrl));
-                    const d = await r.json();
-                    return d.shorturl || null;
-                },
-                async () => {
-                    const r = await fetch('https://cleanuri.com/api/v1/shorten', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: 'url=' + encodeURIComponent(longUrl)
-                    });
-                    const d = await r.json();
-                    return d.result_url || null;
-                }
+        async function shortenUrl(longUrl){
+            const tries = [
+                async()=>{ const r=await fetch('https://is.gd/create.php?format=json&logstats=0&url='+encodeURIComponent(longUrl)); return (await r.json()).shorturl||null; },
+                async()=>{ const r=await fetch('https://v.gd/create.php?format=json&logstats=0&url='+encodeURIComponent(longUrl)); return (await r.json()).shorturl||null; },
+                async()=>{ const r=await fetch('https://cleanuri.com/api/v1/shorten',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'url='+encodeURIComponent(longUrl)}); return (await r.json()).result_url||null; }
             ];
-            for (const run of attempts) {
-                try {
-                    const s = await run();
-                    if (s && /^https?:\/\//i.test(s)) return s;
-                } catch (e) { /* נסה את הבא */ }
-            }
+            for(const t of tries){ try{ const s=await t(); if(s && /^https?:\/\//i.test(s)) return s; }catch(e){} }
             return null;
         }
 
-        /* ========= יצירת קישור ללקוח ========= */
-        async function generateShareLink(e) {
+        async function generateShareLink(e){
             e.preventDefault();
-            const btn = document.getElementById('gen-btn');
-            const originalBtn = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> יוצר קישור...';
-            lucide.createIcons();
+            const btn=document.getElementById('gen-btn'), orig=btn.innerHTML;
+            btn.disabled=true; btn.innerHTML='<i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> יוצר קישור...'; lucide.createIcons();
 
-            const g = id => document.getElementById(id).value.trim();
-            const name = g('in_clientName');
-            const type = g('in_eventType');
-            const loc = g('in_location');
-            const dateStr = g('in_date');
-            const sTime = g('in_startTime');
-            const eTime = g('in_endTime');
-            const price = document.getElementById('in_price').value;
-            const deposit = document.getElementById('in_deposit').value;
-            // מנקה תווים ששוברים את מבנה הנתונים
-            const safeNotes = (document.getElementById('in_notes').value || '').replace(/\|/g, '/');
+            const g=id=>document.getElementById(id).value.trim();
+            const name=g('in_clientName'), type=g('in_eventType'), loc=g('in_location'),
+                  dateStr=g('in_date'), sTime=g('in_startTime'), eTime=g('in_endTime');
+            const price=document.getElementById('in_price').value, deposit=document.getElementById('in_deposit').value;
+            const safeNotes=(document.getElementById('in_notes').value||'').replace(/\|/g,'/');
 
-            const rawData = [name, type, loc, dateStr, sTime, eTime, price, deposit, safeNotes].join('|');
-            const encoded = b64UrlEncode(rawData);
-            const fullUrl = `${window.location.origin}${window.location.pathname}?q=${encoded}`;
+            const raw=[name,type,loc,dateStr,sTime,eTime,price,deposit,safeNotes].join('|');
+            const fullUrl=`${window.location.origin}${window.location.pathname}?q=${b64UrlEncode(raw)}`;
 
-            // מציג מיד את הקישור המלא (עובד גם אם הקיצור ייכשל)
-            const urlInput = document.getElementById('shareable-url');
-            const statusEl = document.getElementById('link-status');
-            urlInput.value = fullUrl;
-            statusEl.textContent = 'מקצר קישור...';
+            const urlInput=document.getElementById('shareable-url'), statusEl=document.getElementById('link-status');
+            urlInput.value=fullUrl; statusEl.textContent='מקצר קישור...';
             document.getElementById('link-result').classList.remove('hidden');
 
-            let finalUrl = fullUrl;
-            const short = await shortenUrl(fullUrl);
-            if (short) {
-                finalUrl = short;
-                urlInput.value = short;
-                statusEl.textContent = '✓ קישור קצר מוכן. אפשר גם ללחוץ "העתק" או לשלוח בוואטסאפ.';
-            } else {
-                statusEl.textContent = 'לא הצלחנו לקצר כרגע — הקישור המלא שלמעלה תקין לחלוטין לשליחה.';
-            }
+            let finalUrl=fullUrl;
+            const short=await shortenUrl(fullUrl);
+            if(short){ finalUrl=short; urlInput.value=short; statusEl.textContent='✓ קישור קצר מוכן.'; }
+            else { statusEl.textContent='לא הצלחנו לקצר כרגע — הקישור המלא שלמעלה תקין לחלוטין לשליחה.'; }
 
-            // כפתור וואטסאפ
-            const waMsg =
-                `היי ${name || ''}, זו הצעת המחיר וההסכם ל${type || 'אירוע'} 🎥📸\n` +
-                `לצפייה בפרטים ולחתימה דיגיטלית:\n${finalUrl}`;
-            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
+            const waMsg=`היי ${name||''}, זו הצעת המחיר וההסכם ל${type||'אירוע'} 🎥📸\nלצפייה בפרטים ולחתימה דיגיטלית:\n${finalUrl}`;
+            document.getElementById('wa-share-btn').href='https://wa.me/?text='+encodeURIComponent(waMsg);
 
-            btn.disabled = false;
-            btn.innerHTML = originalBtn;
-            lucide.createIcons();
+            btn.disabled=false; btn.innerHTML=orig; lucide.createIcons();
         }
 
-        function copyGeneratedLink() {
-            const input = document.getElementById('shareable-url');
-            const copyText = document.getElementById('copy-text');
-            const done = () => {
-                copyText.innerText = 'הועתק! ✓';
-                setTimeout(() => { copyText.innerText = 'העתק'; }, 2000);
-            };
+        function copyGeneratedLink(){
+            const input=document.getElementById('shareable-url'), t=document.getElementById('copy-text');
+            const done=()=>{ t.innerText='הועתק! ✓'; setTimeout(()=>t.innerText='העתק',2000); };
             input.select();
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(input.value).then(done).catch(() => {
-                    document.execCommand('copy'); done();
-                });
-            } else {
-                document.execCommand('copy'); done();
-            }
+            if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(input.value).then(done).catch(()=>{document.execCommand('copy');done();}); }
+            else { document.execCommand('copy'); done(); }
         }
 
-        /* ========= מצב לקוח: קריאת הנתונים מהקישור ========= */
+        /* ========= קריאת הנתונים מהקישור (מצב לקוח) ========= */
         let contractData = {};
-        const urlParams = new URLSearchParams(window.location.search);
-        const dataParam = urlParams.get('q');
+        const dataParam = new URLSearchParams(window.location.search).get('q');
 
-        if (dataParam) {
+        // ממלא רשימת חבילה + תנאים בכל מקרה
+        document.getElementById('pkg-list').innerHTML = PKG_ITEMS.map(x=>`
+            <div class="flex items-center gap-3 p-4 rounded-2xl glass-card-accent">
+                <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400 shrink-0"></i>
+                <span class="text-zinc-100 font-semibold">${x}</span>
+            </div>`).join('');
+        document.getElementById('terms-text').textContent = TERMS_TEXT;
+        lucide.createIcons();
+
+        if(dataParam){
             document.getElementById('admin-section').classList.add('hidden');
             document.getElementById('client-view').classList.remove('hidden');
+            try{
+                const p=b64UrlDecode(dataParam).split('|');
+                contractData={ name:p[0],type:p[1],location:p[2],date:p[3],startTime:p[4],endTime:p[5],
+                    price:Number(p[6]),deposit:Number(p[7]),notes:p[8]||'' };
 
-            try {
-                const parts = b64UrlDecode(dataParam).split('|');
-                contractData = {
-                    name: parts[0], type: parts[1], location: parts[2], date: parts[3],
-                    startTime: parts[4], endTime: parts[5],
-                    price: Number(parts[6]), deposit: Number(parts[7]),
-                    notes: parts[8] || ''
-                };
+                document.getElementById('view_clientName').innerText=contractData.name;
+                document.getElementById('view_eventType').innerText=contractData.type;
+                document.getElementById('view_location').innerText=contractData.location;
+                document.getElementById('view_date').innerText=contractData.date;
+                document.getElementById('view_hours').innerText=`${contractData.startTime} - ${contractData.endTime}`;
+                document.getElementById('view_price').innerText=`₪${contractData.price.toLocaleString()}`;
+                document.getElementById('view_deposit').innerText=`₪${contractData.deposit.toLocaleString()}`;
+                document.getElementById('view_balance').innerText=`₪${(contractData.price-contractData.deposit).toLocaleString()}`;
+                document.getElementById('sign-date').innerText=new Date().toLocaleDateString('he-IL');
 
-                document.getElementById('view_clientName').innerText = contractData.name;
-                document.getElementById('view_eventType').innerText = contractData.type;
-                document.getElementById('view_location').innerText = contractData.location;
-                document.getElementById('view_date').innerText = contractData.date;
-                document.getElementById('view_hours').innerText = `${contractData.startTime} - ${contractData.endTime}`;
-                document.getElementById('view_price').innerText = `₪${contractData.price.toLocaleString()}`;
-                document.getElementById('view_deposit').innerText = `₪${contractData.deposit.toLocaleString()}`;
-                document.getElementById('view_balance').innerText = `₪${(contractData.price - contractData.deposit).toLocaleString()}`;
-                document.getElementById('sign-date').innerText = new Date().toLocaleDateString('he-IL');
-
-                if (contractData.notes && contractData.notes.trim() !== '') {
+                if(contractData.notes && contractData.notes.trim()!==''){
                     document.getElementById('view_notes_container').classList.remove('hidden');
-                    document.getElementById('view_notes').innerText = contractData.notes;
+                    document.getElementById('view_notes').innerText=contractData.notes;
                 }
-
-                setTimeout(resizeCanvas, 300);
-            } catch (err) {
-                document.getElementById('client-view').innerHTML =
-                    '<div class="glass-card p-8 rounded-3xl text-center text-red-300">הקישור אינו תקין. אנא בקש מ-Snap Box קישור חדש.</div>';
-                console.error('שגיאה בפענוח קישור', err);
+                setTimeout(resizeCanvas,300);
+            }catch(err){
+                document.getElementById('client-view').innerHTML='<div class="glass-card p-8 rounded-3xl text-center text-red-300">הקישור אינו תקין. אנא בקש מ-Snap Box קישור חדש.</div>';
+                console.error(err);
             }
         }
 
-        /* ========= שליחה לעסק (FormSubmit) ========= */
-        async function sendToBusiness(pdfBlob) {
-            const fd = new FormData();
-            fd.append('_subject', `הסכם חתום חדש — ${contractData.name} (${contractData.type})`);
-            fd.append('_captcha', 'false');
-            fd.append('_template', 'table');
-            fd.append('שם לקוח', contractData.name);
-            fd.append('סוג אירוע', contractData.type);
-            fd.append('מיקום', contractData.location);
-            fd.append('תאריך האירוע', contractData.date);
-            fd.append('שעות', `${contractData.startTime} - ${contractData.endTime}`);
-            fd.append('מחיר כולל', `₪${contractData.price}`);
-            fd.append('מקדמה', `₪${contractData.deposit}`);
-            fd.append('יתרה לתשלום', `₪${contractData.price - contractData.deposit}`);
-            if (contractData.notes) fd.append('הערות', contractData.notes);
-            fd.append('תאריך חתימה', new Date().toLocaleString('he-IL'));
-            fd.append('סטטוס', pdfBlob
-                ? 'הלקוח חתם דיגיטלית. קובץ ה-PDF החתום מצורף למייל זה.'
-                : 'הלקוח חתם דיגיטלית. (צירוף ה-PDF נכשל אצל הלקוח — צור קשר לקבלת עותק).');
-            if (pdfBlob) fd.append('attachment', pdfBlob, `SnapBox_${contractData.name}.pdf`);
+        /* ========= עזרי PDF ========= */
+        function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
 
-            const res = await fetch(`https://formsubmit.co/ajax/${SUPPLIER_EMAIL}`, { method: 'POST', body: fd });
-            const j = await res.json().catch(() => ({}));
-            return j.success === true || j.success === 'true';
+        function dataUrlToBlob(dataUrl){
+            const [head,b64]=dataUrl.split(',');
+            const mime=(head.match(/:(.*?);/)||[])[1]||'image/png';
+            const bin=atob(b64), arr=new Uint8Array(bin.length);
+            for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+            return new Blob([arr],{type:mime});
+        }
+
+        function triggerDownload(blob,name){
+            const a=document.createElement('a');
+            a.href=URL.createObjectURL(blob); a.download=name;
+            document.body.appendChild(a); a.click();
+            setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },6000);
+        }
+
+        function buildPdfDoc(sigDataUrl){
+            const c=contractData, bal=c.price-c.deposit;
+            const now=new Date();
+            document.getElementById('pdf-doc').innerHTML = `
+              <div class="doc-inner">
+                <div class="doc-section doc-head">
+                  <div class="doc-brand">SNAP BOX</div>
+                  <div class="doc-sub">EVENT PHOTO BOOTH BOUTIQUE</div>
+                  <div class="doc-title">הסכם והצעת מחיר לאירוע</div>
+                </div>
+
+                <div class="doc-section">
+                  <table>
+                    <tr><td class="k">לכבוד</td><td>${esc(c.name)}</td><td class="k">סוג אירוע</td><td>${esc(c.type)}</td></tr>
+                    <tr><td class="k">מיקום</td><td>${esc(c.location)}</td><td class="k">תאריך</td><td dir="ltr">${esc(c.date)}</td></tr>
+                    <tr><td class="k">שעות</td><td dir="ltr">${esc(c.startTime)} - ${esc(c.endTime)}</td><td class="k">מחיר כולל</td><td><b>₪${c.price.toLocaleString()}</b></td></tr>
+                    <tr><td class="k">מקדמה</td><td>₪${c.deposit.toLocaleString()}</td><td class="k">יתרה בסיום</td><td>₪${bal.toLocaleString()}</td></tr>
+                  </table>
+                </div>
+
+                ${c.notes && c.notes.trim() ? `<div class="doc-section"><div class="doc-h">הערות וסיכומים נוספים</div><div class="doc-notes">${esc(c.notes)}</div></div>` : ''}
+
+                <div class="doc-section">
+                  <div class="doc-h">מפרט החבילה הכלולה</div>
+                  <ul>${PKG_ITEMS.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+                </div>
+
+                <div class="doc-section">
+                  <div class="doc-h">תנאי הסכם והסדר ביטולים</div>
+                  <div class="terms">${esc(TERMS_TEXT)}</div>
+                </div>
+
+                <div class="doc-section doc-sign">
+                  <div class="doc-h">אישור וחתימת הלקוח</div>
+                  <p>אני, <b>${esc(c.name)}</b>, מאשר/ת בזאת את פרטי הצעת המחיר ואת תנאי ההסכם המפורטים במסמך זה, וחותם/ת עליהם בחתימה דיגיטלית מחייבת.</p>
+                  <img class="sig" src="${sigDataUrl}" alt="חתימת הלקוח">
+                  <div class="doc-meta">חתימה דיגיטלית · תאריך: ${now.toLocaleDateString('he-IL')} · שעה: ${now.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}</div>
+                </div>
+
+                <div class="doc-foot">Snap Box Events · ${SUPPLIER_EMAIL} · © 2026 כל הזכויות שמורות</div>
+              </div>`;
+        }
+
+        const PDF_WIDTH_PX = 760;
+
+        async function generatePdfBlob(sigDataUrl){
+            buildPdfDoc(sigDataUrl);
+            const el = document.getElementById('pdf-doc');
+
+            // מביא את המסמך למיקום תקין על המסך (מוסתר מאחורי #pdf-overlay) — חובה כדי ש-html2canvas יצלם
+            window.scrollTo(0, 0);
+            el.style.cssText = `position:absolute;left:0;top:0;width:${PDF_WIDTH_PX}px;background:#ffffff;color:#111111;z-index:1;`;
+
+            if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch(e){} }
+            await new Promise(res => {
+                const img = el.querySelector('img.sig');
+                if (img && !img.complete) { img.onload = res; img.onerror = res; setTimeout(res, 2500); }
+                else res();
+            });
+            await new Promise(r => setTimeout(r, 200));
+
+            const SCALE = 2;
+            let bigCanvas;
+            try {
+                bigCanvas = await html2canvas(el, {
+                    scale: SCALE, useCORS: true, backgroundColor: '#ffffff', logging: false,
+                    width: PDF_WIDTH_PX, windowWidth: PDF_WIDTH_PX,
+                    x: 0, y: 0, scrollX: 0, scrollY: 0
+                });
+            } finally {
+                el.style.cssText = `position:absolute;left:-10000px;top:0;width:${PDF_WIDTH_PX}px;`;
+            }
+
+            if (!bigCanvas || bigCanvas.height < 40) throw new Error('empty canvas');
+
+            // בונה PDF A4 מרובה-עמודים ידנית מהקנבס (חיתוך לפי גובה עמוד)
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+            const pageW = pdf.internal.pageSize.getWidth();
+            const pageH = pdf.internal.pageSize.getHeight();
+            const M = 8;
+            const usableW = pageW - M * 2;
+            const usableH = pageH - M * 2;
+            const pxPerMm = bigCanvas.width / usableW;
+            const pagePx = Math.floor(usableH * pxPerMm);
+
+            let y = 0, page = 0;
+            while (y < bigCanvas.height) {
+                const sliceH = Math.min(pagePx, bigCanvas.height - y);
+                const slice = document.createElement('canvas');
+                slice.width = bigCanvas.width;
+                slice.height = sliceH;
+                const sc = slice.getContext('2d');
+                sc.fillStyle = '#ffffff';
+                sc.fillRect(0, 0, slice.width, slice.height);
+                sc.drawImage(bigCanvas, 0, y, bigCanvas.width, sliceH, 0, 0, bigCanvas.width, sliceH);
+                if (page > 0) pdf.addPage();
+                pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', M, M, usableW, sliceH / pxPerMm);
+                y += sliceH;
+                page++;
+                if (page > 20) break; // בטיחות
+            }
+
+            const blob = pdf.output('blob');
+            if (!blob || blob.size < 12000) throw new Error('PDF appears blank (size ' + (blob ? blob.size : 0) + ')');
+            return blob;
+        }
+
+        function printFallback(){
+            const sig = hasSigned ? canvas.toDataURL('image/png') : (lastSigDataUrl || '');
+            buildPdfDoc(sig);
+            document.body.classList.add('printing-doc');
+            const done=()=>document.body.classList.remove('printing-doc');
+            window.addEventListener('afterprint', done, { once:true });
+            setTimeout(()=>window.print(), 250);
+        }
+
+        /* ========= שליחה לעסק ========= */
+        async function sendToBusiness(pdfBlob, sigBlob, safeName){
+            const c=contractData, fd=new FormData();
+            fd.append('_subject', `הסכם חתום חדש — ${c.name} (${c.type})`);
+            fd.append('_captcha','false');
+            fd.append('_template','table');
+            fd.append('שם לקוח', c.name);
+            fd.append('סוג אירוע', c.type);
+            fd.append('מיקום', c.location);
+            fd.append('תאריך האירוע', c.date);
+            fd.append('שעות', `${c.startTime} - ${c.endTime}`);
+            fd.append('מחיר כולל', `₪${c.price}`);
+            fd.append('מקדמה', `₪${c.deposit}`);
+            fd.append('יתרה לתשלום', `₪${c.price - c.deposit}`);
+            if(c.notes) fd.append('הערות', c.notes);
+            fd.append('נחתם בתאריך', new Date().toLocaleString('he-IL'));
+            fd.append('סטטוס', pdfBlob
+                ? 'הלקוח חתם דיגיטלית. מצורפים: הסכם PDF + תמונת חתימה.'
+                : 'הלקוח חתם דיגיטלית. מצורפת תמונת החתימה (יצירת ה-PDF נכשלה במכשיר הלקוח).');
+            // הקובץ החשוב ביותר ראשון
+            if(pdfBlob) fd.append('attachment', pdfBlob, `Contract_${safeName}.pdf`);
+            if(sigBlob) fd.append('attachment', sigBlob, `Signature_${safeName}.png`);
+
+            const res=await fetch(`https://formsubmit.co/ajax/${SUPPLIER_EMAIL}`, { method:'POST', body:fd });
+            const j=await res.json().catch(()=>({}));
+            return j.success===true || j.success==='true';
         }
 
         /* ========= סיום: PDF ללקוח + מייל לעסק ========= */
-        async function handleSignatureSubmit(e) {
+        async function handleSignatureSubmit(e){
             e.preventDefault();
-            if (!hasSigned) { alert('אנא חתום בתיבה לפני אישור ההסכם.'); return; }
+            if(!hasSigned){ alert('אנא חתום בתיבה לפני אישור ההסכם.'); return; }
 
-            const btn = document.getElementById('submit-btn');
-            btn.disabled = true;
-            btn.innerHTML = 'מכין את המסמך...';
+            const btn=document.getElementById('submit-btn');
+            const overlay=document.getElementById('pdf-overlay');
+            btn.disabled=true; btn.innerHTML='מעבד...';
+            overlay.style.display='flex';
 
-            // ממיר את החתימה מקנבס לתמונה קבועה (נכנס יציב ל-PDF)
-            const sigDataUrl = canvas.toDataURL('image/png');
-            const sigImg = new Image();
-            sigImg.src = sigDataUrl;
-            sigImg.className = 'w-full rounded-xl';
-            sigImg.style.border = '1px solid #9CA3AF';
-            canvas.style.display = 'none';
-            document.getElementById('sig-box').appendChild(sigImg);
+            lastSigDataUrl = canvas.toDataURL('image/png');
+            const sigBlob = dataUrlToBlob(lastSigDataUrl);
+            const safeName = (contractData.name||'Client').replace(/[\\/:*?"<>|]+/g,'_');
 
-            // מצב הדפסה נקי
-            window.scrollTo(0, 0);
-            document.body.classList.add('pdf-export-mode');
-            await (document.fonts ? document.fonts.ready : Promise.resolve());
-            await new Promise(r => setTimeout(r, 400));
+            // 1) יצירת + הורדת PDF ללקוח
+            let pdfBlob=null;
+            try{
+                pdfBlob = await generatePdfBlob(lastSigDataUrl);
+                triggerDownload(pdfBlob, `SnapBox_Contract_${safeName}.pdf`);
+            }catch(err){ console.error('PDF generation failed', err); }
 
-            const element = document.getElementById('pdf-container');
-            const safeName = (contractData.name || 'Client').replace(/[\\/:*?"<>|]+/g, '_');
-            const fileName = `SnapBox_Contract_${safeName}.pdf`;
+            overlay.style.display='none';
 
-            const opt = {
-                margin:      [12, 10, 14, 10],
-                filename:    fileName,
-                image:       { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 2, useCORS: true, backgroundColor: '#FFFFFF', windowWidth: 800, scrollX: 0, scrollY: 0 },
-                jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:   { mode: ['css', 'legacy'], avoid: ['section', '.glass-card', '.glass-card-accent'] }
-            };
+            // 2) מייל לעסק (תמיד — עם החתימה, ועם ה-PDF אם קיים)
+            btn.innerHTML='שולח אישור לעסק...';
+            let emailOk=false;
+            try{ emailOk = await sendToBusiness(pdfBlob, sigBlob, safeName); }
+            catch(err){ console.error('email failed', err); try{ emailOk = await sendToBusiness(null, sigBlob, safeName); }catch(e2){} }
 
-            let pdfBlob = null, downloadOk = false;
-            try {
-                pdfBlob = await html2pdf().set(opt).from(element).output('blob');
-                // הורדה ידנית של אותו קובץ שנוצר
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(pdfBlob);
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
-                downloadOk = true;
-            } catch (err) {
-                console.error('PDF error', err);
-            }
-
-            // מחזיר את התצוגה הרגילה
-            if (sigImg.parentNode) sigImg.remove();
-            canvas.style.display = '';
-            document.body.classList.remove('pdf-export-mode');
-
-            // שולח לעסק
-            btn.innerHTML = 'שולח אישור לעסק...';
-            let emailOk = false;
-            try {
-                emailOk = await sendToBusiness(pdfBlob);
-            } catch (err) {
-                console.error('email error', err);
-                try { emailOk = await sendToBusiness(null); } catch (e2) {}
-            }
-
-            lucide.createIcons();
-            if (downloadOk && emailOk) {
-                btn.innerHTML = '<i data-lucide="check-circle-2" class="w-6 h-6"></i> ההסכם נחתם! ה-PDF ירד למכשיר והאישור נשלח לעסק ✓';
-            } else if (downloadOk && !emailOk) {
-                btn.innerHTML = '<i data-lucide="check-circle-2" class="w-6 h-6"></i> ה-PDF ירד למכשיר. (המייל לעסק לא נשלח — שלח צילום מסך של ההסכם)';
-                document.getElementById('pdf-hide-controls').style.display = 'block';
-                btn.disabled = false;
+            // 3) מצב סיום
+            const box=document.getElementById('pdf-hide-controls');
+            if(pdfBlob && emailOk){
+                box.innerHTML = `<div class="p-5 rounded-2xl bg-green-900/30 border border-green-500/40 text-green-100 text-center font-bold flex flex-col items-center gap-2">
+                    <i data-lucide="check-circle-2" class="w-8 h-8"></i>
+                    ההסכם נחתם בהצלחה!<br><span class="font-normal text-sm">ה-PDF ירד למכשיר שלך והאישור נשלח ל-Snap Box.</span></div>`;
             } else {
-                btn.innerHTML = '<i data-lucide="alert-circle" class="w-6 h-6"></i> יצירת ה-PDF נכשלה. פותח חלון הדפסה לשמירה ידנית...';
-                document.getElementById('pdf-hide-controls').style.display = 'block';
-                btn.disabled = false;
-                setTimeout(() => window.print(), 900);
+                box.innerHTML = `
+                    <div class="p-4 rounded-xl bg-amber-900/30 border border-amber-500/40 text-amber-100 text-sm space-y-1">
+                        <p>${pdfBlob ? '✓ ה-PDF ירד למכשיר.' : '⚠️ יצירת ה-PDF האוטומטית נכשלה.'}</p>
+                        <p>${emailOk ? '✓ האישור והחתימה נשלחו לעסק.' : '⚠️ שליחת המייל נכשלה — צור קשר טלפוני עם Snap Box.'}</p>
+                        <p class="pt-1">אפשר להוריד/להדפיס עותק גיבוי מלא:</p>
+                    </div>
+                    <button type="button" onclick="printFallback()" class="w-full py-4 btn-action rounded-2xl font-bold flex items-center justify-center gap-2">
+                        <i data-lucide="printer" class="w-5 h-5"></i> הורד / הדפס עותק גיבוי
+                    </button>`;
+                btn.disabled=false;
             }
             lucide.createIcons();
         }
