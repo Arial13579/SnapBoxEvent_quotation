@@ -50,12 +50,14 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.12);
             color: #FFF;
-            transition: all 0.25s ease;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .glass-input:focus {
             background: rgba(255, 255, 255, 0.09);
-            border-color: var(--accent-blue);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px rgba(100, 210, 255, 0.2), inset 0 2px 4px rgba(0,0,0,0.1);
             outline: none;
         }
 
@@ -81,12 +83,13 @@
             background: linear-gradient(135deg, #0A84FF 0%, #0066CC 100%);
             color: #FFFFFF;
             font-weight: 700;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3);
         }
 
         .btn-action:hover {
-            opacity: 0.95;
-            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.5);
+            transform: translateY(-2px);
         }
 
         .pdf-export-mode {
@@ -145,38 +148,43 @@
 
                     <div>
                         <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">תאריך האירוע *</label>
-                        <div class="grid grid-cols-3 gap-2">
-                            <select id="in_day" required class="glass-input px-2 py-3 rounded-2xl text-center text-sm"></select>
-                            <select id="in_month" required class="glass-input px-2 py-3 rounded-2xl text-center text-sm"></select>
-                            <select id="in_year" required class="glass-input px-2 py-3 rounded-2xl text-center text-sm"></select>
+                        <div class="grid grid-cols-3 gap-2" dir="ltr">
+                            <input type="text" id="in_day" required class="glass-input px-2 py-3 rounded-2xl text-center text-sm placeholder-zinc-500" placeholder="יום" maxlength="2">
+                            <input type="text" id="in_month" required class="glass-input px-2 py-3 rounded-2xl text-center text-sm placeholder-zinc-500" placeholder="חודש" maxlength="2">
+                            <input type="text" id="in_year" required class="glass-input px-2 py-3 rounded-2xl text-center text-sm placeholder-zinc-500" placeholder="שנה" maxlength="4">
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">שעת תחילת אירוע *</label>
                         <div class="flex items-center gap-2" dir="ltr">
-                            <select id="in_startHour" required class="w-full glass-input py-3 rounded-2xl text-center text-sm"></select>
+                            <input type="text" id="in_startHour" required class="w-full glass-input py-3 rounded-2xl text-center text-sm placeholder-zinc-500" placeholder="שעה" maxlength="2">
                             <span class="text-base font-bold text-cyan-400">:</span>
-                            <select id="in_startMin" required class="w-full glass-input py-3 rounded-2xl text-center text-sm"></select>
+                            <input type="text" id="in_startMin" required class="w-full glass-input py-3 rounded-2xl text-center text-sm placeholder-zinc-500" placeholder="דקות" maxlength="2">
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">שעת סיום אירוע *</label>
                         <div class="flex items-center gap-2" dir="ltr">
-                            <select id="in_endHour" required class="w-full glass-input py-3 rounded-2xl text-center text-sm"></select>
+                            <input type="text" id="in_endHour" required class="w-full glass-input py-3 rounded-2xl text-center text-sm placeholder-zinc-500" placeholder="שעה" maxlength="2">
                             <span class="text-base font-bold text-cyan-400">:</span>
-                            <select id="in_endMin" required class="w-full glass-input py-3 rounded-2xl text-center text-sm"></select>
+                            <input type="text" id="in_endMin" required class="w-full glass-input py-3 rounded-2xl text-center text-sm placeholder-zinc-500" placeholder="דקות" maxlength="2">
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מחיר כולל (₪) *</label>
-                        <input type="number" id="in_price" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm" placeholder="2500">
+                        <input type="number" id="in_price" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="2500">
                     </div>
                     <div>
                         <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">מקדמה (₪) *</label>
-                        <input type="number" id="in_deposit" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm" placeholder="500">
+                        <input type="number" id="in_deposit" required class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="500">
+                    </div>
+                    
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs uppercase font-bold text-zinc-300 mb-1.5">הערות / סיכומים נוספים (אופציונלי)</label>
+                        <textarea id="in_notes" class="w-full glass-input px-4 py-3 rounded-2xl text-sm placeholder-zinc-500" placeholder="לדוגמה: תוספת מגנטים, מיקום חופה..." rows="2"></textarea>
                     </div>
                 </div>
 
@@ -242,6 +250,14 @@
                         <span class="block text-xs uppercase text-zinc-400 font-bold mb-1">יתרה בסיום</span>
                         <span id="view_balance" class="font-semibold text-zinc-200"></span>
                     </div>
+                </div>
+                
+                <div id="view_notes_container" class="hidden mt-6 bg-cyan-950/20 p-5 rounded-2xl border border-cyan-500/20">
+                    <span class="block text-xs uppercase text-cyan-400 font-bold mb-2 flex items-center gap-2">
+                        <i data-lucide="info" class="w-4 h-4"></i>
+                        הערות וסיכומים נוספים
+                    </span>
+                    <p id="view_notes" class="text-sm font-semibold text-zinc-200 whitespace-pre-wrap leading-relaxed"></p>
                 </div>
             </section>
 
@@ -342,53 +358,7 @@
         lucide.createIcons();
 
         // 📌 שים לב: שנה כאן למייל האמיתי שלך שאליו תרצה לקבל את ההודעות מ-FormSubmit
-        const SUPPLIER_EMAIL = "snapboxevent.official@gmail.com
-";
-
-        function setupDropdowns() {
-            const daySel = document.getElementById('in_day');
-            const monthSel = document.getElementById('in_month');
-            const yearSel = document.getElementById('in_year');
-            const startH = document.getElementById('in_startHour');
-            const startM = document.getElementById('in_startMin');
-            const endH = document.getElementById('in_endHour');
-            const endM = document.getElementById('in_endMin');
-
-            daySel.add(new Option('יום', ''));
-            for (let i = 1; i <= 31; i++) {
-                const val = i < 10 ? '0' + i : i;
-                daySel.add(new Option(val, val));
-            }
-
-            monthSel.add(new Option('חודש', ''));
-            for (let i = 1; i <= 12; i++) {
-                const val = i < 10 ? '0' + i : i;
-                monthSel.add(new Option(val, val));
-            }
-
-            yearSel.add(new Option('שנה', ''));
-            const currY = new Date().getFullYear();
-            for (let i = currY; i <= currY + 3; i++) {
-                yearSel.add(new Option(i, i));
-            }
-
-            startH.add(new Option('שעה', ''));
-            endH.add(new Option('שעה', ''));
-            for (let i = 0; i < 24; i++) {
-                const val = i < 10 ? '0' + i : i;
-                startH.add(new Option(val, val));
-                endH.add(new Option(val, val));
-            }
-
-            startM.add(new Option('דקות', ''));
-            endM.add(new Option('דקות', ''));
-            for (let i = 0; i < 60; i += 15) {
-                const val = i === 0 ? '00' : i;
-                startM.add(new Option(val, val));
-                endM.add(new Option(val, val));
-            }
-        }
-        setupDropdowns();
+        const SUPPLIER_EMAIL = "snapboxevent.official@gmail.com";
 
         const canvas = document.getElementById('sig-canvas');
         const ctx = canvas.getContext('2d');
@@ -466,7 +436,8 @@
                     startTime: parts[4],
                     endTime: parts[5],
                     price: Number(parts[6]),
-                    deposit: Number(parts[7])
+                    deposit: Number(parts[7]),
+                    notes: parts[8] || ''
                 };
 
                 document.getElementById('view_clientName').innerText = contractData.name;
@@ -478,6 +449,11 @@
                 document.getElementById('view_deposit').innerText = `₪${contractData.deposit}`;
                 document.getElementById('view_balance').innerText = `₪${contractData.price - contractData.deposit}`;
 
+                if (contractData.notes && contractData.notes.trim() !== '') {
+                    document.getElementById('view_notes_container').classList.remove('hidden');
+                    document.getElementById('view_notes').innerText = contractData.notes;
+                }
+
                 setTimeout(resizeCanvas, 300);
             } catch (err) {
                 console.error("שגיאה בפענוח קישור");
@@ -487,24 +463,31 @@
         function generateShareLink(e) {
             e.preventDefault();
 
-            const day = document.getElementById('in_day').value;
-            const month = document.getElementById('in_month').value;
+            const pad = (val) => val.toString().padStart(2, '0');
+
+            const day = pad(document.getElementById('in_day').value);
+            const month = pad(document.getElementById('in_month').value);
             const year = document.getElementById('in_year').value;
-            const startH = document.getElementById('in_startHour').value;
-            const startM = document.getElementById('in_startMin').value;
-            const endH = document.getElementById('in_endHour').value;
-            const endM = document.getElementById('in_endMin').value;
+            const startH = pad(document.getElementById('in_startHour').value);
+            const startM = pad(document.getElementById('in_startMin').value);
+            const endH = pad(document.getElementById('in_endHour').value);
+            const endM = pad(document.getElementById('in_endMin').value);
 
             const name = document.getElementById('in_clientName').value;
             const type = document.getElementById('in_eventType').value;
             const loc = document.getElementById('in_location').value;
+            
+            // מטפל בהערות כדי שלא ישברו את המבנה של הקישור
+            const notesRaw = document.getElementById('in_notes').value || '';
+            const safeNotes = notesRaw.replace(/\|/g, '-');
+            
             const dateStr = `${day}/${month}/${year}`;
             const sTime = `${startH}:${startM}`;
             const eTime = `${endH}:${endM}`;
             const price = document.getElementById('in_price').value;
             const deposit = document.getElementById('in_deposit').value;
 
-            const rawData = `${name}|${type}|${loc}|${dateStr}|${sTime}|${eTime}|${price}|${deposit}`;
+            const rawData = `${name}|${type}|${loc}|${dateStr}|${sTime}|${eTime}|${price}|${deposit}|${safeNotes}`;
             const encoded = btoa(encodeURIComponent(rawData));
             const fullUrl = `${window.location.origin}${window.location.pathname}?q=${encoded}`;
 
