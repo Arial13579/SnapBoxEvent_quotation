@@ -261,8 +261,8 @@
                     <div><label class="lbl">סוג אירוע *</label><input type="text" id="in_eventType" required class="field" placeholder="חתונה / בר מצווה"></div>
                     <div><label class="lbl">מיקום האירוע *</label><input type="text" id="in_location" required class="field" placeholder="שם האולם / עיר" onblur="autoDistance()"></div>
                     <div><label class="lbl">תאריך האירוע *</label><input type="text" id="in_date" required class="field text-left" dir="ltr" maxlength="10" placeholder="DD/MM/YYYY" oninput="formatDate(this)"></div>
-                    <div><label class="lbl">שעת תחילה *</label><input type="text" id="in_startTime" required class="field text-left" dir="ltr" maxlength="5" placeholder="HH:MM" oninput="formatTime(this); onCalcInputs()"></div>
-                    <div><label class="lbl">שעת סיום *</label><input type="text" id="in_endTime" required class="field text-left" dir="ltr" maxlength="5" placeholder="HH:MM" oninput="formatTime(this); onCalcInputs()"></div>
+                    <div><label class="lbl">שעת תחילה *</label><input type="text" id="in_startTime" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="formatTime(this, event); onCalcInputs()"></div>
+                    <div><label class="lbl">שעת סיום *</label><input type="text" id="in_endTime" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="formatTime(this, event); onCalcInputs()"></div>
                     <div><label class="lbl">כמות מוזמנים (משוער) *</label><input type="number" id="in_guests" required min="1" class="field" placeholder="למשל 250" oninput="onCalcInputs()"></div>
                     <div>
                         <label class="lbl">מרחק מתל אביב (ק"מ) — מחושב אוטומטית</label>
@@ -430,7 +430,13 @@
         let isDrawing = false, hasSigned = false, lastSigDataUrl = '';
 
         function formatDate(i){ let v=i.value.replace(/\D/g,''); if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2); if(v.length>5)v=v.slice(0,5)+'/'+v.slice(5); i.value=v; }
-        function formatTime(i){ let v=i.value.replace(/\D/g,''); if(v.length>2)v=v.slice(0,2)+':'+v.slice(2); i.value=v; }
+        function formatTime(i, e){
+            let v = i.value.replace(/\D/g, '').slice(0, 4);
+            const deleting = !!(e && typeof e.inputType === 'string' && e.inputType.indexOf('delete') === 0);
+            if (v.length >= 3) v = v.slice(0, 2) + ':' + v.slice(2);
+            else if (v.length === 2 && !deleting) v = v + ':';
+            i.value = v;
+        }
 
         /* ================= תמחור אוטומטי ================= */
         const PRICE_TIERS = [
@@ -855,11 +861,4 @@
 
         async function sendToBusiness(pdfBlob, sigBlob, safeName){
             const c = contractData;
-            const link = pdfBlob ? await uploadPdf(pdfBlob, `SnapBox_Contract_${safeName}.pdf`) : null;
-            const fields = {
-                _subject: `הסכם חתום חדש — ${c.name} (${c.type})`,
-                'שם הלקוח': c.name,
-                'סוג אירוע': c.type,
-                'מיקום': c.location,
-                'תאריך האירוע': c.date,
-                'שעות': `$
+            const link = pdfBlob ? await uploadPdf(pdfBlob, `SnapBox_Cont
