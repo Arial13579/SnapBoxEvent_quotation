@@ -409,17 +409,18 @@
            באורך ~36 תווים) והדבק אותו כאן בין המרכאות. זהו — ה-PDF יגיע מצורף למייל.
            דרך ב' (גיבוי אוטומטי): אם משאירים ריק, נשלח דרך FormSubmit — צריך
            פעם אחת לאשר את מייל ההפעלה שיגיע מ-FormSubmit לתיבה של Snap Box. */
-        const WEB3FORMS_KEY = "1149cede-89b3-4169-abc7-985e4b59dd78";
+        const WEB3FORMS_KEY = "";
 
         const PKG_ITEMS = [
-            'מגנטים ללא הגבלה!',
+            'עד שעתיים פעילות מלאה (תוספת: שעה 200 ש"ח · חצי שעה 100 · רבע שעה 50 · 45 דק\' 250)',
+            'צילום ללא הגבלה - כל התמונות שלכם!',
             'שטיח אדום יוקרתי עם 4 עמודי זהב',
             'מפעיל מקצועי וטכנאי צמוד לכל האירוע',
             'מגוון סטריפים מותאמים אישית',
-            ' רקעים מותאמים אישית לסוג האירוע באייפד',
+            'רקעים מותאמים אישית לסוג האירוע',
             'אפקטים ומסגרות מיוחדות לפי נושא',
-            'שליחת כל התמונות ללקוח לטלפון אחרי האירוע',
-            'שליחת הסטריפ של האורח ישירות לטלפון'
+            'שליחת כל התמונות ללקוח לטלפון',
+            'שליחת הסטריפ של האורח לטלפון'
         ];
         const TERMS_TEXT = 'בכל מקרה של ביטול, דחייה או שינוי מהותי בפרטי האירוע, שומרת לעצמה "Snap Box" את הזכות לבטל את השירות או לעדכן את מחיר העסקה בהתאם; ביטול מצד הלקוח בתוך 14 ימים או פחות ממועד האירוע יגרור חילוט מלא של המקדמה כפיצוי מוסכם מראש ללא זכות החזר. מנגד, אם השירות לא יסופק עקב נסיבות שאינן בשליטת הספק (כוח עליון), תוחזר המקדמה במלואה והספק יהיה פטור מכל פיצוי נוסף. הלקוח נושא באחריות מלאה לכל נזק או אובדן שייגרמו לציוד במהלך האירוע, ומתחייב לשאת במלוא עלות התיקון או ההחלפה. חתימה על הסכם זה מהווה אישור ל-"Snap Box" לעשות שימוש בתמונות מהאירוע לצרכי פרסום ושיווק, אלא אם הלקוח סירב לכך מראש ובכתב. כמו כן, הלקוח מתחייב לספק לעמדת הצילום חניה נגישה, מקור חשמל תקין וחיבור אינטרנט רציף. יתרת התשלום תועבר לספק במלואה מיד בתום האירוע.';
 
@@ -438,20 +439,35 @@
             { max: 200,      price: 1249, label: 'עד 200 מוזמנים' },
             { max: 300,      price: 1299, label: 'עד 300 מוזמנים' },
             { max: 400,      price: 1399, label: 'עד 400 מוזמנים' },
-            { max: 500,      price: 1499, label: 'עד 500 מוזמנים' },
-            { max: 600,      price: 1599, label: 'עד 600 מוזמנים' },
-            { max: 700,      price: 1699, label: 'עד 700 מוזמנים' },
-            { max: 800,      price: 1799, label: 'עד 800 מוזמנים' }
-
+            { max: Infinity, price: 1499, label: 'עד 500 מוזמנים' }
         ];
         const TRAVEL_TIERS = [
             { max: 30,       price: 0,   label: 'עד 30 ק"מ · ללא עלות נסיעה' },
-            { max: 60,       price: 99, label: 'עד 60 ק"מ' },
-            { max: 90,       price: 199, label: 'עד 90 ק"מ' },
-            { max: Infinity, price: 249, label: 'מעל 90 ק"מ' }
+            { max: 60,       price: 100, label: 'עד 60 ק"מ' },
+            { max: 90,       price: 200, label: 'עד 90 ק"מ' },
+            { max: Infinity, price: 250, label: 'מעל 90 ק"מ' }
         ];
         const BASE_HOURS = 2, EXTRA_HOUR_PRICE = 200;
+        // תוספת לפי חלק שעה נוסף (דקות מעבר לשעות השלמות) — מעבר לשעתיים הבסיס
+        const EXTRA_FRACTION_PRICES = { 0: 0, 15: 50, 30: 100, 45: 250 };
         let priceTouched = false;
+
+        // עיגול לרבע שעה הקרוב + פירוק לשעות שלמות ושארית, וחישוב עלות התוספת
+        function extraTimeCost(durHours){
+            if (durHours == null) return { extraMin: 0, cost: 0 };
+            let extraMin = Math.round((durHours - BASE_HOURS) * 60);
+            if (extraMin <= 0) return { extraMin: 0, cost: 0 };
+            extraMin = Math.round(extraMin / 15) * 15;
+            const wholeHours = Math.floor(extraMin / 60);
+            const frac = extraMin - wholeHours * 60;
+            const cost = wholeHours * EXTRA_HOUR_PRICE + (EXTRA_FRACTION_PRICES[frac] || 0);
+            return { extraMin, cost };
+        }
+        // פורמט דקות → "ש:דד" (למשל 90 → 1:30)
+        function fmtDur(min){
+            const h = Math.floor(min / 60), m = min % 60;
+            return h + ':' + String(m).padStart(2, '0');
+        }
 
         function parseHM(v){
             const m = /^(\d{1,2}):(\d{2})$/.exec(String(v || '').trim());
@@ -475,13 +491,12 @@
             const km = Number(document.getElementById('in_distance').value) || 0;
             const gt = tierFor(PRICE_TIERS, g), tt = tierFor(TRAVEL_TIERS, km);
             const dur = eventDurationHours();
-            const extraHours = dur == null ? 0 : Math.max(0, Math.ceil(dur - BASE_HOURS - 1e-9));
-            const extraCost = extraHours * EXTRA_HOUR_PRICE;
+            const et = extraTimeCost(dur);
             return {
                 base: gt.price, baseLabel: gt.label,
                 travel: tt.price, travelLabel: tt.label,
-                extraHours, extraCost,
-                total: gt.price + tt.price + extraCost
+                extraMin: et.extraMin, extraCost: et.cost,
+                total: gt.price + tt.price + et.cost
             };
         }
 
@@ -494,7 +509,7 @@
             const row = (k, v) => `<div class="flex justify-between gap-3"><span class="text-zinc-400">${k}</span><span class="font-semibold text-zinc-100 whitespace-nowrap">${v.toLocaleString()} ₪</span></div>`;
             let html = row(`מחיר בסיס · ${q.baseLabel} · עד שעתיים`, q.base);
             if (q.travel > 0) html += row(`תוספת נסיעה · ${q.travelLabel}`, q.travel);
-            if (q.extraCost > 0) html += row(`תוספת ${q.extraHours} שעות מעבר לשעתיים`, q.extraCost);
+            if (q.extraCost > 0) html += row(`תוספת זמן · ${fmtDur(q.extraMin)} שעות מעבר לשעתיים`, q.extraCost);
             html += `<div class="h-px bg-white/10 my-1.5"></div>`;
             html += `<div class="flex justify-between gap-3 text-turq-bright font-extrabold text-base"><span>סה"כ מחיר מוצע</span><span class="whitespace-nowrap">${q.total.toLocaleString()} ₪</span></div>`;
             html += `<button type="button" onclick="recalcPrice()" class="mt-1.5 text-xs text-turq-bright font-bold hover:underline">⟳ עדכן את שדה המחיר לסכום זה</button>`;
@@ -890,21 +905,4 @@
             if (pdfBlob && emailOk) {
                 box.innerHTML = `<div class="rounded-2xl bg-turq/10 border border-turq/40 p-5 text-center flex flex-col items-center gap-2 text-turq-bright font-bold">
                     <i data-lucide="party-popper" class="w-8 h-8"></i>
-                    ההסכם נחתם בהצלחה!<br><span class="font-normal text-sm text-zinc-300">ה-PDF ירד למכשיר שלך והאישור נשלח ל-Snap Box.</span></div>`;
-            } else {
-                box.innerHTML = `
-                    <div class="rounded-xl bg-amber-900/25 border border-amber-500/40 p-4 text-sm text-amber-100 space-y-1">
-                        <p>${pdfBlob ? '✓ ה-PDF ירד למכשיר.' : '⚠️ יצירת ה-PDF האוטומטית נכשלה.'}</p>
-                        <p>${emailOk ? '✓ האישור והחתימה נשלחו לעסק.' : '⚠️ שליחת המייל לא אושרה — צור קשר טלפוני עם Snap Box.'}</p>
-                        <p class="pt-1">להורדה / הדפסה של עותק גיבוי מלא:</p>
-                    </div>
-                    <button type="button" onclick="printFallback()" class="btn btn-primary btn-lg">
-                        <i data-lucide="printer" class="w-5 h-5"></i> הורד / הדפס עותק גיבוי
-                    </button>`;
-                btn.disabled = false;
-            }
-            lucide.createIcons();
-        }
-    </script>
-</body>
-</html>
+                    ההסכם נחתם בהצלחה!<br><span class="font-normal text-sm text-zin
