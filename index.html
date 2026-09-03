@@ -677,18 +677,11 @@
             btn.disabled = false; btn.innerHTML = orig;
         }
 
-        // בונה את שדה הקישור ואת הודעת הוואטסאפ המקצועית
-        // (תמונת התצוגה נטענת אוטומטית מתגי ה-OG של הדף)
+        // בונה את שדה הקישור ואת קישור הוואטסאפ — הקישור בלבד, ללא שום טקסט בגוף ההודעה
+        // (תמונת התצוגה נטענת אוטומטית מתגי ה-OG של הדף; הקישור המקוצר הוא מה שמאפשר לה לעלות מיד)
         function applyShareLink(url, clientName){
             document.getElementById('shareable-url').value = url;
-            const hi = clientName ? `שלום ${clientName},` : 'שלום,';
-            const msg =
-                `${hi}\n` +
-                `מצורפת הצעת המחיר וההסכם הדיגיטלי שלך מ-Snap Box 🎉\n` +
-                `לצפייה בכל הפרטים ולחתימה דיגיטלית מאובטחת:\n` +
-                `${url}\n\n` +
-                `Snap Box · Event Photo Booth Boutique`;
-            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(url);
         }
 
         // קיצור קישור דרך TinyURL (נפילה חזרה לקישור המלא אם השירות אינו זמין)
