@@ -648,10 +648,9 @@
         }
 
         /* ================= יצירת קישור ללקוח (ישיר — ללא קיצור) ================= */
-        async function generateShareLink(e){
+        function generateShareLink(e){
             e.preventDefault();
             const g = id => document.getElementById(id).value.trim();
-            const clientName = g('in_clientName');
             const raw = [
                 g('in_clientName'), g('in_eventType'), g('in_location'), g('in_date'),
                 g('in_startTime'), g('in_endTime'),
@@ -661,42 +660,14 @@
                 (document.getElementById('in_notes').value || '').replace(/\|/g,'/')
             ].join('|');
 
-            const longUrl = `${location.origin}${location.pathname}?q=${b64UrlEncode(raw)}`;
+            const url = `${location.origin}${location.pathname}?q=${b64UrlEncode(raw)}`;
 
-            document.getElementById('link-result').classList.remove('hidden');
-            applyShareLink(longUrl, clientName); // עובד מיד עם הקישור המלא
-
-            // מקצרים לכתובת נקייה — כך תמונת התצוגה בוואטסאפ נטענת מיד ובאופן אמין
-            const btn = document.getElementById('gen-btn');
-            const orig = btn.innerHTML;
-            btn.disabled = true; btn.innerHTML = 'מכין קישור...';
-            try {
-                const short = await shortenUrl(longUrl);
-                if (short) applyShareLink(short, clientName);
-            } catch(err){ console.warn('shorten failed', err); }
-            btn.disabled = false; btn.innerHTML = orig;
-        }
-
-        // בונה את שדה הקישור ואת קישור הוואטסאפ — הקישור בלבד, ללא שום טקסט בגוף ההודעה
-        // (תמונת התצוגה נטענת אוטומטית מתגי ה-OG של הדף; הקישור המקוצר הוא מה שמאפשר לה לעלות מיד)
-        function applyShareLink(url, clientName){
             document.getElementById('shareable-url').value = url;
-            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(url);
-        }
+            document.getElementById('link-result').classList.remove('hidden');
 
-        // קיצור קישור דרך TinyURL (נפילה חזרה לקישור המלא אם השירות אינו זמין)
-        async function shortenUrl(u){
-            try {
-                const ctrl = new AbortController();
-                const t = setTimeout(() => ctrl.abort(), 6000);
-                const r = await fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(u), { signal: ctrl.signal });
-                clearTimeout(t);
-                if (r.ok) {
-                    const s = (await r.text()).trim();
-                    if (/^https:\/\/tinyurl\.com\/\S+$/.test(s)) return s;
-                }
-            } catch(e){ console.warn('tinyurl', e); }
-            return null;
+            // שיתוף בוואטסאפ — הקישור המלא בלבד, ללא שום טקסט בגוף ההודעה
+            // (תמונת התצוגה המקדימה נטענת אוטומטית מתגי ה-OG שבראש הדף)
+            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(url);
         }
 
         function copyGeneratedLink(){
