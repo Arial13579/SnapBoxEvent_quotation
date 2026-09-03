@@ -9,15 +9,19 @@
     <!-- תצוגה מקדימה בוואטסאפ / פייסבוק / טלגרם -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Snap Box Events">
+    <meta property="og:url" content="https://arial13579.github.io/SnapBoxEvent_quotation/">
     <meta property="og:title" content="Snap Box · הצעת מחיר והסכם דיגיטלי">
-    <meta property="og:description" content="לצפייה בפרטי ההצעה ולחתימה דיגיטלית מאובטחת — לחצו לפתיחה.">
+    <meta property="og:description" content="הצעת המחיר וההסכם הדיגיטלי שלך מ-Snap Box מוכנים — לחצו לצפייה בכל הפרטים ולחתימה דיגיטלית מאובטחת.">
     <meta property="og:image" content="https://arial13579.github.io/SnapBoxEvent_quotation/og-image.jpg">
+    <meta property="og:image:secure_url" content="https://arial13579.github.io/SnapBoxEvent_quotation/og-image.jpg">
+    <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Snap Box · Event Photo Booth Boutique">
     <meta property="og:locale" content="he_IL">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Snap Box · הצעת מחיר והסכם דיגיטלי">
-    <meta name="twitter:description" content="לצפייה בפרטי ההצעה ולחתימה דיגיטלית מאובטחת.">
+    <meta name="twitter:description" content="הצעת המחיר וההסכם הדיגיטלי שלך מוכנים — לחצו לצפייה ולחתימה דיגיטלית מאובטחת.">
     <meta name="twitter:image" content="https://arial13579.github.io/SnapBoxEvent_quotation/og-image.jpg">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23070809'/%3E%3Ccircle cx='50' cy='50' r='24' fill='none' stroke='%232DD4BF' stroke-width='8'/%3E%3C/svg%3E">
 
@@ -644,9 +648,10 @@
         }
 
         /* ================= יצירת קישור ללקוח (ישיר — ללא קיצור) ================= */
-        function generateShareLink(e){
+        async function generateShareLink(e){
             e.preventDefault();
             const g = id => document.getElementById(id).value.trim();
+            const clientName = g('in_clientName');
             const raw = [
                 g('in_clientName'), g('in_eventType'), g('in_location'), g('in_date'),
                 g('in_startTime'), g('in_endTime'),
@@ -656,13 +661,49 @@
                 (document.getElementById('in_notes').value || '').replace(/\|/g,'/')
             ].join('|');
 
-            const url = `${location.origin}${location.pathname}?q=${b64UrlEncode(raw)}`;
+            const longUrl = `${location.origin}${location.pathname}?q=${b64UrlEncode(raw)}`;
 
-            document.getElementById('shareable-url').value = url;
             document.getElementById('link-result').classList.remove('hidden');
+            applyShareLink(longUrl, clientName); // עובד מיד עם הקישור המלא
 
-            // שיתוף בוואטסאפ — הקישור בלבד, ללא שום טקסט
-            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(url);
+            // מקצרים לכתובת נקייה — כך תמונת התצוגה בוואטסאפ נטענת מיד ובאופן אמין
+            const btn = document.getElementById('gen-btn');
+            const orig = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = 'מכין קישור...';
+            try {
+                const short = await shortenUrl(longUrl);
+                if (short) applyShareLink(short, clientName);
+            } catch(err){ console.warn('shorten failed', err); }
+            btn.disabled = false; btn.innerHTML = orig;
+        }
+
+        // בונה את שדה הקישור ואת הודעת הוואטסאפ המקצועית
+        // (תמונת התצוגה נטענת אוטומטית מתגי ה-OG של הדף)
+        function applyShareLink(url, clientName){
+            document.getElementById('shareable-url').value = url;
+            const hi = clientName ? `שלום ${clientName},` : 'שלום,';
+            const msg =
+                `${hi}\n` +
+                `מצורפת הצעת המחיר וההסכם הדיגיטלי שלך מ-Snap Box 🎉\n` +
+                `לצפייה בכל הפרטים ולחתימה דיגיטלית מאובטחת:\n` +
+                `${url}\n\n` +
+                `Snap Box · Event Photo Booth Boutique`;
+            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+        }
+
+        // קיצור קישור דרך TinyURL (נפילה חזרה לקישור המלא אם השירות אינו זמין)
+        async function shortenUrl(u){
+            try {
+                const ctrl = new AbortController();
+                const t = setTimeout(() => ctrl.abort(), 6000);
+                const r = await fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(u), { signal: ctrl.signal });
+                clearTimeout(t);
+                if (r.ok) {
+                    const s = (await r.text()).trim();
+                    if (/^https:\/\/tinyurl\.com\/\S+$/.test(s)) return s;
+                }
+            } catch(e){ console.warn('tinyurl', e); }
+            return null;
         }
 
         function copyGeneratedLink(){
