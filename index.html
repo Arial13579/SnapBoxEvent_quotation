@@ -240,6 +240,37 @@
         #cal-fab.is-busy{ animation:none; opacity:.75; pointer-events:none; }
         @media (prefers-reduced-motion:reduce){ #cal-fab{ animation:none } }
 
+        /* תפריט בחירת יומן — נפתח מעל הכפתור */
+        #cal-menu{
+            position:absolute; bottom:calc(100% + 12px); left:0;
+            display:flex; flex-direction:column; gap:7px; min-width:min(74vw,240px);
+        }
+        #cal-menu button{
+            display:flex; align-items:center; gap:11px; width:100%;
+            font-family:inherit; font-weight:700; font-size:14px; color:var(--txt);
+            padding:13px 16px; border-radius:15px; cursor:pointer; text-align:right;
+            background:rgba(16,18,20,.94); border:1px solid rgba(255,255,255,.13);
+            -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px);
+            box-shadow:0 20px 46px -14px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.08);
+            transition:border-color .2s, transform .15s;
+        }
+        #cal-menu button:hover{ border-color:rgba(94,234,212,.5); }
+        #cal-menu button:active{ transform:scale(.97); }
+        #cal-menu button .emo{ font-size:17px; flex:none; line-height:1; }
+        #cal-menu button b{ font-weight:800; }
+        #cal-menu button span.sub{ display:block; font-size:11px; font-weight:600; color:var(--txt-dim); margin-top:2px; }
+        #cal-menu:not(.hidden){ animation:calMenuIn .2s cubic-bezier(.2,.7,.2,1) both; }
+        @keyframes calMenuIn{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+        @media (prefers-reduced-motion:reduce){ #cal-menu:not(.hidden){ animation:none } }
+        /* קישור "יומן אחר" — מעל הכפתור הראשי */
+        #cal-more{
+            display:block; margin:0 6px 7px auto; padding:2px 4px;
+            background:none; border:0; cursor:pointer;
+            font-family:inherit; font-size:11.5px; font-weight:700; color:var(--txt-dim);
+            text-decoration:underline; text-underline-offset:2px;
+        }
+        #cal-more:hover{ color:var(--turq-br); }
+
         /* ===== מסמך ה-PDF (שחור על לבן) ===== */
         #pdf-doc{ position:absolute; left:-10000px; top:0; width:760px; background:#fff; color:#111; font-family:'Assistant',Arial,sans-serif; z-index:-1; }
         #pdf-doc *,#pdf-doc *::before,#pdf-doc *::after{ box-sizing:border-box; margin:0; padding:0; }
@@ -423,6 +454,12 @@
 
     <!-- כפתור צף · הוספת האירוע ליומן (מוצג רק בתצוגת הלקוח) -->
     <div id="cal-fab-wrap" class="hidden">
+        <div id="cal-menu" class="hidden">
+            <button type="button" data-cal="google"><span class="emo">📅</span><span><b>Google Calendar</b><span class="sub">נפתח בדפדפן — לוחצים "שמור"</span></span></button>
+            <button type="button" data-cal="apple"><span class="emo">🍎</span><span><b>אייפון / אייפד / מק</b><span class="sub">נפתח ביומן המכשיר — לוחצים "הוסף"</span></span></button>
+            <button type="button" data-cal="outlook"><span class="emo">📧</span><span><b>Outlook</b><span class="sub">נפתח בדפדפן — לוחצים "שמור"</span></span></button>
+        </div>
+        <button type="button" id="cal-more">יומן אחר ▾</button>
         <button type="button" id="cal-fab">
             <i data-lucide="calendar-plus"></i><span id="cal-fab-label">הוסף ליומן</span>
         </button>
@@ -1112,8 +1149,8 @@
                 u.searchParams.set('body', ev.details);
                 window.open(u.toString(), '_blank', 'noopener');
 
-            } else { // apple / ברירת מחדל — קובץ ICS שנפתח ביומן המכשיר
-                const esc = s => String(s)
+            } else { // apple — קובץ ICS שנפתח ביומן המכשיר
+                const escI = s => String(s)
                     .replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
                 const fold = l => l.replace(/(.{70})/g, '$1\r\n ');
                 const stamp = fmtCal(new Date());
@@ -1124,14 +1161,24 @@
                     'DTSTAMP:' + stamp,
                     'DTSTART:' + fmtCal(ev.start),
                     'DTEND:' + fmtCal(ev.end),
-                    'SUMMARY:' + esc(ev.title),
-                    'LOCATION:' + esc(ev.location),
-                    'DESCRIPTION:' + esc(ev.details),
-                    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + esc(ev.title), 'TRIGGER:-P1D', 'END:VALARM',
+                    'SUMMARY:' + escI(ev.title),
+                    'LOCATION:' + escI(ev.location),
+                    'DESCRIPTION:' + escI(ev.details),
+                    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + escI(ev.title), 'TRIGGER:-P1D', 'END:VALARM',
                     'END:VEVENT', 'END:VCALENDAR'
                 ];
                 const blob = new Blob([lines.map(fold).join('\r\n')], { type: 'text/calendar;charset=utf-8' });
-                triggerDownload(blob, `SnapBox_${(contractData.type || 'event').replace(/[\\/:*?"<>|]+/g, '_')}.ics`);
+                const fname = `SnapBox_${(contractData.type || 'event').replace(/[\\/:*?"<>|]+/g, '_')}.ics`;
+                if (detectPlatform() === 'ios') {
+                    // באייפון/אייפד: מעבר ישיר לקובץ היומן → ספארי פותח את מסך "הוספה ליומן" של המכשיר
+                    const objUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = objUrl; a.rel = 'noopener';
+                    document.body.appendChild(a); a.click(); a.remove();
+                    setTimeout(() => URL.revokeObjectURL(objUrl), 10000);
+                } else {
+                    triggerDownload(blob, fname);
+                }
             }
         }
 
@@ -1139,23 +1186,59 @@
             if (!eventDateParts()) return;   // אין תאריך/שעות תקינים בקישור — אין טעם בכפתור
             const wrap  = document.getElementById('cal-fab-wrap');
             const fab   = document.getElementById('cal-fab');
+            const more  = document.getElementById('cal-more');
+            const menu  = document.getElementById('cal-menu');
             const label = document.getElementById('cal-fab-label');
-            // זיהוי אוטומטי של סוג המכשיר → אפל פותח את יומן המכשיר, כל השאר Google Calendar
-            const plat  = detectPlatform();
-            const target = (plat === 'ios' || plat === 'mac') ? 'apple' : 'google';
 
             wrap.classList.remove('hidden');
             lucide.createIcons();
 
-            fab.addEventListener('click', () => {
-                // לחיצה אחת — האירוע נכנס ישר ליומן עם כל הפרטים, הלקוח רק מאשר "שמור"
-                addToCalendar(target);
+            // פעולת ברירת המחדל של הכפתור לפי סוג המכשיר:
+            //   אייפון / אייפד / מק → נפתח ישר ביומן המכשיר (קובץ ICS)
+            //   אנדרואיד / מחשב     → נפתח דף של Google Calendar
+            const plat = detectPlatform();
+            const primary = (plat === 'ios' || plat === 'mac') ? 'apple' : 'google';
+            if (plat === 'ios' || plat === 'mac') {
+                menu.insertBefore(menu.querySelector('[data-cal="apple"]'), menu.firstChild);
+            }
+
+            function busy(){
                 fab.classList.add('is-busy');
                 label.textContent = 'נפתח ביומן…';
                 setTimeout(() => {
                     fab.classList.remove('is-busy');
                     label.textContent = 'הוסף ליומן';
                 }, 2500);
+            }
+
+            function onOutside(e){ if (!wrap.contains(e.target)) closeMenu(); }
+            function openMenu(){
+                menu.classList.remove('hidden');
+                setTimeout(() => document.addEventListener('click', onOutside, true), 0);
+            }
+            function closeMenu(){
+                menu.classList.add('hidden');
+                document.removeEventListener('click', onOutside, true);
+            }
+
+            // לחיצה אחת על הכפתור → היומן קופץ ישר עם כל פרטי האירוע
+            fab.addEventListener('click', () => {
+                closeMenu();
+                addToCalendar(primary);
+                busy();
+            });
+
+            // "יומן אחר" → פותח רשימה לבחירה ידנית (Google / Apple / Outlook)
+            more.addEventListener('click', () => {
+                menu.classList.contains('hidden') ? openMenu() : closeMenu();
+            });
+
+            menu.querySelectorAll('button[data-cal]').forEach(b => {
+                b.addEventListener('click', () => {
+                    closeMenu();
+                    addToCalendar(b.getAttribute('data-cal'));
+                    busy();
+                });
             });
         }
     </script>
