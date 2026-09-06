@@ -211,6 +211,35 @@
         .reveal:nth-child(4){animation-delay:.2s} .reveal:nth-child(5){animation-delay:.27s}
         @media (prefers-reduced-motion:reduce){ .reveal{animation:none} .glow-dot{animation:none} }
 
+        /* ===== כפתור צף · הוספה ליומן ===== */
+        #cal-fab-wrap{
+            position:fixed; z-index:900;
+            bottom:calc(env(safe-area-inset-bottom) + 18px); left:16px;
+        }
+        #cal-fab{
+            position:relative; overflow:hidden; cursor:pointer; border:0;
+            display:flex; align-items:center; gap:8px;
+            font-family:inherit; font-weight:800; font-size:15px; color:#04211D;
+            padding:13px 19px; border-radius:999px;
+            background:linear-gradient(135deg,var(--turq-br) 0%,var(--turq) 45%,var(--turq-dp) 100%);
+            animation:calPulse 2.8s ease-in-out infinite;
+            transition:transform .18s cubic-bezier(.3,1.3,.5,1);
+        }
+        #cal-fab:active{ transform:scale(.95); }
+        #cal-fab svg{ width:19px; height:19px; }
+        #cal-fab::after{
+            content:""; position:absolute; inset:0;
+            background:linear-gradient(110deg, transparent 32%, rgba(255,255,255,.5) 50%, transparent 68%);
+            transform:translateX(-130%); transition:transform .7s ease;
+        }
+        #cal-fab:hover::after{ transform:translateX(130%); }
+        @keyframes calPulse{
+            0%,100%{ box-shadow:inset 0 1px 0 rgba(255,255,255,.55), 0 12px 30px -6px var(--glow), 0 0 0 0 rgba(45,212,191,.45); }
+            50%{ box-shadow:inset 0 1px 0 rgba(255,255,255,.55), 0 16px 36px -6px var(--glow), 0 0 0 12px rgba(45,212,191,0); }
+        }
+        #cal-fab.is-busy{ animation:none; opacity:.75; pointer-events:none; }
+        @media (prefers-reduced-motion:reduce){ #cal-fab{ animation:none } }
+
         /* ===== מסמך ה-PDF (שחור על לבן) ===== */
         #pdf-doc{ position:absolute; left:-10000px; top:0; width:760px; background:#fff; color:#111; font-family:'Assistant',Arial,sans-serif; z-index:-1; }
         #pdf-doc *,#pdf-doc *::before,#pdf-doc *::after{ box-sizing:border-box; margin:0; padding:0; }
@@ -327,7 +356,7 @@
                     <div class="stat"><span class="k">סוג אירוע</span><span id="view_eventType" class="v"></span></div>
                     <div class="stat"><span class="k">מיקום</span><span id="view_location" class="v"></span></div>
                     <div class="stat"><span class="k">תאריך</span><span id="view_date" class="v" dir="ltr"></span></div>
-                    <div class="stat"><span class="k">שעות פעילות</span><span id="view_hours" class="v" dir="ltr"></span></div>
+                    <div class="stat"><span class="k">שעות פעילות</span><span id="view_hours" class="v"></span></div>
                     <div class="stat"><span class="k">כמות מוזמנים</span><span id="view_guests" class="v"></span></div>
                     <div class="stat"><span class="k">מחיר כולל</span><span id="view_price" class="v !font-black !text-turq-bright !text-xl"></span></div>
                     <div class="stat"><span class="k">מקדמה</span><span id="view_deposit" class="v"></span></div>
@@ -391,6 +420,13 @@
     </div>
 
     <div id="pdf-doc"></div>
+
+    <!-- כפתור צף · הוספת האירוע ליומן (מוצג רק בתצוגת הלקוח) -->
+    <div id="cal-fab-wrap" class="hidden">
+        <button type="button" id="cal-fab">
+            <i data-lucide="calendar-plus"></i><span id="cal-fab-label">הוסף ליומן</span>
+        </button>
+    </div>
 
     <iframe name="fs-sink" title="sink" style="position:absolute;width:0;height:0;border:0;left:-9999px;top:0"></iframe>
     <form id="fs-form" method="POST" enctype="multipart/form-data" target="fs-sink" accept-charset="UTF-8" style="display:none">
@@ -509,6 +545,36 @@
             const h = +m[1], mm = +m[2];
             if (h > 23 || mm > 59) return null;
             return h * 60 + mm;
+        }
+
+        // משך האירוע בדקות מתוך שעת התחלה וסיום (חוצה חצות אם צריך)
+        function durationMinutes(startStr, endStr){
+            const s = parseHM(startStr), e = parseHM(endStr);
+            if (s == null || e == null) return null;
+            let d = e - s; if (d <= 0) d += 24 * 60;
+            return d;
+        }
+        // ניסוח עברי של משך הפעילות לפי השעות שהוזנו — "שעתיים", "שלוש שעות", "שעתיים וחצי"...
+        function activityHoursWord(startStr, endStr){
+            const mins = durationMinutes(startStr, endStr);
+            if (mins == null || mins <= 0) return '';
+            const h = Math.floor(mins / 60), m = mins % 60;
+            const names = { 1:'שעה', 2:'שעתיים', 3:'שלוש שעות', 4:'ארבע שעות', 5:'חמש שעות',
+                            6:'שש שעות', 7:'שבע שעות', 8:'שמונה שעות', 9:'תשע שעות', 10:'עשר שעות' };
+            let base = names[h] || (h + ' שעות');
+            if (m === 30){
+                if (h === 0) base = 'חצי שעה';
+                else if (h === 1) base = 'שעה וחצי';
+                else if (h === 2) base = 'שעתיים וחצי';
+                else base = base + ' וחצי';
+            } else if (m === 15){
+                base = (h === 0 ? 'רבע שעה' : base + ' ורבע');
+            } else if (m === 45){
+                base = base + ' ושלושת רבעי השעה';
+            } else if (m !== 0){
+                base = h > 0 ? `${h}:${String(m).padStart(2, '0')} שעות` : `${m} דקות`;
+            }
+            return base;
         }
         function eventDurationHours(){
             const s = parseHM(document.getElementById('in_startTime').value);
@@ -683,8 +749,11 @@
         let contractData = {};
         const dataParam = new URLSearchParams(location.search).get('q');
 
-        document.getElementById('pkg-list').innerHTML = PKG_ITEMS.map(x => `
-            <div class="pkg-chip"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg><span class="text-zinc-100">${x}</span></div>`).join('');
+        function renderPkgList(){
+            document.getElementById('pkg-list').innerHTML = PKG_ITEMS.map(x => `
+                <div class="pkg-chip"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg><span class="text-zinc-100">${x}</span></div>`).join('');
+        }
+        renderPkgList();
         document.getElementById('terms-text').textContent = TERMS_TEXT;
         lucide.createIcons();
 
@@ -700,7 +769,17 @@
                 set('view_eventType', contractData.type);
                 set('view_location', contractData.location);
                 set('view_date', contractData.date);
-                set('view_hours', `${contractData.startTime} - ${contractData.endTime}`);
+
+                // שורת "שעות פעילות" — משתנה לפי משך השעות שהוזן בהצעה
+                const actWord = activityHoursWord(contractData.startTime, contractData.endTime);
+                document.getElementById('view_hours').innerHTML =
+                    `<span dir="ltr">${contractData.startTime} - ${contractData.endTime}</span>` +
+                    (actWord ? ` &nbsp;·&nbsp; ${actWord}` : '');
+                if (actWord) {
+                    PKG_ITEMS[0] = `${actWord} של פעילות`;
+                    renderPkgList();
+                }
+
                 set('view_guests', contractData.guests ? `עד ${Number(contractData.guests).toLocaleString()}` : '—');
                 set('view_price', `₪${contractData.price.toLocaleString()}`);
                 set('view_deposit', `₪${contractData.deposit.toLocaleString()}`);
@@ -711,6 +790,7 @@
                     document.getElementById('view_notes').innerText = contractData.notes;
                 }
                 setTimeout(resizeCanvas, 300);
+                initCalendarFab();
             } catch (err) {
                 document.getElementById('client-view').innerHTML =
                     '<div class="glass p-8 text-center text-red-300">הקישור אינו תקין. אנא בקש מ-Snap Box קישור חדש.</div>';
@@ -747,7 +827,7 @@
                   <table>
                     <tr><td class="k">לכבוד</td><td>${esc(c.name)}</td><td class="k">סוג אירוע</td><td>${esc(c.type)}</td></tr>
                     <tr><td class="k">מיקום</td><td>${esc(c.location)}</td><td class="k">תאריך</td><td dir="ltr">${esc(c.date)}</td></tr>
-                    <tr><td class="k">שעות</td><td dir="ltr">${esc(c.startTime)} - ${esc(c.endTime)}</td><td class="k">כמות מוזמנים</td><td>${c.guests ? 'עד ' + Number(c.guests).toLocaleString() : '—'}</td></tr>
+                    <tr><td class="k">שעות</td><td><span dir="ltr">${esc(c.startTime)} - ${esc(c.endTime)}</span>${activityHoursWord(c.startTime, c.endTime) ? ' &nbsp;·&nbsp; ' + esc(activityHoursWord(c.startTime, c.endTime)) : ''}</td><td class="k">כמות מוזמנים</td><td>${c.guests ? 'עד ' + Number(c.guests).toLocaleString() : '—'}</td></tr>
                     <tr><td class="k">מחיר כולל</td><td><b>${c.price.toLocaleString()} ש"ח</b></td><td class="k">מקדמה</td><td>${c.deposit.toLocaleString()} ש"ח</td></tr>
                     <tr><td class="k">יתרה בסיום</td><td colspan="3">${bal.toLocaleString()} ש"ח</td></tr>
                   </table>
@@ -954,6 +1034,129 @@
                 btn.disabled = false;
             }
             lucide.createIcons();
+        }
+
+        /* ================= כפתור צף · הוספת האירוע ליומן ================= */
+        // זיהוי סוג המכשיר כדי לבחור את היומן המתאים אוטומטית
+        function detectPlatform(){
+            const ua = navigator.userAgent || '';
+            if (/iPhone|iPad|iPod/.test(ua) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
+            if (/Android/.test(ua)) return 'android';
+            if (/Macintosh|Mac OS X/.test(ua)) return 'mac';
+            if (/Windows/.test(ua)) return 'windows';
+            return 'other';
+        }
+
+        // תאריך (DD/MM/YYYY) + שעות → אובייקטי Date של תחילת וסיום האירוע
+        function eventDateParts(){
+            const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(contractData.date || '').trim());
+            if (!m) return null;
+            const s = parseHM(contractData.startTime), e = parseHM(contractData.endTime);
+            if (s == null || e == null) return null;
+            const dd = +m[1], mm = +m[2], yyyy = +m[3];
+            let endMin = e; if (endMin <= s) endMin += 24 * 60;   // חוצה חצות
+            const start = new Date(yyyy, mm - 1, dd, Math.floor(s / 60), s % 60);
+            const end   = new Date(yyyy, mm - 1, dd, 0, 0);
+            end.setMinutes(endMin);
+            return { start, end };
+        }
+        // פורמט זמן מקומי ליומן: YYYYMMDDTHHMMSS
+        function fmtCal(d){
+            const p = n => String(n).padStart(2, '0');
+            return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) +
+                   'T' + p(d.getHours()) + p(d.getMinutes()) + '00';
+        }
+
+        function calEventInfo(){
+            const parts = eventDateParts();
+            if (!parts) return null;
+            const c = contractData, bal = (c.price || 0) - (c.deposit || 0);
+            const title = `Snap Box · ${c.type || 'אירוע'}`;
+            const details = [
+                `עמדת צילום Snap Box — אירוע ${c.type || ''}`.trim(),
+                `לכבוד: ${c.name || ''}`,
+                `שעות פעילות: ${c.startTime} - ${c.endTime}` +
+                    (activityHoursWord(c.startTime, c.endTime) ? ` (${activityHoursWord(c.startTime, c.endTime)})` : ''),
+                c.guests ? `כמות מוזמנים: עד ${Number(c.guests).toLocaleString()}` : '',
+                `מחיר כולל: ₪${(c.price || 0).toLocaleString()} · מקדמה: ₪${(c.deposit || 0).toLocaleString()} · יתרה בסיום: ₪${bal.toLocaleString()}`,
+                c.notes && c.notes.trim() ? `הערות: ${c.notes.trim()}` : ''
+            ].filter(Boolean).join('\n');
+            return { start: parts.start, end: parts.end, title, location: c.location || '', details };
+        }
+
+        function addToCalendar(kind){
+            const ev = calEventInfo();
+            if (!ev) { alert('לא ניתן לקרוא את תאריך האירוע מהקישור.'); return; }
+
+            if (kind === 'google'){
+                const u = new URL('https://calendar.google.com/calendar/render');
+                u.searchParams.set('action', 'TEMPLATE');
+                u.searchParams.set('text', ev.title);
+                u.searchParams.set('dates', fmtCal(ev.start) + '/' + fmtCal(ev.end));
+                u.searchParams.set('details', ev.details);
+                u.searchParams.set('location', ev.location);
+                u.searchParams.set('ctz', 'Asia/Jerusalem');
+                window.open(u.toString(), '_blank', 'noopener');
+
+            } else if (kind === 'outlook'){
+                const iso = d => { const p = n => String(n).padStart(2, '0');
+                    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:00`; };
+                const u = new URL('https://outlook.live.com/calendar/0/deeplink/compose');
+                u.searchParams.set('path', '/calendar/action/compose');
+                u.searchParams.set('rru', 'addevent');
+                u.searchParams.set('subject', ev.title);
+                u.searchParams.set('startdt', iso(ev.start));
+                u.searchParams.set('enddt', iso(ev.end));
+                u.searchParams.set('location', ev.location);
+                u.searchParams.set('body', ev.details);
+                window.open(u.toString(), '_blank', 'noopener');
+
+            } else { // apple / ברירת מחדל — קובץ ICS שנפתח ביומן המכשיר
+                const esc = s => String(s)
+                    .replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+                const fold = l => l.replace(/(.{70})/g, '$1\r\n ');
+                const stamp = fmtCal(new Date());
+                const lines = [
+                    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Snap Box//Event//HE',
+                    'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
+                    'UID:' + stamp + '-' + Math.random().toString(36).slice(2) + '@snapbox',
+                    'DTSTAMP:' + stamp,
+                    'DTSTART:' + fmtCal(ev.start),
+                    'DTEND:' + fmtCal(ev.end),
+                    'SUMMARY:' + esc(ev.title),
+                    'LOCATION:' + esc(ev.location),
+                    'DESCRIPTION:' + esc(ev.details),
+                    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + esc(ev.title), 'TRIGGER:-P1D', 'END:VALARM',
+                    'END:VEVENT', 'END:VCALENDAR'
+                ];
+                const blob = new Blob([lines.map(fold).join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+                triggerDownload(blob, `SnapBox_${(contractData.type || 'event').replace(/[\\/:*?"<>|]+/g, '_')}.ics`);
+            }
+        }
+
+        function initCalendarFab(){
+            if (!eventDateParts()) return;   // אין תאריך/שעות תקינים בקישור — אין טעם בכפתור
+            const wrap  = document.getElementById('cal-fab-wrap');
+            const fab   = document.getElementById('cal-fab');
+            const label = document.getElementById('cal-fab-label');
+            // זיהוי אוטומטי של סוג המכשיר → אפל פותח את יומן המכשיר, כל השאר Google Calendar
+            const plat  = detectPlatform();
+            const target = (plat === 'ios' || plat === 'mac') ? 'apple' : 'google';
+
+            wrap.classList.remove('hidden');
+            lucide.createIcons();
+
+            fab.addEventListener('click', () => {
+                // לחיצה אחת — האירוע נכנס ישר ליומן עם כל הפרטים, הלקוח רק מאשר "שמור"
+                addToCalendar(target);
+                fab.classList.add('is-busy');
+                label.textContent = 'נפתח ביומן…';
+                setTimeout(() => {
+                    fab.classList.remove('is-busy');
+                    label.textContent = 'הוסף ליומן';
+                }, 2500);
+            });
         }
     </script>
 </body>
