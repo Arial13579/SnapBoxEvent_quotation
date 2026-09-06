@@ -1037,17 +1037,6 @@
         }
 
         /* ================= כפתור צף · הוספת האירוע ליומן ================= */
-        // זיהוי סוג המכשיר כדי לבחור את היומן המתאים אוטומטית
-        function detectPlatform(){
-            const ua = navigator.userAgent || '';
-            if (/iPhone|iPad|iPod/.test(ua) ||
-                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
-            if (/Android/.test(ua)) return 'android';
-            if (/Macintosh|Mac OS X/.test(ua)) return 'mac';
-            if (/Windows/.test(ua)) return 'windows';
-            return 'other';
-        }
-
         // תאריך (DD/MM/YYYY) + שעות → אובייקטי Date של תחילת וסיום האירוע
         function eventDateParts(){
             const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(contractData.date || '').trim());
@@ -1085,64 +1074,26 @@
             return { start: parts.start, end: parts.end, title, location: c.location || '', details };
         }
 
-        function addToCalendar(kind){
+        // פותח חלון קופץ של Google Calendar עם האירוע מוכן — עובד בכל מכשיר, בלי שום הורדת קובץ.
+        // בנייד (אנדרואיד/אייפון) זה נפתח ביישום/בדף היומן; במחשב זה חלון קטן שצץ מעל הדף.
+        function addToCalendar(){
             const ev = calEventInfo();
             if (!ev) { alert('לא ניתן לקרוא את תאריך האירוע מהקישור.'); return; }
 
-            if (kind === 'google'){
-                const u = new URL('https://calendar.google.com/calendar/render');
-                u.searchParams.set('action', 'TEMPLATE');
-                u.searchParams.set('text', ev.title);
-                u.searchParams.set('dates', fmtCal(ev.start) + '/' + fmtCal(ev.end));
-                u.searchParams.set('details', ev.details);
-                u.searchParams.set('location', ev.location);
-                u.searchParams.set('ctz', 'Asia/Jerusalem');
-                window.open(u.toString(), '_blank', 'noopener');
+            const u = new URL('https://calendar.google.com/calendar/render');
+            u.searchParams.set('action', 'TEMPLATE');
+            u.searchParams.set('text', ev.title);
+            u.searchParams.set('dates', fmtCal(ev.start) + '/' + fmtCal(ev.end));
+            u.searchParams.set('details', ev.details);
+            u.searchParams.set('location', ev.location);
+            u.searchParams.set('ctz', 'Asia/Jerusalem');
+            const url = u.toString();
 
-            } else if (kind === 'outlook'){
-                const iso = d => { const p = n => String(n).padStart(2, '0');
-                    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:00`; };
-                const u = new URL('https://outlook.live.com/calendar/0/deeplink/compose');
-                u.searchParams.set('path', '/calendar/action/compose');
-                u.searchParams.set('rru', 'addevent');
-                u.searchParams.set('subject', ev.title);
-                u.searchParams.set('startdt', iso(ev.start));
-                u.searchParams.set('enddt', iso(ev.end));
-                u.searchParams.set('location', ev.location);
-                u.searchParams.set('body', ev.details);
-                window.open(u.toString(), '_blank', 'noopener');
-
-            } else { // apple — קובץ ICS שנפתח ביומן המכשיר
-                const escI = s => String(s)
-                    .replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
-                const fold = l => l.replace(/(.{70})/g, '$1\r\n ');
-                const stamp = fmtCal(new Date());
-                const lines = [
-                    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Snap Box//Event//HE',
-                    'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
-                    'UID:' + stamp + '-' + Math.random().toString(36).slice(2) + '@snapbox',
-                    'DTSTAMP:' + stamp,
-                    'DTSTART:' + fmtCal(ev.start),
-                    'DTEND:' + fmtCal(ev.end),
-                    'SUMMARY:' + escI(ev.title),
-                    'LOCATION:' + escI(ev.location),
-                    'DESCRIPTION:' + escI(ev.details),
-                    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + escI(ev.title), 'TRIGGER:-P1D', 'END:VALARM',
-                    'END:VEVENT', 'END:VCALENDAR'
-                ];
-                const blob = new Blob([lines.map(fold).join('\r\n')], { type: 'text/calendar;charset=utf-8' });
-                const fname = `SnapBox_${(contractData.type || 'event').replace(/[\\/:*?"<>|]+/g, '_')}.ics`;
-                if (detectPlatform() === 'ios') {
-                    // באייפון/אייפד: מעבר ישיר לקובץ היומן → ספארי פותח את מסך "הוספה ליומן" של המכשיר
-                    const objUrl = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = objUrl; a.rel = 'noopener';
-                    document.body.appendChild(a); a.click(); a.remove();
-                    setTimeout(() => URL.revokeObjectURL(objUrl), 10000);
-                } else {
-                    triggerDownload(blob, fname);
-                }
-            }
+            const w = 640, h = 720;
+            const x = Math.max(0, (((window.screen && screen.width)  || 1200) - w) / 2);
+            const y = Math.max(0, (((window.screen && screen.height) || 800)  - h) / 2);
+            const win = window.open(url, 'snapbox_calendar', `popup=yes,width=${w},height=${h},left=${x},top=${y}`);
+            if (!win) window.open(url, '_blank');   // אם החלון נחסם — נפתח כלשונית רגילה
         }
 
         function initCalendarFab(){
@@ -1154,15 +1105,9 @@
             wrap.classList.remove('hidden');
             lucide.createIcons();
 
-            // הכפתור מזהה לבד את סוג המכשיר ובוחר את היומן המתאים:
-            //   אייפון / אייפד / מק → נפתח ישר ביומן המכשיר (קובץ ICS)
-            //   אנדרואיד / מחשב     → נפתח דף של Google Calendar
-            const plat = detectPlatform();
-            const target = (plat === 'ios' || plat === 'mac') ? 'apple' : 'google';
-
-            // לחיצה אחת → היומן נפתח עם כל פרטי האירוע, צריך רק לאשר "שמור" / "הוסף"
+            // לחיצה אחת → צץ חלון של היומן עם כל פרטי האירוע, צריך רק לאשר "שמור"
             fab.addEventListener('click', () => {
-                addToCalendar(target);
+                addToCalendar();
                 fab.classList.add('is-busy');
                 label.textContent = 'נפתח ביומן…';
                 setTimeout(() => {
