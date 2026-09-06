@@ -1074,12 +1074,38 @@
             return { start: parts.start, end: parts.end, title, location: c.location || '', details };
         }
 
-        // פותח חלון קופץ של Google Calendar עם האירוע מוכן — עובד בכל מכשיר, בלי שום הורדת קובץ.
-        // בנייד (אנדרואיד/אייפון) זה נפתח ביישום/בדף היומן; במחשב זה חלון קטן שצץ מעל הדף.
-        function addToCalendar(){
-            const ev = calEventInfo();
-            if (!ev) { alert('לא ניתן לקרוא את תאריך האירוע מהקישור.'); return; }
+        // זיהוי סוג המכשיר → בחירת היומן הנכון
+        function detectPlatform(){
+            const ua = navigator.userAgent || '';
+            if (/iPhone|iPad|iPod/.test(ua) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
+            if (/Android/.test(ua)) return 'android';
+            return 'desktop';
+        }
 
+        // קובץ יומן (ICS) שהאייפון מזהה ופותח במסך "הוספה ליומן"
+        function buildIcs(ev){
+            const escI = s => String(s)
+                .replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+            const fold = l => l.replace(/(.{70})/g, '$1\r\n ');
+            const stamp = fmtCal(new Date());
+            const lines = [
+                'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Snap Box//Event//HE',
+                'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
+                'UID:' + stamp + '-' + Math.random().toString(36).slice(2) + '@snapbox',
+                'DTSTAMP:' + stamp,
+                'DTSTART:' + fmtCal(ev.start),
+                'DTEND:' + fmtCal(ev.end),
+                'SUMMARY:' + escI(ev.title),
+                'LOCATION:' + escI(ev.location),
+                'DESCRIPTION:' + escI(ev.details),
+                'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + escI(ev.title), 'TRIGGER:-P1D', 'END:VALARM',
+                'END:VEVENT', 'END:VCALENDAR'
+            ];
+            return lines.map(fold).join('\r\n');
+        }
+
+        function googleCalUrl(ev){
             const u = new URL('https://calendar.google.com/calendar/render');
             u.searchParams.set('action', 'TEMPLATE');
             u.searchParams.set('text', ev.title);
@@ -1087,13 +1113,45 @@
             u.searchParams.set('details', ev.details);
             u.searchParams.set('location', ev.location);
             u.searchParams.set('ctz', 'Asia/Jerusalem');
-            const url = u.toString();
+            return u.toString();
+        }
+
+        // מוסיף את האירוע ליומן המקורי של המכשיר:
+        //   אייפון  → מסך "הוספה ליומן" של יומן האייפון (קובץ ICS)
+        //   סמסונג/אנדרואיד → מסך "אירוע חדש" של יומן המכשיר (Android Intent)
+        //   מחשב   → חלון קופץ של Google Calendar (במחשב אין דרך לפתוח את אפליקציית היומן)
+        function addToCalendar(){
+            const ev = calEventInfo();
+            if (!ev) { alert('לא ניתן לקרוא את תאריך האירוע מהקישור.'); return; }
+            const plat = detectPlatform();
+            const gcUrl = googleCalUrl(ev);
+
+            if (plat === 'android') {
+                const intent = 'intent:#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/event;'
+                    + 'S.title='          + encodeURIComponent(ev.title)    + ';'
+                    + 'S.eventLocation='  + encodeURIComponent(ev.location) + ';'
+                    + 'S.description='    + encodeURIComponent(ev.details)  + ';'
+                    + 'l.beginTime='      + ev.start.getTime()              + ';'
+                    + 'l.endTime='        + ev.end.getTime()                + ';'
+                    + 'S.browser_fallback_url=' + encodeURIComponent(gcUrl) + ';'
+                    + 'end';
+                window.location.href = intent;
+                return;
+            }
+
+            if (plat === 'ios') {
+                const objUrl = URL.createObjectURL(new Blob([buildIcs(ev)], { type: 'text/calendar;charset=utf-8' }));
+                const tab = window.open(objUrl, '_blank');
+                if (!tab) window.location.href = objUrl;
+                setTimeout(() => URL.revokeObjectURL(objUrl), 15000);
+                return;
+            }
 
             const w = 640, h = 720;
             const x = Math.max(0, (((window.screen && screen.width)  || 1200) - w) / 2);
             const y = Math.max(0, (((window.screen && screen.height) || 800)  - h) / 2);
-            const win = window.open(url, 'snapbox_calendar', `popup=yes,width=${w},height=${h},left=${x},top=${y}`);
-            if (!win) window.open(url, '_blank');   // אם החלון נחסם — נפתח כלשונית רגילה
+            const pop = window.open(gcUrl, 'snapbox_calendar', `popup=yes,width=${w},height=${h},left=${x},top=${y}`);
+            if (!pop) window.open(gcUrl, '_blank');
         }
 
         function initCalendarFab(){
