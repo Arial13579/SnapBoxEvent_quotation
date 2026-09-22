@@ -409,7 +409,7 @@
 
                     <div id="pdf-hide-controls" class="space-y-4">
                         <div class="rounded-xl bg-turq/[.07] border border-turq/25 p-4 text-[13px] text-turq-bright/90 leading-relaxed">
-                            <strong>סיום:</strong> לחיצה על הכפתור תוריד את ה-PDF המלא של ההסכם למכשיר שלך, ובמקביל תשלח את האישור והחתימה ל-Snap Box. לצורך תוקף משפטי  של החתימה הדיגיטלית, יתועדו גם תאריך, שעה שממנו נחתם ההסכם.
+                            <strong>סיום:</strong> לחיצה על הכפתור תוריד את ה-PDF המלא של ההסכם למכשיר שלך, ובמקביל תשלח את האישור והחתימה ל-Snap Box. לצורך תוקף משפטי מוגבר של החתימה הדיגיטלית, יתועדו גם תאריך, שעה, כתובת IP וסוג הדפדפן שממנו נחתם ההסכם.
                         </div>
                         <label class="flex items-start gap-2.5 text-[12.5px] text-zinc-400 leading-relaxed cursor-pointer">
                             <input type="checkbox" id="agree-terms" required class="mt-0.5 w-4 h-4 shrink-0 accent-turq">
@@ -1238,10 +1238,25 @@
             return u.toString();
         }
 
+        // בונה קישור ל-Service Worker (sw.js) שמייצר בזמן אמת קובץ .ics עם
+        // Content-Type: text/calendar — ספארי מזהה את זה כמו קובץ אמיתי
+        // ופותח את מסך "הוספה ליומן" האמיתי של אפל, גם שהאירוע דינמי לכל קישור.
+        function swIcsUrl(ev){
+            const u = new URL('cal-event.ics', location.href);
+            u.searchParams.set('title', ev.title);
+            u.searchParams.set('location', ev.location);
+            u.searchParams.set('details', ev.details);
+            u.searchParams.set('start', ev.start.getTime());
+            u.searchParams.set('end', ev.end.getTime());
+            return u.toString();
+        }
+
         // מוסיף את האירוע ליומן, עם כל הפרטים מוכנים — צריך רק לאשר "שמור":
         //   סמסונג / אנדרואיד → מסך "אירוע חדש" של יומן המכשיר עצמו (Android Intent)
-        //   אייפון / מחשב     → מסך אירוע של Google Calendar (הדרך היחידה שעובדת מאתר חינמי;
-        //                        האירוע נכנס גם ליומן האייפון אם חשבון Google מחובר במכשיר)
+        //   אייפון             → מסך "הוספה ליומן" האמיתי של אפל, דרך sw.js (ראו swIcsUrl);
+        //                        אם ה-Service Worker לא פעיל (למשל בדפדפן פנימי של וואטסאפ),
+        //                        נופל אוטומטית ל-Google Calendar
+        //   מחשב               → מסך אירוע של Google Calendar
         function addToCalendar(){
             const ev = calEventInfo();
             if (!ev) { alert('לא ניתן לקרוא את תאריך האירוע מהקישור.'); return; }
@@ -1262,7 +1277,11 @@
             }
 
             if (plat === 'ios') {
-                window.open(gcUrl, '_blank');
+                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                    window.location.href = swIcsUrl(ev);
+                } else if (!window.open(gcUrl, '_blank')) {
+                    window.location.href = gcUrl;
+                }
                 return;
             }
 
@@ -1279,6 +1298,10 @@
             const wrap  = document.getElementById('cal-fab-wrap');
             const fab   = document.getElementById('cal-fab');
             const label = document.getElementById('cal-fab-label');
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            }
 
             wrap.classList.remove('hidden');
             lucide.createIcons();
