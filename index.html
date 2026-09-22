@@ -1238,24 +1238,44 @@
             return u.toString();
         }
 
-        // בונה קישור ל-Service Worker (sw.js) שמייצר בזמן אמת קובץ .ics עם
-        // Content-Type: text/calendar — ספארי מזהה את זה כמו קובץ אמיתי
-        // ופותח את מסך "הוספה ליומן" האמיתי של אפל, גם שהאירוע דינמי לכל קישור.
-        function swIcsUrl(ev){
-            const u = new URL('cal-event.ics', location.href);
-            u.searchParams.set('title', ev.title);
-            u.searchParams.set('location', ev.location);
-            u.searchParams.set('details', ev.details);
-            u.searchParams.set('start', ev.start.getTime());
-            u.searchParams.set('end', ev.end.getTime());
-            return u.toString();
+        // בונה טקסט ICS (VCALENDAR) מלא מתוך פרטי האירוע — לשימוש ב-Web Share API
+        function buildIcsText(ev){
+            const esc = s => String(s || '').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');
+            return [
+                'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Snap Box//Quote Calendar//HE','CALSCALE:GREGORIAN','METHOD:PUBLISH',
+                'BEGIN:VEVENT',
+                'UID:' + Date.now() + '-snapbox@arial13579.github.io',
+                'DTSTAMP:' + fmtCal(new Date()),
+                'DTSTART:' + fmtCal(ev.start),
+                'DTEND:' + fmtCal(ev.end),
+                'SUMMARY:' + esc(ev.title),
+                'LOCATION:' + esc(ev.location),
+                'DESCRIPTION:' + esc(ev.details),
+                'END:VEVENT','END:VCALENDAR'
+            ].join('\r\n');
+        }
+
+        // אייפון — מנסה לשתף את קובץ ה-ICS דרך תפריט השיתוף המובנה של אפל
+        // (Web Share API עם קובץ אמיתי בזיכרון, בלי צורך בשרת). ברוב המכשירים
+        // אפל מציגה תצוגה מקדימה של האירוע עם כפתור "הוספה ליומן" מובנה.
+        // מחזיר true אם השיתוף טופל (כולל ביטול ידני ע"י המשתמש), false אם
+        // Web Share על קבצים לא נתמך בכלל — ואז נופלים ל-Google Calendar.
+        async function tryIosShare(ev){
+            try {
+                if (!navigator.canShare || !navigator.share) return false;
+                const file = new File([buildIcsText(ev)], 'event.ics', { type: 'text/calendar' });
+                if (!navigator.canShare({ files: [file] })) return false;
+                await navigator.share({ files: [file], title: ev.title });
+                return true;
+            } catch (err) {
+                return !!(err && err.name === 'AbortError'); // המשתמש סגר את תפריט השיתוף — לא שגיאה אמיתית
+            }
         }
 
         // מוסיף את האירוע ליומן, עם כל הפרטים מוכנים — צריך רק לאשר "שמור":
         //   סמסונג / אנדרואיד → מסך "אירוע חדש" של יומן המכשיר עצמו (Android Intent)
-        //   אייפון             → מסך "הוספה ליומן" האמיתי של אפל, דרך sw.js (ראו swIcsUrl);
-        //                        אם ה-Service Worker לא פעיל (למשל בדפדפן פנימי של וואטסאפ),
-        //                        נופל אוטומטית ל-Google Calendar
+        //   אייפון             → תפריט השיתוף של אפל עם קובץ האירוע (tryIosShare);
+        //                        אם לא נתמך, נופל ל-Google Calendar
         //   מחשב               → מסך אירוע של Google Calendar
         function addToCalendar(){
             const ev = calEventInfo();
@@ -1277,11 +1297,9 @@
             }
 
             if (plat === 'ios') {
-                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-                    window.location.href = swIcsUrl(ev);
-                } else if (!window.open(gcUrl, '_blank')) {
-                    window.location.href = gcUrl;
-                }
+                tryIosShare(ev).then(handled => {
+                    if (!handled && !window.open(gcUrl, '_blank')) window.location.href = gcUrl;
+                });
                 return;
             }
 
@@ -1298,10 +1316,6 @@
             const wrap  = document.getElementById('cal-fab-wrap');
             const fab   = document.getElementById('cal-fab');
             const label = document.getElementById('cal-fab-label');
-
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js').catch(() => {});
-            }
 
             wrap.classList.remove('hidden');
             lucide.createIcons();
