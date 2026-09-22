@@ -867,6 +867,19 @@
             for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
             return new Blob([arr], { type: mime });
         }
+        // ממיר Blob למחרוזת base64 (בלי התחילית data:...;base64,) — לשמירת ה-PDF ישירות בתוך מסמך Firestore
+        function blobToBase64(blob){
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const result = reader.result || '';
+                    const idx = result.indexOf(',');
+                    resolve(idx >= 0 ? result.slice(idx + 1) : result);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
         function triggerDownload(blob, name){
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob); a.download = name;
@@ -1002,9 +1015,14 @@
             } catch(e){ console.warn('ip lookup failed', e); return null; }
         }
 
-        // מעדכן את רשומת ההצעה בלוח הבקרה ל"נחתם", ומעלה את ה-PDF לאחסון קבוע (Firebase Storage).
-        // שלב 1 (סימון "נחתם") רץ ומתעדכן מיידית ובנפרד משלב 2 (העלאת הקובץ) — כדי שאם ההעלאה
-        // נתקעת/נכשלת (לדוגמה Storage לא מוגדר כמו שצריך), הסטטוס בלוח הבקרה עדיין יתעדכן נכון.
+        // גודל מרבי לקובץ שנשמר בתוך מסמך Firestore (מגבלת Firestore היא 1MB למסמך שלם;
+        // קידוד base64 מנפח בכ-33%, אז נשארים בבטחה הרבה מתחתיה)
+        const PDF_MAX_STORE_BYTES = 700 * 1024;
+
+        // מעדכן את רשומת ההצעה בלוח הבקרה ל"נחתם", ושומר את ה-PDF עצמו (מקודד) ישירות בתוך
+        // מסמך Firestore — בלי תלות בשירות אחסון קבצים נפרד (שדורש תוכנית בתשלום ב-Firebase).
+        // שלב 1 (סימון "נחתם") מתעדכן מיידית ובנפרד משלב 2 (שמירת הקובץ), כדי שהסטטוס בלוח
+        // הבקרה תמיד יתעדכן נכון גם אם שמירת הקובץ נכשלת מסיבה כלשהי.
         async function saveSignedQuote(meta, pdfBlob){
             const fb = await initFirebase();
             if (!fb || !contractData.quoteId) return;
@@ -1019,17 +1037,11 @@
                 });
             } catch(err){ console.warn('quote status update failed', err); return; }
 
-            if (pdfBlob) {
+            if (pdfBlob && pdfBlob.size <= PDF_MAX_STORE_BYTES) {
                 try {
-                    const storageMod = await withTimeout(
-                        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js'), 8000, null);
-                    if (!storageMod) return;
-                    const storage = storageMod.getStorage(fb.app);
-                    const fileRef = storageMod.ref(storage, `snapbox-contracts/${contractData.quoteId}.pdf`);
-                    await withTimeout(storageMod.uploadBytes(fileRef, pdfBlob, { contentType: 'application/pdf' }), 15000, null);
-                    const pdfUrl = await withTimeout(storageMod.getDownloadURL(fileRef), 8000, null);
-                    if (pdfUrl) await fb.fs.updateDoc(quoteRef, { pdfUrl });
-                } catch(err){ console.warn('pdf storage upload failed', err); }
+                    const pdfData = await withTimeout(blobToBase64(pdfBlob), 10000, null);
+                    if (pdfData) await fb.fs.updateDoc(quoteRef, { pdfData });
+                } catch(err){ console.warn('pdf save to firestore failed', err); }
             }
         }
 
