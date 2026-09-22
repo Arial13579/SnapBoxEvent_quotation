@@ -1019,13 +1019,18 @@
         // קידוד base64 מנפח בכ-33%, אז נשארים בבטחה הרבה מתחתיה)
         const PDF_MAX_STORE_BYTES = 700 * 1024;
 
+        // מסמן שיש כרגע כתיבה קריטית לסטטוס ההצעה שעדיין באוויר — כפתור "הוסף ליומן"
+        // (שמנווט את הדף כולו הלאה) בודק את זה כדי לא לנטוש את הדף באמצע הכתיבה
+        // ולגרום לסטטוס להישאר "ממתין" לצמיתות למרות שהלקוח בפועל חתם.
+        let criticalSaveDone = true;
+
         // מעדכן את רשומת ההצעה בלוח הבקרה ל"נחתם", ושומר את ה-PDF עצמו (מקודד) ישירות בתוך
         // מסמך Firestore — בלי תלות בשירות אחסון קבצים נפרד (שדורש תוכנית בתשלום ב-Firebase).
         // שלב 1 (סימון "נחתם") מתעדכן מיידית ובנפרד משלב 2 (שמירת הקובץ), כדי שהסטטוס בלוח
         // הבקרה תמיד יתעדכן נכון גם אם שמירת הקובץ נכשלת מסיבה כלשהי.
         async function saveSignedQuote(meta, pdfBlob){
             const fb = await initFirebase();
-            if (!fb || !contractData.quoteId) return;
+            if (!fb || !contractData.quoteId) { criticalSaveDone = true; return; }
             const quoteRef = fb.fs.doc(fb.db, 'snapbox_quotes', contractData.quoteId);
 
             try {
@@ -1035,7 +1040,8 @@
                     ip: meta && meta.ip ? meta.ip : null,
                     userAgent: meta && meta.ua ? meta.ua : null
                 });
-            } catch(err){ console.warn('quote status update failed', err); return; }
+            } catch(err){ console.warn('quote status update failed', err); criticalSaveDone = true; return; }
+            criticalSaveDone = true; // הסטטוס עצמו כבר נכתב בהצלחה — מכאן והלאה בטוח לנווט את הדף
 
             if (pdfBlob && pdfBlob.size <= PDF_MAX_STORE_BYTES) {
                 try {
@@ -1132,6 +1138,7 @@
             const overlay = document.getElementById('pdf-overlay');
             btn.disabled = true; btn.innerHTML = 'מעבד...';
             overlay.style.display = 'flex';
+            criticalSaveDone = false;
 
             lastSigDataUrl = canvas.toDataURL('image/png');
             const sigBlob = dataUrlToBlob(lastSigDataUrl);
@@ -1255,15 +1262,30 @@
             return u.toString();
         }
 
+        // ממתין (עד תקרה קצרה) לכך שכתיבת "נחתם" הקריטית תסתיים, לפני שמנווטים
+        // את הדף הלאה (Android Intent / קובץ Apple) — כדי לא לנטוש את הדף באמצע
+        // הכתיבה ל-Firestore ולגרום לסטטוס להישאר "ממתין" לצמיתות בלוח הבקרה.
+        function waitForCriticalSave(maxMs){
+            if (criticalSaveDone) return Promise.resolve();
+            return new Promise(resolve => {
+                const start = Date.now();
+                (function check(){
+                    if (criticalSaveDone || Date.now() - start >= maxMs) resolve();
+                    else setTimeout(check, 150);
+                })();
+            });
+        }
+
         // מוסיף את האירוע ליומן, עם כל הפרטים מוכנים — צריך רק לאשר "שמור":
         //   סמסונג / אנדרואיד → מסך "אירוע חדש" של יומן המכשיר עצמו (Android Intent);
         //                        אם המכשיר לא מזהה את זה, נופל אוטומטית ל-Google Calendar
         //   אייפון             → אם הוגדר CAL_SCRIPT_URL, קובץ יומן אמיתי מהשרת (מסך
         //                        "הוספה ליומן" האמיתי של אפל); אחרת Google Calendar
         //   מחשב               → מסך אירוע של Google Calendar
-        function addToCalendar(){
+        async function addToCalendar(){
             const ev = calEventInfo();
             if (!ev) { alert('לא ניתן לקרוא את תאריך האירוע מהקישור.'); return; }
+            await waitForCriticalSave(5000);
             const plat = detectPlatform();
             const gcUrl = googleCalUrl(ev);
 
