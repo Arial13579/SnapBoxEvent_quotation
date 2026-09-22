@@ -1238,44 +1238,28 @@
             return u.toString();
         }
 
-        // בונה טקסט ICS (VCALENDAR) מלא מתוך פרטי האירוע — לשימוש ב-Web Share API
-        function buildIcsText(ev){
-            const esc = s => String(s || '').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');
-            return [
-                'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Snap Box//Quote Calendar//HE','CALSCALE:GREGORIAN','METHOD:PUBLISH',
-                'BEGIN:VEVENT',
-                'UID:' + Date.now() + '-snapbox@arial13579.github.io',
-                'DTSTAMP:' + fmtCal(new Date()),
-                'DTSTART:' + fmtCal(ev.start),
-                'DTEND:' + fmtCal(ev.end),
-                'SUMMARY:' + esc(ev.title),
-                'LOCATION:' + esc(ev.location),
-                'DESCRIPTION:' + esc(ev.details),
-                'END:VEVENT','END:VCALENDAR'
-            ].join('\r\n');
-        }
+        // קישור ל-Google Apps Script שמייצר קובץ יומן (ICS) אמיתי בזמן אמת, עם
+        // כותרת Content-Type אמיתית מהשרת — בדיוק כמו wedding.ics באתר החתונה,
+        // רק שכאן "השרת" מייצר תוכן אחר לכל הצעת מחיר. הדביקי כאן את קישור ה-exec
+        // אחרי הפריסה (ראי הוראות ההקמה). כל עוד זה ריק, אייפון פשוט משתמש ב-Google
+        // Calendar (בטוח, לא שובר כלום).
+        const CAL_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6XQAa0pmZaT1mqM5cj5QBH3xwlNA1-QIcW_9iX9W5nRE31WmZqzT3Kp2nsO70N9La4w/exec';
 
-        // אייפון — מנסה לשתף את קובץ ה-ICS דרך תפריט השיתוף המובנה של אפל
-        // (Web Share API עם קובץ אמיתי בזיכרון, בלי צורך בשרת). ברוב המכשירים
-        // אפל מציגה תצוגה מקדימה של האירוע עם כפתור "הוספה ליומן" מובנה.
-        // מחזיר true אם השיתוף טופל (כולל ביטול ידני ע"י המשתמש), false אם
-        // Web Share על קבצים לא נתמך בכלל — ואז נופלים ל-Google Calendar.
-        async function tryIosShare(ev){
-            try {
-                if (!navigator.canShare || !navigator.share) return false;
-                const file = new File([buildIcsText(ev)], 'event.ics', { type: 'text/calendar' });
-                if (!navigator.canShare({ files: [file] })) return false;
-                await navigator.share({ files: [file], title: ev.title });
-                return true;
-            } catch (err) {
-                return !!(err && err.name === 'AbortError'); // המשתמש סגר את תפריט השיתוף — לא שגיאה אמיתית
-            }
+        function appleIcsUrl(ev){
+            const u = new URL(CAL_SCRIPT_URL);
+            u.searchParams.set('title', ev.title);
+            u.searchParams.set('location', ev.location);
+            u.searchParams.set('details', ev.details);
+            u.searchParams.set('start', ev.start.getTime());
+            u.searchParams.set('end', ev.end.getTime());
+            return u.toString();
         }
 
         // מוסיף את האירוע ליומן, עם כל הפרטים מוכנים — צריך רק לאשר "שמור":
-        //   סמסונג / אנדרואיד → מסך "אירוע חדש" של יומן המכשיר עצמו (Android Intent)
-        //   אייפון             → תפריט השיתוף של אפל עם קובץ האירוע (tryIosShare);
-        //                        אם לא נתמך, נופל ל-Google Calendar
+        //   סמסונג / אנדרואיד → מסך "אירוע חדש" של יומן המכשיר עצמו (Android Intent);
+        //                        אם המכשיר לא מזהה את זה, נופל אוטומטית ל-Google Calendar
+        //   אייפון             → אם הוגדר CAL_SCRIPT_URL, קובץ יומן אמיתי מהשרת (מסך
+        //                        "הוספה ליומן" האמיתי של אפל); אחרת Google Calendar
         //   מחשב               → מסך אירוע של Google Calendar
         function addToCalendar(){
             const ev = calEventInfo();
@@ -1297,9 +1281,11 @@
             }
 
             if (plat === 'ios') {
-                tryIosShare(ev).then(handled => {
-                    if (!handled && !window.open(gcUrl, '_blank')) window.location.href = gcUrl;
-                });
+                if (CAL_SCRIPT_URL) {
+                    window.location.href = appleIcsUrl(ev);
+                } else if (!window.open(gcUrl, '_blank')) {
+                    window.location.href = gcUrl;
+                }
                 return;
             }
 
