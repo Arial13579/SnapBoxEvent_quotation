@@ -918,7 +918,8 @@
             const el = document.getElementById('pdf-doc');
             window.scrollTo(0, 0);
             el.style.cssText = `position:absolute;left:0;top:0;width:${PDF_WIDTH_PX}px;background:#fff;color:#111;z-index:1;`;
-            if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch(e){} }
+            // אם טעינת הגופנים נתקעת (למשל בעיית רשת מול Google Fonts) — לא מחכים לה לנצח
+            if (document.fonts && document.fonts.ready) { try { await withTimeout(document.fonts.ready, 4000, null); } catch(e){} }
             await new Promise(res => {
                 const img = el.querySelector('img.sig');
                 if (img && !img.complete) { img.onload = res; img.onerror = res; setTimeout(res, 2500); }
@@ -928,8 +929,9 @@
 
             let big;
             try {
-                big = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false,
-                    width: PDF_WIDTH_PX, windowWidth: PDF_WIDTH_PX, x: 0, y: 0, scrollX: 0, scrollY: 0 });
+                // תקרת זמן על הצילום עצמו — אם html2canvas נתקע, נכשלים בבירור במקום לתקוע את המסך
+                big = await withTimeout(html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false,
+                    width: PDF_WIDTH_PX, windowWidth: PDF_WIDTH_PX, x: 0, y: 0, scrollX: 0, scrollY: 0 }), 15000, null);
             } finally {
                 el.style.cssText = `position:absolute;left:-10000px;top:0;width:${PDF_WIDTH_PX}px;`;
             }
@@ -966,13 +968,23 @@
             setTimeout(() => window.print(), 250);
         }
 
+        // עוטף כל פעולה אסינכרונית בתקרת זמן — אם היא לא הסתיימה עד אז, ממשיכים הלאה עם ערך ברירת מחדל
+        // במקום להישאר תקועים לנצח (למשל אם בקשת רשת חיצונית נתקעת בלי להצליח ובלי להיכשל).
+        function withTimeout(promise, ms, fallback){
+            return Promise.race([
+                promise,
+                new Promise(resolve => setTimeout(() => resolve(fallback), ms))
+            ]);
+        }
+
         /* ================= שליחה לעסק ================= */
         // מעלה עותק ל-tmpfiles.org — קישור הורדה מהיר לשעה הראשונה (גיבוי לצירוף במייל)
         async function uploadPdf(blob, name){
             try {
                 const fd = new FormData();
                 fd.append('file', blob, name);
-                const r = await fetch('https://tmpfiles.org/api/v1/upload', { method: 'POST', body: fd });
+                const r = await withTimeout(fetch('https://tmpfiles.org/api/v1/upload', { method: 'POST', body: fd }), 10000, null);
+                if (!r) return null;
                 const j = await r.json();
                 const u = j && j.data && j.data.url;
                 if (u) return u.replace('tmpfiles.org/', 'tmpfiles.org/dl/'); // קישור הורדה ישירה
@@ -983,7 +995,8 @@
         // מזהה את כתובת ה-IP הציבורית של המכשיר החותם — לתיעוד ותוקף משפטי מוגבר של החתימה הדיגיטלית
         async function getClientIp(){
             try {
-                const r = await fetch('https://api.ipify.org?format=json');
+                const r = await withTimeout(fetch('https://api.ipify.org?format=json'), 5000, null);
+                if (!r) return null;
                 const j = await r.json();
                 return (j && j.ip) || null;
             } catch(e){ console.warn('ip lookup failed', e); return null; }
@@ -1028,7 +1041,8 @@
                 Object.entries(fields).forEach(([k, v]) => { if (k[0] !== '_') fd.append(k, v); });
                 if (pdfBlob) fd.append('attachment', new File([pdfBlob], `Contract_${safeName}.pdf`, { type: 'application/pdf' }));
                 if (sigBlob) fd.append('signature', new File([sigBlob], `Signature_${safeName}.png`, { type: 'image/png' }));
-                const r = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd });
+                const r = await withTimeout(fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd }), 12000, null);
+                if (!r) return false;
                 const j = await r.json();
                 return !!j.success;
             } catch(e){ console.warn('web3forms failed', e); return false; }
@@ -1121,9 +1135,11 @@
             btn.innerHTML = 'שולח אישור לעסק...';
             let emailOk = false, link = null;
             try {
+                // saveSignedQuote (שמירה ללוח הבקרה) לא חייבת לחסום את המסך של הלקוח —
+                // אם היא נתקעת (למשל בעיית רשת מול Firebase), ממשיכים אחרי 15 שניות בכל מקרה.
                 const [r] = await Promise.all([
                     sendToBusiness(pdfBlob, sigBlob, safeName, lastSigMeta),
-                    saveSignedQuote(lastSigMeta, pdfBlob)
+                    withTimeout(saveSignedQuote(lastSigMeta, pdfBlob), 15000, null)
                 ]);
                 emailOk = r.ok; link = r.link;
             } catch (err) { console.error(err); }
