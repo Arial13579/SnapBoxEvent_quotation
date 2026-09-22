@@ -371,9 +371,16 @@
     }
 
     document.getElementById('tbody').innerHTML = rows.map(q => {
-      const created = q.createdAt && q.createdAt.toDate ? q.createdAt.toDate().toLocaleDateString('he-IL') : '—';
+      const created = q.createdAt && q.createdAt.toDate
+        ? q.createdAt.toDate().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })
+        : '—';
+      const signedAt = q.signedAt && q.signedAt.toDate
+        ? q.signedAt.toDate().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })
+        : null;
       const signed = q.status === 'signed';
-      const pill = signed ? '<span class="pill signed">נחתם</span>' : '<span class="pill pending">ממתין</span>';
+      const pill = signed
+        ? `<span class="pill signed">נחתם</span>${signedAt ? `<div style="font-size:10.5px; color:var(--txt-faint); margin-top:3px;">${signedAt}</div>` : ''}`
+        : '<span class="pill pending">ממתין</span>';
       const fileBtn = q.pdfData
         ? `<div style="display:flex; gap:6px; flex-wrap:wrap;">
              <button type="button" class="rowbtn view-file" data-id="${q.id}">📄 צפייה</button>
