@@ -97,6 +97,14 @@
     text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
   .rowbtn:hover{ color:var(--txt); border-color:rgba(94,234,212,.4); }
   .rowbtn.disabled{ opacity:.4; pointer-events:none; }
+  .rowbtn.danger{ color:var(--rose); border-color:rgba(251,113,133,.3); }
+  .rowbtn.danger:hover{ background:rgba(251,113,133,.12); border-color:var(--rose); color:var(--rose); }
+  .rowbtn:disabled{ opacity:.5; pointer-events:none; }
+  .dangerbtn{ margin-inline-start:auto; border:1px solid rgba(251,113,133,.35); background:rgba(251,113,133,.08);
+    color:var(--rose); border-radius:12px; padding:10px 16px; font-size:12.5px; font-weight:800; cursor:pointer;
+    font-family:inherit; display:inline-flex; align-items:center; gap:6px; }
+  .dangerbtn:hover{ background:rgba(251,113,133,.18); }
+  .dangerbtn:disabled{ opacity:.6; pointer-events:none; }
   .loading{ text-align:center; padding:30px; color:var(--txt-faint); font-size:13px; }
 </style>
 </head>
@@ -141,6 +149,7 @@
         <button type="button" data-v="pending">ממתינות</button>
         <button type="button" data-v="signed">נחתמו</button>
       </div>
+      <button type="button" class="dangerbtn" id="deleteAllBtn">🗑️ מחק את כל ההיסטוריה</button>
     </div>
 
     <div class="card tbl-wrap">
@@ -157,6 +166,8 @@
   </div>
 </div>
 
+<input type="file" id="fileUploadInput" accept="application/pdf" style="display:none">
+
 <script src="firebase-config.js"></script>
 <script type="module">
   const cfg = window.SNAPBOX_CONFIG || {};
@@ -164,7 +175,7 @@
   const AUTH = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
   const FS   = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-  let db, auth, quotesCol, QUOTES = [], statusChart, revenueChart, unsub = null;
+  let db, auth, fs, fbApp, quotesCol, QUOTES = [], statusChart, revenueChart, unsub = null;
   let statusFilter = 'all', searchTerm = '';
 
   if (!cfg.firebase || !cfg.firebase.apiKey){
@@ -176,6 +187,8 @@
   async function initFirebase(){
     const [{ initializeApp }, authMod, fsMod] = await Promise.all([ import(APP), import(AUTH), import(FS) ]);
     const app = initializeApp(cfg.firebase);
+    fbApp = app;
+    fs = fsMod;
     auth = authMod.getAuth(app);
     db = fsMod.getFirestore(app);
     quotesCol = fsMod.collection(db, 'snapbox_quotes');
@@ -227,6 +240,44 @@
     statusFilter = b.dataset.v;
     document.querySelectorAll('#statusSeg button').forEach(x => x.classList.toggle('on', x === b));
     renderTable();
+  });
+
+  // מוחק הצעה בודדת מהלוח, וכן את קובץ ה-PDF שלה מהאחסון אם קיים (לא חוסם אם מחיקת הקובץ נכשלת)
+  async function deleteQuote(id, pdfUrl){
+    try {
+      await fs.deleteDoc(fs.doc(db, 'snapbox_quotes', id));
+    } catch(err){
+      console.error(err);
+      alert('מחיקה נכשלה: ' + (err.message || err));
+      return false;
+    }
+    if (pdfUrl) {
+      try {
+        const storageMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js');
+        const storage = storageMod.getStorage(fbApp);
+        await storageMod.deleteObject(storageMod.ref(storage, `snapbox-contracts/${id}.pdf`));
+      } catch(err){ console.warn('storage file delete failed', err); }
+    }
+    return true;
+  }
+
+  document.getElementById('deleteAllBtn').addEventListener('click', async () => {
+    if (!QUOTES.length){ alert('אין מה למחוק — הרשימה כבר ריקה.'); return; }
+    const typed = prompt(
+      `פעולה זו תמחק לצמיתות את כל ${QUOTES.length} ההצעות מההיסטוריה, כולל הקבצים החתומים. אי אפשר לבטל בדיעבד.\n\nלאישור, הקלידי בדיוק את המילה: מחק`
+    );
+    if (typed === null) return;
+    if (typed.trim() !== 'מחק'){ alert('הטקסט לא תאם את המילה "מחק" — הפעולה בוטלה.'); return; }
+
+    const btn = document.getElementById('deleteAllBtn');
+    const list = QUOTES.slice();
+    btn.disabled = true;
+    for (let i = 0; i < list.length; i++){
+      btn.textContent = `מוחק... (${i + 1}/${list.length})`;
+      await deleteQuote(list[i].id, list[i].pdfUrl);
+    }
+    btn.disabled = false;
+    btn.textContent = '🗑️ מחק את כל ההיסטוריה';
   });
 
   /* ---- עזרי תצוגה ---- */
@@ -331,8 +382,11 @@
       const signed = q.status === 'signed';
       const pill = signed ? '<span class="pill signed">נחתם</span>' : '<span class="pill pending">ממתין</span>';
       const fileBtn = q.pdfUrl
-        ? `<a class="rowbtn" href="${q.pdfUrl}" target="_blank" rel="noopener">📄 צפייה</a>`
-        : `<span class="rowbtn disabled">אין עדיין</span>`;
+        ? `<div style="display:flex; gap:6px; flex-wrap:wrap;">
+             <a class="rowbtn" href="${q.pdfUrl}" target="_blank" rel="noopener">📄 צפייה</a>
+             <button type="button" class="rowbtn upload-file" data-id="${q.id}">🔄 החלף</button>
+           </div>`
+        : `<button type="button" class="rowbtn upload-file" data-id="${q.id}">📤 העלה קובץ</button>`;
       return `<tr>
         <td>${created}</td>
         <td class="name">${esc(q.clientName)}</td>
@@ -341,7 +395,12 @@
         <td>${money(q.price)}</td>
         <td>${pill}</td>
         <td>${fileBtn}</td>
-        <td><button type="button" class="rowbtn copy-link" data-id="${q.id}">העתק קישור</button></td>
+        <td>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="rowbtn copy-link" data-id="${q.id}">העתק קישור</button>
+            <button type="button" class="rowbtn danger delete-row" data-id="${q.id}">מחק</button>
+          </div>
+        </td>
       </tr>`;
     }).join('');
 
@@ -351,7 +410,52 @@
         if (q) copyText(buildShareUrl(q), btn);
       });
     });
+
+    document.querySelectorAll('.delete-row').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const q = QUOTES.find(x => x.id === btn.dataset.id);
+        if (!q) return;
+        if (!confirm(`למחוק לצמיתות את ההצעה של ${q.clientName || 'הלקוח'}? לא ניתן לשחזר.`)) return;
+        btn.disabled = true; btn.textContent = 'מוחק...';
+        await deleteQuote(q.id, q.pdfUrl);
+      });
+    });
+
+    document.querySelectorAll('.upload-file').forEach(btn => {
+      btn.addEventListener('click', () => {
+        pendingUploadId = btn.dataset.id;
+        document.getElementById('fileUploadInput').click();
+      });
+    });
   }
+
+  // העלאה/החלפה ידנית של קובץ PDF לשורה — לשימוש כשההעלאה האוטומטית בזמן החתימה לא הצליחה
+  let pendingUploadId = null;
+  document.getElementById('fileUploadInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    const id = pendingUploadId;
+    pendingUploadId = null;
+    if (!file || !id) return;
+    if (file.type !== 'application/pdf'){ alert('אפשר להעלות רק קובץ מסוג PDF.'); return; }
+    if (file.size > 10 * 1024 * 1024){ alert('הקובץ גדול מדי (מקסימום 10MB).'); return; }
+
+    const btn = document.querySelector(`.upload-file[data-id="${id}"]`);
+    if (btn){ btn.disabled = true; btn.textContent = 'מעלה...'; }
+    try {
+      const storageMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js');
+      const storage = storageMod.getStorage(fbApp);
+      const fileRef = storageMod.ref(storage, `snapbox-contracts/${id}.pdf`);
+      await storageMod.uploadBytes(fileRef, file, { contentType: 'application/pdf' });
+      const pdfUrl = await storageMod.getDownloadURL(fileRef);
+      await fs.updateDoc(fs.doc(db, 'snapbox_quotes', id), { pdfUrl });
+      // onSnapshot ירענן את הטבלה אוטומטית עם הקישור החדש
+    } catch(err){
+      console.error(err);
+      alert('העלאת הקובץ נכשלה: ' + (err.message || err));
+      if (btn){ btn.disabled = false; btn.textContent = '📤 העלה קובץ'; }
+    }
+  });
 </script>
 </body>
 </html>
