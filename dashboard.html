@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050607">
+<meta name="robots" content="noindex, nofollow">
+<title>לוח בקרה | Snap Box</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23070809'/%3E%3Ccircle cx='50' cy='50' r='24' fill='none' stroke='%232DD4BF' stroke-width='8'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#050607;
+    --turq:#2DD4BF; --turq-br:#5EEAD4; --turq-dp:#0D9488;
+    --glow:rgba(45,212,191,.30);
+    --txt:#F1F3F5; --txt-dim:#9CA3AF; --txt-faint:#565B63;
+    --amber:#FBBF24; --rose:#FB7185;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ background:var(--bg); margin:0; }
+  body{
+    font-family:'Assistant',system-ui,sans-serif; color:var(--txt); min-height:100dvh;
+    padding:24px 16px 60px;
+    background:
+      radial-gradient(72% 60% at 10% -8%, rgba(45,212,191,.14), transparent 58%),
+      radial-gradient(64% 56% at 108% 110%, rgba(45,212,191,.11), transparent 55%),
+      #050607;
+  }
+  .wrap{ max-width:1080px; margin:0 auto; }
+  a{ color:inherit; }
+  .hidden{ display:none !important; }
+
+  .card{
+    border-radius:22px;
+    background:linear-gradient(158deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.02) 55%, rgba(255,255,255,.05) 100%);
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.7);
+  }
+
+  /* שער כניסה */
+  #gate{ max-width:380px; margin:14vh auto 0; text-align:center; }
+  #gate .card{ padding:34px 28px; }
+  #gate h1{ font-size:26px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; margin:0 0 4px;
+    background:linear-gradient(118deg,#fff 18%,var(--turq-br) 58%,var(--turq) 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  #gate .sub{ font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:rgba(45,212,191,.8); font-weight:700; margin:0 0 22px; }
+  #gate p{ font-size:13.5px; color:var(--txt-dim); line-height:1.7; margin-bottom:20px; }
+  .gbtn{ display:inline-flex; align-items:center; gap:10px; padding:13px 22px; border-radius:14px; border:0; cursor:pointer;
+    font-family:inherit; font-weight:800; font-size:14px; color:#04211D;
+    background:linear-gradient(135deg,#5EEAD4 0%,#2DD4BF 45%,#0D9488 100%);
+    box-shadow:0 16px 40px -12px var(--glow); }
+  #gate-err{ margin-top:16px; font-size:12.5px; color:var(--rose); display:none; }
+
+  #app{ display:none; }
+  header.top{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:22px; }
+  header.top h1{ font-size:19px; font-weight:900; margin:0; }
+  .userchip{ font-size:12px; color:var(--txt-dim); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .iconbtn{ border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:var(--txt-dim);
+    border-radius:10px; padding:8px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; text-decoration:none; }
+  .iconbtn:hover{ color:var(--txt); border-color:rgba(94,234,212,.4); }
+
+  .kpis{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:20px; }
+  @media(min-width:720px){ .kpis{ grid-template-columns:repeat(5,1fr); } }
+  .kpi{ padding:16px; text-align:center; }
+  .kpi .n{ font-size:24px; font-weight:900; color:var(--turq-br); }
+  .kpi .l{ font-size:10.5px; color:var(--txt-dim); font-weight:700; margin-top:4px; }
+
+  .charts{ display:grid; grid-template-columns:1fr; gap:14px; margin-bottom:22px; }
+  @media(min-width:820px){ .charts{ grid-template-columns:1fr 1fr; } }
+  .chart-card{ padding:18px; }
+  .chart-card h3{ font-size:14px; font-weight:800; margin:0 0 12px; }
+  .chart-box{ position:relative; height:240px; }
+
+  .toolbar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  #search{ flex:1; min-width:180px; border-radius:12px; padding:10px 14px; font-size:13px; font-family:inherit;
+    background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.1); color:var(--txt); }
+  #search::placeholder{ color:var(--txt-faint); }
+  .seg{ display:flex; gap:4px; background:rgba(255,255,255,.05); border-radius:12px; padding:4px; }
+  .seg button{ border:0; background:transparent; color:var(--txt-dim); font-family:inherit; font-size:12.5px; font-weight:700;
+    padding:8px 14px; border-radius:9px; cursor:pointer; }
+  .seg button.on{ background:linear-gradient(135deg,var(--turq-br),var(--turq)); color:#04211D; }
+
+  .tbl-wrap{ overflow-x:auto; border-radius:20px; }
+  table{ width:100%; border-collapse:collapse; min-width:760px; }
+  th,td{ padding:12px 14px; text-align:right; font-size:13px; white-space:nowrap; }
+  thead th{ color:var(--txt-faint); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; font-weight:800;
+    border-bottom:1px solid rgba(255,255,255,.1); }
+  tbody tr{ border-bottom:1px solid rgba(255,255,255,.05); }
+  tbody tr:hover{ background:rgba(255,255,255,.03); }
+  td.name{ font-weight:700; color:var(--txt); white-space:normal; }
+  .pill{ display:inline-flex; align-items:center; gap:5px; padding:4px 11px; border-radius:999px; font-size:11px; font-weight:800; }
+  .pill.signed{ background:rgba(45,212,191,.16); color:var(--turq-br); }
+  .pill.pending{ background:rgba(251,191,36,.14); color:var(--amber); }
+  .rowbtn{ border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:var(--txt-dim);
+    border-radius:9px; padding:6px 11px; font-size:11.5px; font-weight:700; cursor:pointer; font-family:inherit;
+    text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
+  .rowbtn:hover{ color:var(--txt); border-color:rgba(94,234,212,.4); }
+  .rowbtn.disabled{ opacity:.4; pointer-events:none; }
+  .loading{ text-align:center; padding:30px; color:var(--txt-faint); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="gate">
+    <div class="card">
+      <h1>Snap Box</h1>
+      <p class="sub">לוח בקרה</p>
+      <p>התחברות עם חשבון הגוגל המורשה של העסק, כדי לצפות בכל ההצעות שנשלחו וסטטוס החתימה שלהן.</p>
+      <button class="gbtn" id="signInBtn">
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35 26.9 36 24 36c-5.3 0-9.7-3.1-11.3-7.5l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.6C39.9 37.1 44 31.4 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+        התחברות עם Google
+      </button>
+      <p id="gate-err"></p>
+    </div>
+  </div>
+
+  <div id="app">
+    <header class="top">
+      <h1>Snap Box · לוח בקרה</h1>
+      <div class="userchip">
+        <span id="userEmail"></span>
+        <button class="iconbtn" id="refreshBtn">רענן</button>
+        <button class="iconbtn" id="signOutBtn">התנתק</button>
+        <a class="iconbtn" href="index.html">לאתר הראשי</a>
+      </div>
+    </header>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="charts">
+      <div class="card chart-card"><h3>סטטוס הצעות</h3><div class="chart-box"><canvas id="statusChart"></canvas></div></div>
+      <div class="card chart-card"><h3>הכנסות חודשיות (הצעות חתומות)</h3><div class="chart-box"><canvas id="revenueChart"></canvas></div></div>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="search" placeholder="חיפוש לפי שם לקוח / סוג אירוע...">
+      <div class="seg" id="statusSeg">
+        <button type="button" data-v="all" class="on">הכל</button>
+        <button type="button" data-v="pending">ממתינות</button>
+        <button type="button" data-v="signed">נחתמו</button>
+      </div>
+    </div>
+
+    <div class="card tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>נשלח בתאריך</th><th>לקוח</th><th>סוג אירוע</th><th>תאריך אירוע</th>
+            <th>מחיר</th><th>סטטוס</th><th>קובץ</th><th>פעולות</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"><tr><td colspan="8" class="loading">טוען נתונים…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script type="module">
+  const cfg = window.SNAPBOX_CONFIG || {};
+  const APP  = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  const AUTH = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  const FS   = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+  let db, auth, quotesCol, QUOTES = [], statusChart, revenueChart, unsub = null;
+  let statusFilter = 'all', searchTerm = '';
+
+  if (!cfg.firebase || !cfg.firebase.apiKey){
+    showGateError('לא הוגדר Firebase. ודאו שהקובץ firebase-config.js הועלה יחד עם שאר קבצי האתר.');
+  } else {
+    initFirebase();
+  }
+
+  async function initFirebase(){
+    const [{ initializeApp }, authMod, fsMod] = await Promise.all([ import(APP), import(AUTH), import(FS) ]);
+    const app = initializeApp(cfg.firebase);
+    auth = authMod.getAuth(app);
+    db = fsMod.getFirestore(app);
+    quotesCol = fsMod.collection(db, 'snapbox_quotes');
+
+    document.getElementById('signInBtn').addEventListener('click', async () => {
+      try { await authMod.signInWithPopup(auth, new authMod.GoogleAuthProvider()); }
+      catch(e){ showGateError('ההתחברות נכשלה: ' + (e.code || e.message)); }
+    });
+    document.getElementById('signOutBtn').addEventListener('click', () => authMod.signOut(auth));
+
+    authMod.onAuthStateChanged(auth, user => {
+      if (!user) return showGate();
+      if (cfg.adminEmail && user.email !== cfg.adminEmail){
+        authMod.signOut(auth);
+        return showGateError('החשבון ' + user.email + ' אינו מורשה לצפות בלוח הבקרה הזה.');
+      }
+      showApp(user);
+      startLiveData(fsMod);
+    });
+  }
+
+  function showGate(){ document.getElementById('gate').classList.remove('hidden'); document.getElementById('app').style.display = 'none'; }
+  function showGateError(msg){
+    showGate();
+    const e = document.getElementById('gate-err');
+    e.textContent = msg; e.style.display = 'block';
+  }
+  function showApp(user){
+    document.getElementById('gate').classList.add('hidden');
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('userEmail').textContent = user.email;
+  }
+
+  function startLiveData(fs){
+    if (unsub) unsub();
+    unsub = fs.onSnapshot(fs.query(quotesCol, fs.orderBy('createdAt', 'desc')), snap => {
+      QUOTES = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderKpis(); renderCharts(); renderTable();
+    }, err => {
+      console.error(err);
+      document.getElementById('tbody').innerHTML = '<tr><td colspan="8" class="loading">שגיאת הרשאות — בדקו את Firestore Rules</td></tr>';
+    });
+  }
+
+  document.getElementById('refreshBtn').addEventListener('click', () => location.reload());
+  document.getElementById('search').addEventListener('input', e => { searchTerm = e.target.value.trim().toLowerCase(); renderTable(); });
+  document.getElementById('statusSeg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    statusFilter = b.dataset.v;
+    document.querySelectorAll('#statusSeg button').forEach(x => x.classList.toggle('on', x === b));
+    renderTable();
+  });
+
+  /* ---- עזרי תצוגה ---- */
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+  function money(n){ return '₪' + (Number(n) || 0).toLocaleString(); }
+  function eventMonthKey(dateStr){
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(dateStr || '').trim());
+    if (!m) return null;
+    return { key: `${m[3]}-${m[2]}`, label: `${m[2]}/${m[3]}` };
+  }
+  function b64UrlEncode(str){
+    const bytes = new TextEncoder().encode(str);
+    let bin = ''; bytes.forEach(b => bin += String.fromCharCode(b));
+    return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  // בונה מחדש קישור ללקוח מתוך רשומת הלוח (זהה לקישור המקורי שנוצר באתר הראשי)
+  function buildShareUrl(q){
+    const raw = [
+      q.clientName || '', q.eventType || '', q.location || '', q.date || '', q.startTime || '', q.endTime || '',
+      q.guests || '', q.price || 0, q.deposit || 0, (q.notes || '').replace(/\|/g,'/'), q.id
+    ].join('|');
+    const base = location.origin + location.pathname.replace(/dashboard\.html$/, 'index.html');
+    return base + '?q=' + b64UrlEncode(raw);
+  }
+  function copyText(t, btn){
+    const old = btn.textContent;
+    const done = () => { btn.textContent = 'הועתק ✓'; setTimeout(() => btn.textContent = old, 1600); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done).catch(done);
+    else done();
+  }
+
+  function renderKpis(){
+    const total = QUOTES.length;
+    const signed = QUOTES.filter(q => q.status === 'signed').length;
+    const pending = total - signed;
+    const revenue = QUOTES.filter(q => q.status === 'signed').reduce((s,q) => s + (Number(q.price) || 0), 0);
+    const rate = total ? Math.round((signed / total) * 100) : 0;
+    const kpi = (n, l) => `<div class="card kpi"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+    document.getElementById('kpis').innerHTML =
+      kpi(total, 'סה״כ הצעות נשלחו') +
+      kpi(signed, 'נחתמו') +
+      kpi(pending, 'ממתינות לחתימה') +
+      kpi(rate + '%', 'אחוז המרה') +
+      kpi(money(revenue), 'הכנסה מהצעות חתומות');
+  }
+
+  function renderCharts(){
+    const signed = QUOTES.filter(q => q.status === 'signed').length;
+    const pending = QUOTES.length - signed;
+
+    const sc = document.getElementById('statusChart');
+    if (statusChart) statusChart.destroy();
+    statusChart = new Chart(sc, {
+      type: 'doughnut',
+      data: { labels: ['נחתמו', 'ממתינות'], datasets: [{ data: [signed, pending], backgroundColor: ['#2DD4BF', '#FBBF24'], borderWidth: 0 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: '#9CA3AF', font: { family: 'Assistant' } } } },
+        cutout: '68%'
+      }
+    });
+
+    const byMonth = {};
+    QUOTES.filter(q => q.status === 'signed').forEach(q => {
+      const m = eventMonthKey(q.date);
+      if (!m) return;
+      byMonth[m.key] = byMonth[m.key] || { label: m.label, total: 0 };
+      byMonth[m.key].total += Number(q.price) || 0;
+    });
+    const keys = Object.keys(byMonth).sort();
+    const rc = document.getElementById('revenueChart');
+    if (revenueChart) revenueChart.destroy();
+    revenueChart = new Chart(rc, {
+      type: 'bar',
+      data: {
+        labels: keys.map(k => byMonth[k].label),
+        datasets: [{ data: keys.map(k => byMonth[k].total), backgroundColor: '#2DD4BF', borderRadius: 8, maxBarThickness: 38 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#9CA3AF', font: { family: 'Assistant' } }, grid: { display: false } },
+          y: { ticks: { color: '#9CA3AF', font: { family: 'Assistant' } }, grid: { color: 'rgba(255,255,255,.06)' } }
+        }
+      }
+    });
+  }
+
+  function renderTable(){
+    let rows = QUOTES.slice();
+    if (statusFilter !== 'all') rows = rows.filter(q => (q.status || 'pending') === statusFilter);
+    if (searchTerm) rows = rows.filter(q => `${q.clientName || ''} ${q.eventType || ''}`.toLowerCase().includes(searchTerm));
+
+    if (!rows.length){
+      document.getElementById('tbody').innerHTML = '<tr><td colspan="8" class="loading">אין הצעות להצגה</td></tr>';
+      return;
+    }
+
+    document.getElementById('tbody').innerHTML = rows.map(q => {
+      const created = q.createdAt && q.createdAt.toDate ? q.createdAt.toDate().toLocaleDateString('he-IL') : '—';
+      const signed = q.status === 'signed';
+      const pill = signed ? '<span class="pill signed">נחתם</span>' : '<span class="pill pending">ממתין</span>';
+      const fileBtn = q.pdfUrl
+        ? `<a class="rowbtn" href="${q.pdfUrl}" target="_blank" rel="noopener">📄 צפייה</a>`
+        : `<span class="rowbtn disabled">אין עדיין</span>`;
+      return `<tr>
+        <td>${created}</td>
+        <td class="name">${esc(q.clientName)}</td>
+        <td>${esc(q.eventType)}</td>
+        <td dir="ltr">${esc(q.date)}</td>
+        <td>${money(q.price)}</td>
+        <td>${pill}</td>
+        <td>${fileBtn}</td>
+        <td><button type="button" class="rowbtn copy-link" data-id="${q.id}">העתק קישור</button></td>
+      </tr>`;
+    }).join('');
+
+    document.querySelectorAll('.copy-link').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const q = QUOTES.find(x => x.id === btn.dataset.id);
+        if (q) copyText(buildShareUrl(q), btn);
+      });
+    });
+  }
+</script>
+</body>
+</html>
