@@ -1151,7 +1151,6 @@
             let pdfBlob = null;
             try {
                 pdfBlob = await generatePdfBlob(lastSigDataUrl, lastSigMeta);
-                triggerDownload(pdfBlob, `SnapBox_Contract_${safeName}.pdf`);
             } catch (err) { console.error('PDF failed', err); }
 
             btn.innerHTML = 'שולח אישור לעסק...';
@@ -1165,6 +1164,14 @@
                 ]);
                 emailOk = r.ok; link = r.link;
             } catch (err) { console.error(err); }
+
+            // הורדת ה-PDF מתבצעת רק עכשיו — אחרי ששליחת האישור לעסק ועדכון הסטטוס
+            // בלוח הבקרה כבר הסתיימו. בספארי של אייפון/אייפד, לחיצה על קישור הורדה של
+            // Blob לפעמים גורמת בפועל לניווט/פתיחת הקובץ בלשונית, מה שהיה מוחק את
+            // כל המשך הריצה של הדף (ולכן את השליחה ללוח הבקרה) אם זה קרה קודם בתהליך.
+            if (pdfBlob) {
+                try { triggerDownload(pdfBlob, `SnapBox_Contract_${safeName}.pdf`); } catch (err) { console.error('download failed', err); }
+            }
 
             overlay.style.display = 'none';
             const box = document.getElementById('pdf-hide-controls');
