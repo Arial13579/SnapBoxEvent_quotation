@@ -242,23 +242,16 @@
     renderTable();
   });
 
-  // מוחק הצעה בודדת מהלוח, וכן את קובץ ה-PDF שלה מהאחסון אם קיים (לא חוסם אם מחיקת הקובץ נכשלת)
-  async function deleteQuote(id, pdfUrl){
+  // מוחק הצעה בודדת מהלוח (הקובץ שמור בתוך אותו מסמך, נמחק אוטומטית איתו)
+  async function deleteQuote(id){
     try {
       await fs.deleteDoc(fs.doc(db, 'snapbox_quotes', id));
+      return true;
     } catch(err){
       console.error(err);
       alert('מחיקה נכשלה: ' + (err.message || err));
       return false;
     }
-    if (pdfUrl) {
-      try {
-        const storageMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js');
-        const storage = storageMod.getStorage(fbApp);
-        await storageMod.deleteObject(storageMod.ref(storage, `snapbox-contracts/${id}.pdf`));
-      } catch(err){ console.warn('storage file delete failed', err); }
-    }
-    return true;
   }
 
   document.getElementById('deleteAllBtn').addEventListener('click', async () => {
@@ -274,7 +267,7 @@
     btn.disabled = true;
     for (let i = 0; i < list.length; i++){
       btn.textContent = `מוחק... (${i + 1}/${list.length})`;
-      await deleteQuote(list[i].id, list[i].pdfUrl);
+      await deleteQuote(list[i].id);
     }
     btn.disabled = false;
     btn.textContent = '🗑️ מחק את כל ההיסטוריה';
@@ -381,9 +374,9 @@
       const created = q.createdAt && q.createdAt.toDate ? q.createdAt.toDate().toLocaleDateString('he-IL') : '—';
       const signed = q.status === 'signed';
       const pill = signed ? '<span class="pill signed">נחתם</span>' : '<span class="pill pending">ממתין</span>';
-      const fileBtn = q.pdfUrl
+      const fileBtn = q.pdfData
         ? `<div style="display:flex; gap:6px; flex-wrap:wrap;">
-             <a class="rowbtn" href="${q.pdfUrl}" target="_blank" rel="noopener">📄 צפייה</a>
+             <button type="button" class="rowbtn view-file" data-id="${q.id}">📄 צפייה</button>
              <button type="button" class="rowbtn upload-file" data-id="${q.id}">🔄 החלף</button>
            </div>`
         : `<button type="button" class="rowbtn upload-file" data-id="${q.id}">📤 העלה קובץ</button>`;
@@ -417,7 +410,23 @@
         if (!q) return;
         if (!confirm(`למחוק לצמיתות את ההצעה של ${q.clientName || 'הלקוח'}? לא ניתן לשחזר.`)) return;
         btn.disabled = true; btn.textContent = 'מוחק...';
-        await deleteQuote(q.id, q.pdfUrl);
+        await deleteQuote(q.id);
+      });
+    });
+
+    document.querySelectorAll('.view-file').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const q = QUOTES.find(x => x.id === btn.dataset.id);
+        if (!q || !q.pdfData) return;
+        try {
+          const bin = atob(q.pdfData);
+          const arr = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+          const blob = new Blob([arr], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          setTimeout(() => URL.revokeObjectURL(url), 60000);
+        } catch(err){ console.error(err); alert('פתיחת הקובץ נכשלה.'); }
       });
     });
 
@@ -429,7 +438,21 @@
     });
   }
 
-  // העלאה/החלפה ידנית של קובץ PDF לשורה — לשימוש כשההעלאה האוטומטית בזמן החתימה לא הצליחה
+  function blobToBase64(blob){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result || '';
+        const idx = result.indexOf(',');
+        resolve(idx >= 0 ? result.slice(idx + 1) : result);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  // העלאה/החלפה ידנית של קובץ PDF לשורה — לשימוש כשההעלאה האוטומטית בזמן החתימה לא הצליחה.
+  // הקובץ נשמר ישירות בתוך מסמך Firestore של ההצעה (בלי תלות בשירות אחסון קבצים נפרד).
   let pendingUploadId = null;
   document.getElementById('fileUploadInput').addEventListener('change', async (e) => {
     const file = e.target.files[0];
@@ -438,18 +461,14 @@
     pendingUploadId = null;
     if (!file || !id) return;
     if (file.type !== 'application/pdf'){ alert('אפשר להעלות רק קובץ מסוג PDF.'); return; }
-    if (file.size > 10 * 1024 * 1024){ alert('הקובץ גדול מדי (מקסימום 10MB).'); return; }
+    if (file.size > 700 * 1024){ alert('הקובץ גדול מדי (מקסימום כ-700KB) — הצעת מחיר רגילה מהאתר קטנה בהרבה מזה.'); return; }
 
     const btn = document.querySelector(`.upload-file[data-id="${id}"]`);
     if (btn){ btn.disabled = true; btn.textContent = 'מעלה...'; }
     try {
-      const storageMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js');
-      const storage = storageMod.getStorage(fbApp);
-      const fileRef = storageMod.ref(storage, `snapbox-contracts/${id}.pdf`);
-      await storageMod.uploadBytes(fileRef, file, { contentType: 'application/pdf' });
-      const pdfUrl = await storageMod.getDownloadURL(fileRef);
-      await fs.updateDoc(fs.doc(db, 'snapbox_quotes', id), { pdfUrl });
-      // onSnapshot ירענן את הטבלה אוטומטית עם הקישור החדש
+      const pdfData = await blobToBase64(file);
+      await fs.updateDoc(fs.doc(db, 'snapbox_quotes', id), { pdfData });
+      // onSnapshot ירענן את הטבלה אוטומטית עם הקובץ החדש
     } catch(err){
       console.error(err);
       alert('העלאת הקובץ נכשלה: ' + (err.message || err));
