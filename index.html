@@ -1002,32 +1002,35 @@
             } catch(e){ console.warn('ip lookup failed', e); return null; }
         }
 
-        // מעדכן את רשומת ההצעה בלוח הבקרה ל"נחתם", ומעלה את ה-PDF לאחסון קבוע (Firebase Storage)
-        // כדי שיהיה אפשר לצפות בו מהלוח בכל עת — לא חוסם ולא מעכב את שליחת ההסכם ללקוח/לעסק
+        // מעדכן את רשומת ההצעה בלוח הבקרה ל"נחתם", ומעלה את ה-PDF לאחסון קבוע (Firebase Storage).
+        // שלב 1 (סימון "נחתם") רץ ומתעדכן מיידית ובנפרד משלב 2 (העלאת הקובץ) — כדי שאם ההעלאה
+        // נתקעת/נכשלת (לדוגמה Storage לא מוגדר כמו שצריך), הסטטוס בלוח הבקרה עדיין יתעדכן נכון.
         async function saveSignedQuote(meta, pdfBlob){
+            const fb = await initFirebase();
+            if (!fb || !contractData.quoteId) return;
+            const quoteRef = fb.fs.doc(fb.db, 'snapbox_quotes', contractData.quoteId);
+
             try {
-                const fb = await initFirebase();
-                if (!fb || !contractData.quoteId) return;
-
-                let pdfUrl = null;
-                if (pdfBlob) {
-                    try {
-                        const storageMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js');
-                        const storage = storageMod.getStorage(fb.app);
-                        const fileRef = storageMod.ref(storage, `snapbox-contracts/${contractData.quoteId}.pdf`);
-                        await storageMod.uploadBytes(fileRef, pdfBlob, { contentType: 'application/pdf' });
-                        pdfUrl = await storageMod.getDownloadURL(fileRef);
-                    } catch(err){ console.warn('pdf storage upload failed', err); }
-                }
-
-                await fb.fs.updateDoc(fb.fs.doc(fb.db, 'snapbox_quotes', contractData.quoteId), {
+                await fb.fs.updateDoc(quoteRef, {
                     status: 'signed',
                     signedAt: fb.fs.serverTimestamp(),
                     ip: meta && meta.ip ? meta.ip : null,
-                    userAgent: meta && meta.ua ? meta.ua : null,
-                    ...(pdfUrl ? { pdfUrl } : {})
+                    userAgent: meta && meta.ua ? meta.ua : null
                 });
-            } catch(err){ console.warn('quote update failed', err); }
+            } catch(err){ console.warn('quote status update failed', err); return; }
+
+            if (pdfBlob) {
+                try {
+                    const storageMod = await withTimeout(
+                        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js'), 8000, null);
+                    if (!storageMod) return;
+                    const storage = storageMod.getStorage(fb.app);
+                    const fileRef = storageMod.ref(storage, `snapbox-contracts/${contractData.quoteId}.pdf`);
+                    await withTimeout(storageMod.uploadBytes(fileRef, pdfBlob, { contentType: 'application/pdf' }), 15000, null);
+                    const pdfUrl = await withTimeout(storageMod.getDownloadURL(fileRef), 8000, null);
+                    if (pdfUrl) await fb.fs.updateDoc(quoteRef, { pdfUrl });
+                } catch(err){ console.warn('pdf storage upload failed', err); }
+            }
         }
 
         // דרך א' — Web3Forms: מחזיר אישור אמיתי, מצרף את ה-PDF למייל
