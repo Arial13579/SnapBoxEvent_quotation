@@ -216,6 +216,7 @@
             position:fixed; z-index:900;
             bottom:calc(env(safe-area-inset-bottom) + 18px); left:16px;
         }
+        html.has-cookie-bar #cal-fab-wrap{ bottom:calc(env(safe-area-inset-bottom) + 88px); }
         #cal-fab{
             position:relative; overflow:hidden; cursor:pointer; border:0;
             display:flex; align-items:center; gap:8px;
@@ -293,9 +294,14 @@
 
         <!-- ============ מצב מנהל ============ -->
         <div id="admin-section" class="glass p-5 sm:p-8 space-y-6 reveal">
-            <div class="section-title border-b border-white/[.08] pb-4">
-                <span class="chip-ico"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg></span>
-                <h2 class="text-lg sm:text-xl font-extrabold">מחולל הצעת מחיר וחוזה</h2>
+            <div class="section-title border-b border-white/[.08] pb-4 justify-between flex-wrap gap-3">
+                <div class="section-title">
+                    <span class="chip-ico"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg></span>
+                    <h2 class="text-lg sm:text-xl font-extrabold">מחולל הצעת מחיר וחוזה</h2>
+                </div>
+                <a href="dashboard.html" class="btn-glass !w-auto !rounded-xl !px-4 !py-2.5 text-xs shrink-0 flex items-center gap-1.5">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> לוח בקרה
+                </a>
             </div>
 
             <form id="creator-form" onsubmit="generateShareLink(event)" class="space-y-5">
@@ -403,8 +409,12 @@
 
                     <div id="pdf-hide-controls" class="space-y-4">
                         <div class="rounded-xl bg-turq/[.07] border border-turq/25 p-4 text-[13px] text-turq-bright/90 leading-relaxed">
-                            <strong>סיום:</strong> לחיצה על הכפתור תוריד את ה-PDF המלא של ההסכם למכשיר שלך, ובמקביל תשלח את האישור והחתימה ל-Snap Box.
+                            <strong>סיום:</strong> לחיצה על הכפתור תוריד את ה-PDF המלא של ההסכם למכשיר שלך, ובמקביל תשלח את האישור והחתימה ל-Snap Box. לצורך תוקף משפטי מוגבר של החתימה הדיגיטלית, יתועדו גם תאריך, שעה, כתובת IP וסוג הדפדפן שממנו נחתם ההסכם.
                         </div>
+                        <label class="flex items-start gap-2.5 text-[12.5px] text-zinc-400 leading-relaxed cursor-pointer">
+                            <input type="checkbox" id="agree-terms" required class="mt-0.5 w-4 h-4 shrink-0 accent-turq">
+                            <span>קראתי ואני מאשר/ת את <a href="terms.html" target="_blank" rel="noopener" class="text-turq-bright underline">תנאי השימוש</a> ואת <a href="privacy.html" target="_blank" rel="noopener" class="text-turq-bright underline">מדיניות הפרטיות</a> של Snap Box.</span>
+                        </label>
                         <button type="submit" id="submit-btn" class="btn btn-primary btn-lg">
                             <i data-lucide="shield-check" class="w-6 h-6"></i> אשר הסכם, הורד PDF ושלח
                         </button>
@@ -413,8 +423,16 @@
             </section>
         </main>
 
-        <footer class="text-center pt-2 pb-6 text-zinc-600 text-xs space-y-1">
+        <footer class="text-center pt-2 pb-6 text-zinc-600 text-xs space-y-2">
             <p class="font-bold tracking-[.2em] uppercase text-zinc-500">Snap Box Events</p>
+            <p>עוסק פטור 212938385 · <a href="mailto:snapboxevent.official@gmail.com" class="hover:text-turq-bright underline">snapboxevent.official@gmail.com</a></p>
+            <nav class="flex items-center justify-center gap-3 flex-wrap pt-1">
+                <a href="terms.html" class="hover:text-turq-bright underline">תקנון ותנאי שימוש</a>
+                <span aria-hidden="true">·</span>
+                <a href="privacy.html" class="hover:text-turq-bright underline">מדיניות פרטיות ועוגיות</a>
+                <span aria-hidden="true">·</span>
+                <a href="accessibility.html" class="hover:text-turq-bright underline">הצהרת נגישות</a>
+            </nav>
             <p>© 2026 · כל הזכויות שמורות</p>
         </footer>
     </div>
@@ -443,10 +461,13 @@
         <input type="hidden" name="יתרה לתשלום" id="fs_balance">
         <input type="hidden" name="הערות" id="fs_notes">
         <input type="hidden" name="נחתם בתאריך" id="fs_signed">
+        <input type="hidden" name="כתובת IP" id="fs_ip">
+        <input type="hidden" name="דפדפן (User Agent)" id="fs_ua">
         <input type="hidden" name="הורדת ההסכם החתום (PDF)" id="fs_link">
         <input type="file" name="attachment" id="fs_files" multiple>
     </form>
 
+    <script src="firebase-config.js"></script>
     <script>
         lucide.createIcons();
 
@@ -476,7 +497,7 @@
         /* ================= חתימה ================= */
         const canvas = document.getElementById('sig-canvas');
         const ctx = canvas.getContext('2d');
-        let isDrawing = false, hasSigned = false, lastSigDataUrl = '';
+        let isDrawing = false, hasSigned = false, lastSigDataUrl = '', lastSigMeta = null;
 
         function isDeleting(e){ return !!(e && typeof e.inputType === 'string' && e.inputType.indexOf('delete') === 0); }
 
@@ -712,19 +733,53 @@
             for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
             return new TextDecoder().decode(bytes);
         }
+        function genQuoteId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+        /* ================= Firebase (מסד נתונים ללוח הבקרה) =================
+           נטען רק בעת הצורך (יצירת קישור / חתימת לקוח), לא מאט את טעינת הדף.
+           אם לא מוגדר firebase-config.js — כל השאר באתר ממשיך לעבוד כרגיל. */
+        let fbReadyPromise = null;
+        function initFirebase(){
+            if (fbReadyPromise) return fbReadyPromise;
+            fbReadyPromise = (async () => {
+                try {
+                    const cfg = (window.SNAPBOX_CONFIG || {}).firebase;
+                    if (!cfg || !cfg.apiKey) return null;
+                    const [{ initializeApp }, fs] = await Promise.all([
+                        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
+                        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js')
+                    ]);
+                    const app = initializeApp(cfg);
+                    return { app, db: fs.getFirestore(app), fs };
+                } catch(err){ console.warn('firebase init failed', err); return null; }
+            })();
+            return fbReadyPromise;
+        }
+
+        // שמירת רשומת ההצעה בלוח הבקרה בעת יצירת הקישור — לא חוסם/מעכב את יצירת הקישור אם נכשל
+        async function saveQuoteRecord(quoteId, data){
+            try {
+                const fb = await initFirebase();
+                if (!fb) return;
+                await fb.fs.setDoc(fb.fs.doc(fb.db, 'snapbox_quotes', quoteId), {
+                    ...data, status: 'pending', createdAt: fb.fs.serverTimestamp()
+                });
+            } catch(err){ console.warn('quote save failed', err); }
+        }
 
         /* ================= יצירת קישור ללקוח (ישיר — ללא קיצור) ================= */
         function generateShareLink(e){
             e.preventDefault();
             const g = id => document.getElementById(id).value.trim();
-            const raw = [
-                g('in_clientName'), g('in_eventType'), g('in_location'), g('in_date'),
-                g('in_startTime'), g('in_endTime'),
-                document.getElementById('in_guests').value || '',
-                document.getElementById('in_price').value,
-                document.getElementById('in_deposit').value || '0',
-                (document.getElementById('in_notes').value || '').replace(/\|/g,'/')
-            ].join('|');
+            const quoteId = genQuoteId();
+            const clientName = g('in_clientName'), eventType = g('in_eventType'), loc = g('in_location'),
+                  date = g('in_date'), startTime = g('in_startTime'), endTime = g('in_endTime'),
+                  guests = document.getElementById('in_guests').value || '',
+                  price = document.getElementById('in_price').value,
+                  deposit = document.getElementById('in_deposit').value || '0',
+                  notes = (document.getElementById('in_notes').value || '').replace(/\|/g,'/');
+
+            const raw = [clientName, eventType, loc, date, startTime, endTime, guests, price, deposit, notes, quoteId].join('|');
 
             const url = `${location.origin}${location.pathname}?q=${b64UrlEncode(raw)}`;
 
@@ -734,6 +789,11 @@
             // שיתוף בוואטסאפ — הקישור המלא בלבד, ללא שום טקסט בגוף ההודעה
             // (תמונת התצוגה המקדימה נטענת אוטומטית מתגי ה-OG שבראש הדף)
             document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(url);
+
+            saveQuoteRecord(quoteId, {
+                clientName, eventType, location: loc, date, startTime, endTime,
+                guests: Number(guests) || 0, price: Number(price) || 0, deposit: Number(deposit) || 0, notes
+            });
         }
 
         function copyGeneratedLink(){
@@ -763,7 +823,7 @@
             try {
                 const p = b64UrlDecode(dataParam).split('|');
                 contractData = { name:p[0], type:p[1], location:p[2], date:p[3], startTime:p[4], endTime:p[5],
-                    guests:p[6] || '', price:Number(p[7]), deposit:Number(p[8]) || 0, notes:p[9] || '' };
+                    guests:p[6] || '', price:Number(p[7]), deposit:Number(p[8]) || 0, notes:p[9] || '', quoteId:p[10] || '' };
                 const set = (id,v) => document.getElementById(id).innerText = v;
                 set('view_clientName', contractData.name);
                 set('view_eventType', contractData.type);
@@ -814,8 +874,9 @@
             setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 6000);
         }
 
-        function buildPdfDoc(sigDataUrl){
-            const c = contractData, bal = c.price - c.deposit, now = new Date();
+        function buildPdfDoc(sigDataUrl, meta){
+            const c = contractData, bal = c.price - c.deposit;
+            const m = meta || lastSigMeta || { ts: new Date(), ip: null, ua: navigator.userAgent };
             document.getElementById('pdf-doc').innerHTML = `
               <div class="doc-inner">
                 <div class="doc-section doc-head">
@@ -843,17 +904,17 @@
                 </div>
                 <div class="doc-section doc-sign">
                   <div class="doc-h">אישור וחתימת הלקוח</div>
-                  <p>אני, <b>${esc(c.name)}</b>, מאשר/ת בזאת את פרטי הצעת המחיר ואת תנאי ההסכם המפורטים במסמך זה, וחותם/ת עליהם בחתימה דיגיטלית מחייבת.</p>
+                  <p>אני, <b>${esc(c.name)}</b>, מאשר/ת בזאת את פרטי הצעת המחיר ואת תנאי ההסכם המפורטים במסמך זה, וחותם/ת עליהם בחתימה דיגיטלית מחייבת. לצורך תוקפה המשפטי של החתימה מתועדים להלן מועד, כתובת IP וסוג הדפדפן שמהם בוצעה החתימה.</p>
                   <img class="sig" src="${sigDataUrl}" alt="חתימת הלקוח">
-                  <div class="doc-meta">חתימה דיגיטלית · תאריך: ${now.toLocaleDateString('he-IL')} · שעה: ${now.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}</div>
+                  <div class="doc-meta">חתימה דיגיטלית · תאריך: ${m.ts.toLocaleDateString('he-IL')} · שעה: ${m.ts.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}<br>כתובת IP: ${esc(m.ip || 'לא זוהתה')} · דפדפן: ${esc(m.ua)}</div>
                 </div>
                 <div class="doc-foot">Snap Box Events · ${SUPPLIER_EMAIL} · © 2026 כל הזכויות שמורות</div>
               </div>`;
         }
 
         const PDF_WIDTH_PX = 760;
-        async function generatePdfBlob(sigDataUrl){
-            buildPdfDoc(sigDataUrl);
+        async function generatePdfBlob(sigDataUrl, meta){
+            buildPdfDoc(sigDataUrl, meta);
             const el = document.getElementById('pdf-doc');
             window.scrollTo(0, 0);
             el.style.cssText = `position:absolute;left:0;top:0;width:${PDF_WIDTH_PX}px;background:#fff;color:#111;z-index:1;`;
@@ -899,7 +960,7 @@
 
         function printFallback(){
             const sig = hasSigned ? canvas.toDataURL('image/png') : (lastSigDataUrl || '');
-            buildPdfDoc(sig);
+            buildPdfDoc(sig, lastSigMeta);
             document.body.classList.add('printing-doc');
             window.addEventListener('afterprint', () => document.body.classList.remove('printing-doc'), { once: true });
             setTimeout(() => window.print(), 250);
@@ -917,6 +978,43 @@
                 if (u) return u.replace('tmpfiles.org/', 'tmpfiles.org/dl/'); // קישור הורדה ישירה
             } catch(e){ console.warn('tmpfiles failed', e); }
             return null;
+        }
+
+        // מזהה את כתובת ה-IP הציבורית של המכשיר החותם — לתיעוד ותוקף משפטי מוגבר של החתימה הדיגיטלית
+        async function getClientIp(){
+            try {
+                const r = await fetch('https://api.ipify.org?format=json');
+                const j = await r.json();
+                return (j && j.ip) || null;
+            } catch(e){ console.warn('ip lookup failed', e); return null; }
+        }
+
+        // מעדכן את רשומת ההצעה בלוח הבקרה ל"נחתם", ומעלה את ה-PDF לאחסון קבוע (Firebase Storage)
+        // כדי שיהיה אפשר לצפות בו מהלוח בכל עת — לא חוסם ולא מעכב את שליחת ההסכם ללקוח/לעסק
+        async function saveSignedQuote(meta, pdfBlob){
+            try {
+                const fb = await initFirebase();
+                if (!fb || !contractData.quoteId) return;
+
+                let pdfUrl = null;
+                if (pdfBlob) {
+                    try {
+                        const storageMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js');
+                        const storage = storageMod.getStorage(fb.app);
+                        const fileRef = storageMod.ref(storage, `snapbox-contracts/${contractData.quoteId}.pdf`);
+                        await storageMod.uploadBytes(fileRef, pdfBlob, { contentType: 'application/pdf' });
+                        pdfUrl = await storageMod.getDownloadURL(fileRef);
+                    } catch(err){ console.warn('pdf storage upload failed', err); }
+                }
+
+                await fb.fs.updateDoc(fb.fs.doc(fb.db, 'snapbox_quotes', contractData.quoteId), {
+                    status: 'signed',
+                    signedAt: fb.fs.serverTimestamp(),
+                    ip: meta && meta.ip ? meta.ip : null,
+                    userAgent: meta && meta.ua ? meta.ua : null,
+                    ...(pdfUrl ? { pdfUrl } : {})
+                });
+            } catch(err){ console.warn('quote update failed', err); }
         }
 
         // דרך א' — Web3Forms: מחזיר אישור אמיתי, מצרף את ה-PDF למייל
@@ -952,6 +1050,8 @@
                 document.getElementById('fs_balance').value = fields['יתרה לתשלום'];
                 document.getElementById('fs_notes').value = fields['הערות'];
                 document.getElementById('fs_signed').value = fields['נחתם בתאריך'];
+                document.getElementById('fs_ip').value = fields['כתובת IP'];
+                document.getElementById('fs_ua').value = fields['דפדפן (User Agent)'];
                 document.getElementById('fs_link').value = fields['הורדת ההסכם החתום (PDF)'];
                 try {
                     const dt = new DataTransfer();
@@ -968,8 +1068,9 @@
             });
         }
 
-        async function sendToBusiness(pdfBlob, sigBlob, safeName){
+        async function sendToBusiness(pdfBlob, sigBlob, safeName, meta){
             const c = contractData;
+            const m = meta || lastSigMeta || { ts: new Date(), ip: null, ua: navigator.userAgent };
             const link = pdfBlob ? await uploadPdf(pdfBlob, `SnapBox_Contract_${safeName}.pdf`) : null;
             const fields = {
                 _subject: `הסכם חתום חדש — ${c.name} (${c.type})`,
@@ -982,7 +1083,9 @@
                 'מקדמה': `${c.deposit} ש"ח`,
                 'יתרה לתשלום': `${c.price - c.deposit} ש"ח`,
                 'הערות': c.notes || '—',
-                'נחתם בתאריך': new Date().toLocaleString('he-IL'),
+                'נחתם בתאריך': m.ts.toLocaleString('he-IL'),
+                'כתובת IP': m.ip || 'לא זוהתה',
+                'דפדפן (User Agent)': m.ua,
                 'הורדת ההסכם החתום (PDF)': link ? link + '  (זמין בשעה הקרובה — הקובץ גם מצורף למייל)' : 'הקובץ מצורף למייל'
             };
             let ok = await sendViaWeb3Forms(fields, pdfBlob, sigBlob, safeName);
@@ -994,6 +1097,7 @@
         async function handleSignatureSubmit(e){
             e.preventDefault();
             if (!hasSigned) { alert('אנא חתום בתיבה לפני אישור ההסכם.'); return; }
+            if (!document.getElementById('agree-terms').checked) { alert('יש לאשר את תנאי השימוש ומדיניות הפרטיות לפני שליחה.'); return; }
 
             const btn = document.getElementById('submit-btn');
             const overlay = document.getElementById('pdf-overlay');
@@ -1004,16 +1108,25 @@
             const sigBlob = dataUrlToBlob(lastSigDataUrl);
             const safeName = (contractData.name || 'Client').replace(/[\\/:*?"<>|]+/g, '_');
 
+            btn.innerHTML = 'מתעד חתימה...';
+            const clientIp = await getClientIp();
+            lastSigMeta = { ts: new Date(), ip: clientIp, ua: navigator.userAgent };
+
             let pdfBlob = null;
             try {
-                pdfBlob = await generatePdfBlob(lastSigDataUrl);
+                pdfBlob = await generatePdfBlob(lastSigDataUrl, lastSigMeta);
                 triggerDownload(pdfBlob, `SnapBox_Contract_${safeName}.pdf`);
             } catch (err) { console.error('PDF failed', err); }
 
             btn.innerHTML = 'שולח אישור לעסק...';
             let emailOk = false, link = null;
-            try { const r = await sendToBusiness(pdfBlob, sigBlob, safeName); emailOk = r.ok; link = r.link; }
-            catch (err) { console.error(err); }
+            try {
+                const [r] = await Promise.all([
+                    sendToBusiness(pdfBlob, sigBlob, safeName, lastSigMeta),
+                    saveSignedQuote(lastSigMeta, pdfBlob)
+                ]);
+                emailOk = r.ok; link = r.link;
+            } catch (err) { console.error(err); }
 
             overlay.style.display = 'none';
             const box = document.getElementById('pdf-hide-controls');
@@ -1151,5 +1264,7 @@
             });
         }
     </script>
+    <script src="cookie-consent.js"></script>
+    <script src="a11y.js"></script>
 </body>
 </html>
