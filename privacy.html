@@ -74,6 +74,18 @@
     <a href="terms.html">תקנון ותנאי שימוש</a> · <a href="accessibility.html">הצהרת נגישות</a> · <a href="index.html">Snap Box Events</a>
   </footer>
 </div>
+<script>
+  // אם הגענו לכאן מהצעת מחיר של לקוח (יש ?q= בכתובת) — "חזרה" תחזיר בדיוק לאותה הצעה,
+  // ולא לעמוד הראשי (שאחרי הוספת שער הכניסה למנהל, יבקש כעת התחברות עם גוגל).
+  (function(){
+    var q = new URLSearchParams(location.search).get('q');
+    if (!q) return;
+    var url = 'index.html?q=' + encodeURIComponent(q);
+    document.querySelectorAll('a.back, a.brand').forEach(function(a){ a.href = url; });
+    var back = document.querySelector('a.back');
+    if (back) back.textContent = '→ חזרה להצעת המחיר שלך';
+  })();
+</script>
 <script src="cookie-consent.js"></script>
 <script src="a11y.js"></script>
 </body>
