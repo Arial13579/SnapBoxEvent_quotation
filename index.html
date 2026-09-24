@@ -889,6 +889,13 @@
         if (dataParam) {
             // מצב לקוח — נשאר פתוח וללא התחברות, כרגיל, כדי שהלקוח יוכל לצפות ולחתום.
             document.getElementById('client-view').classList.remove('hidden');
+
+            // מוסיף ?q=... לקישורי התקנון/פרטיות/נגישות, כך שכפתור "חזרה" בדפים האלה
+            // יחזיר את הלקוח בדיוק להצעת המחיר שלו, ולא לעמוד הראשי (שדורש כניסת מנהל).
+            document.querySelectorAll('a[href="terms.html"], a[href="privacy.html"], a[href="accessibility.html"]').forEach(a => {
+                a.setAttribute('href', a.getAttribute('href') + '?q=' + encodeURIComponent(dataParam));
+            });
+
             try {
                 const p = b64UrlDecode(dataParam).split('|');
                 contractData = { name:p[0], type:p[1], location:p[2], date:p[3], startTime:p[4], endTime:p[5],
