@@ -24,7 +24,7 @@
   <div class="card">
     <h2>מגבלות ידועות</h2>
     <ul>
-      <li>אפקטים עיצוביים מסוימים (טשטוש רקע, זוהר, אנימציות) מבוססים על עיצוב ויזואלי ועשויים שלא להיתמך במלואם בכל תוכנת הקראה.</li>
+      <li>אפקטים עיצוביים מסוימים מבוססים על עיצוב ויזואלי ועשויים שלא להיתמך במלואם בכל תוכנת הקראה.</li>
       <li>תיבת החתימה הדיגיטלית (ציור באצבע/עכבר) אינה נגישה למי שאינו יכול לבצע ציור חופשי — מי שזקוק/ה לחלופה מוזמן/ת ליצור קשר ונסדיר את החתימה בדרך אחרת.</li>
       <li>קובץ ה-PDF שנוצר מהצעת המחיר אינו PDF מתויג, ועשוי להיות פחות נגיש לתוכנות הקראה.</li>
     </ul>
@@ -40,6 +40,18 @@
     <a href="terms.html">תקנון ותנאי שימוש</a> · <a href="privacy.html">מדיניות פרטיות ועוגיות</a> · <a href="index.html">Snap Box Events</a>
   </footer>
 </div>
+<script>
+  // אם הגענו לכאן מהצעת מחיר של לקוח (יש ?q= בכתובת) — "חזרה" תחזיר בדיוק לאותה הצעה,
+  // ולא לעמוד הראשי (שאחרי הוספת שער הכניסה למנהל, יבקש כעת התחברות עם גוגל).
+  (function(){
+    var q = new URLSearchParams(location.search).get('q');
+    if (!q) return;
+    var url = 'index.html?q=' + encodeURIComponent(q);
+    document.querySelectorAll('a.back, a.brand').forEach(function(a){ a.href = url; });
+    var back = document.querySelector('a.back');
+    if (back) back.textContent = '→ חזרה להצעת המחיר שלך';
+  })();
+</script>
 <script src="cookie-consent.js"></script>
 <script src="a11y.js"></script>
 </body>
