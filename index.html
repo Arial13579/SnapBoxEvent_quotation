@@ -1340,7 +1340,10 @@
         const CAL_SCRIPT_URL = 'https://snapbox-calendar.snapboxevent-official.workers.dev/';
 
         function appleIcsUrl(ev){
-            const u = new URL(CAL_SCRIPT_URL);
+            // הנתיב מסתיים ב-.ics בכוונה (גם שאין קובץ אמיתי בנתיב הזה — ה-Worker עונה
+            // לכל נתיב באותו דומיין) כי ספארי באייפון מזהה את סוג הקובץ לפי סיומת
+            // הכתובת, לא רק לפי כותרת ה-Content-Type, כדי להפעיל את מסך "הוספה ליומן".
+            const u = new URL(CAL_SCRIPT_URL.replace(/\/?$/, '/snapbox-event.ics'));
             u.searchParams.set('title', ev.title);
             u.searchParams.set('location', ev.location);
             u.searchParams.set('details', ev.details);
