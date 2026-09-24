@@ -292,16 +292,34 @@
             <p class="text-[11px] sm:text-xs uppercase tracking-[.34em] text-turq/80 font-bold">Event Photo Booth Boutique</p>
         </header>
 
+        <!-- ============ שער כניסה למסך המנהל (יצירת הצעות) ============
+             מוצג רק כשאין ?q= בכתובת. הכניסה מוגבלת לחשבון הגוגל היחיד שמוגדר
+             ב-adminEmail (firebase-config.js) — בדיוק כמו לוח הבקרה — וההתחברות
+             נשמרת בדפדפן כדי שלא תידרש כניסה חוזרת בכל פעם. -->
+        <div id="admin-gate" class="hidden glass p-8 sm:p-10 text-center space-y-5 reveal max-w-md mx-auto">
+            <h2 class="text-xl font-extrabold">כניסת מנהל</h2>
+            <p class="text-sm text-zinc-400 leading-relaxed">כדי ליצור הצעות מחיר חדשות יש להתחבר עם חשבון הגוגל המורשה של העסק.</p>
+            <button type="button" id="admin-signin-btn" class="btn btn-primary btn-lg !w-auto mx-auto px-6">
+                <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35 26.9 36 24 36c-5.3 0-9.7-3.1-11.3-7.5l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.6C39.9 37.1 44 31.4 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+                התחברות עם Google
+            </button>
+            <p id="admin-gate-err" class="text-xs text-red-300" style="display:none"></p>
+        </div>
+
         <!-- ============ מצב מנהל ============ -->
-        <div id="admin-section" class="glass p-5 sm:p-8 space-y-6 reveal">
+        <div id="admin-section" class="hidden glass p-5 sm:p-8 space-y-6 reveal">
             <div class="section-title border-b border-white/[.08] pb-4 justify-between flex-wrap gap-3">
                 <div class="section-title">
                     <span class="chip-ico"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg></span>
                     <h2 class="text-lg sm:text-xl font-extrabold">מחולל הצעת מחיר וחוזה</h2>
                 </div>
-                <a href="dashboard.html" class="btn-glass !w-auto !rounded-xl !px-4 !py-2.5 text-xs shrink-0 flex items-center gap-1.5">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> לוח בקרה
-                </a>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span id="admin-user-email" class="text-[11px] text-zinc-500"></span>
+                    <button type="button" id="admin-signout-btn" class="btn-glass !w-auto !rounded-xl !px-4 !py-2.5 text-xs shrink-0">התנתק</button>
+                    <a href="dashboard.html" class="btn-glass !w-auto !rounded-xl !px-4 !py-2.5 text-xs shrink-0 flex items-center gap-1.5">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> לוח בקרה
+                    </a>
+                </div>
             </div>
 
             <form id="creator-form" onsubmit="generateShareLink(event)" class="space-y-5">
@@ -745,15 +763,66 @@
                 try {
                     const cfg = (window.SNAPBOX_CONFIG || {}).firebase;
                     if (!cfg || !cfg.apiKey) return null;
-                    const [{ initializeApp }, fs] = await Promise.all([
+                    const [{ initializeApp }, fs, authMod] = await Promise.all([
                         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
-                        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js')
+                        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'),
+                        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
                     ]);
                     const app = initializeApp(cfg);
-                    return { app, db: fs.getFirestore(app), fs };
+                    return { app, db: fs.getFirestore(app), fs, auth: authMod.getAuth(app), authMod };
                 } catch(err){ console.warn('firebase init failed', err); return null; }
             })();
             return fbReadyPromise;
+        }
+
+        /* ================= הגנת כניסה למסך יצירת ההצעה (מנהל) =================
+           מופעל רק כשאין ?q= בכתובת (ראו הבדיקה למטה). הכניסה מוגבלת לחשבון
+           הגוגל היחיד שמוגדר ב-adminEmail (firebase-config.js) — אותו חשבון
+           בדיוק כמו לוח הבקרה — כך שלקוח שמסיר את "?q=..." מהכתובת, או נכנס
+           ישירות ל-index.html, לעולם לא יראה את מסך יצירת ההצעות.
+           ההתחברות נשמרת בדפדפן (browserLocalPersistence) כדי שלא תידרש
+           כניסה חוזרת בכל פעם — רק פעם אחת. */
+        function showAdminGate(){
+            document.getElementById('admin-gate').classList.remove('hidden');
+            document.getElementById('admin-section').classList.add('hidden');
+        }
+        function showAdminGateError(msg){
+            showAdminGate();
+            const e = document.getElementById('admin-gate-err');
+            e.textContent = msg; e.style.display = 'block';
+        }
+        async function initAdminGate(){
+            showAdminGate();
+            const cfg = window.SNAPBOX_CONFIG || {};
+            if (!cfg.firebase || !cfg.firebase.apiKey){
+                showAdminGateError('לא הוגדר Firebase — ודאו שהקובץ firebase-config.js הועלה יחד עם שאר קבצי האתר.');
+                return;
+            }
+            const fb = await initFirebase();
+            if (!fb || !fb.auth){
+                showAdminGateError('טעינת Firebase נכשלה. רעננו את הדף ונסו שוב.');
+                return;
+            }
+            try { await fb.authMod.setPersistence(fb.auth, fb.authMod.browserLocalPersistence); } catch(e){}
+
+            document.getElementById('admin-signin-btn').addEventListener('click', async () => {
+                try { await fb.authMod.signInWithPopup(fb.auth, new fb.authMod.GoogleAuthProvider()); }
+                catch(e){ showAdminGateError('ההתחברות נכשלה: ' + (e.code || e.message)); }
+            });
+            document.getElementById('admin-signout-btn').addEventListener('click', () => fb.authMod.signOut(fb.auth));
+
+            fb.authMod.onAuthStateChanged(fb.auth, user => {
+                if (!user) return showAdminGate();
+                if (cfg.adminEmail && user.email !== cfg.adminEmail){
+                    fb.authMod.signOut(fb.auth);
+                    showAdminGateError('החשבון ' + user.email + ' אינו מורשה לגשת למסך זה.');
+                    return;
+                }
+                document.getElementById('admin-gate').classList.add('hidden');
+                document.getElementById('admin-section').classList.remove('hidden');
+                document.getElementById('admin-user-email').textContent = user.email;
+                lucide.createIcons();
+            });
         }
 
         // שמירת רשומת ההצעה בלוח הבקרה בעת יצירת הקישור — לא חוסם/מעכב את יצירת הקישור אם נכשל
@@ -818,7 +887,7 @@
         lucide.createIcons();
 
         if (dataParam) {
-            document.getElementById('admin-section').classList.add('hidden');
+            // מצב לקוח — נשאר פתוח וללא התחברות, כרגיל, כדי שהלקוח יוכל לצפות ולחתום.
             document.getElementById('client-view').classList.remove('hidden');
             try {
                 const p = b64UrlDecode(dataParam).split('|');
@@ -856,6 +925,9 @@
                     '<div class="glass p-8 text-center text-red-300">הקישור אינו תקין. אנא בקש מ-Snap Box קישור חדש.</div>';
                 console.error(err);
             }
+        } else {
+            // אין ?q= בכתובת — זהו ניסיון גישה למסך יצירת ההצעות, שמוגן בהתחברות מנהל.
+            initAdminGate();
         }
 
         /* ================= עזרי PDF ================= */
