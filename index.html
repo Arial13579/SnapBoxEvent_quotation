@@ -1331,12 +1331,13 @@
             return u.toString();
         }
 
-        // קישור ל-Google Apps Script שמייצר קובץ יומן (ICS) אמיתי בזמן אמת, עם
-        // כותרת Content-Type אמיתית מהשרת — בדיוק כמו wedding.ics באתר החתונה,
-        // רק שכאן "השרת" מייצר תוכן אחר לכל הצעת מחיר. הדביקי כאן את קישור ה-exec
-        // אחרי הפריסה (ראי הוראות ההקמה). כל עוד זה ריק, אייפון פשוט משתמש ב-Google
-        // Calendar (בטוח, לא שובר כלום).
-        const CAL_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6XQAa0pmZaT1mqM5cj5QBH3xwlNA1-QIcW_9iX9W5nRE31WmZqzT3Kp2nsO70N9La4w/exec';
+        // קישור ל-Cloudflare Worker שמייצר קובץ יומן (ICS) בזמן אמת (2026-09-24) — לא
+        // גוגל בכלל. שלוש שיטות שונות דרך גוגל (Service Worker, Web Share, ואז Apps
+        // Script) נכשלו כולן באייפון האמיתי, כנראה בגלל שקישורי script.google.com
+        // עוברים הפניה פנימית לדומיין נוסף של גוגל שנתקעת בספארי. שרת חד-דומייני כמו
+        // Cloudflare Worker לא עושה שום הפניה — עונה ישירות, בדיוק כמו wedding.ics
+        // הסטטי שכבר עובד באתר החתונה. קוד השרת: calendar-cloudflare-worker.js.
+        const CAL_SCRIPT_URL = 'https://snapbox-calendar.snapboxevent-official.workers.dev/';
 
         function appleIcsUrl(ev){
             const u = new URL(CAL_SCRIPT_URL);
