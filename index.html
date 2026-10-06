@@ -857,7 +857,17 @@
 
             // שיתוף בוואטסאפ — הקישור המלא בלבד, ללא שום טקסט בגוף ההודעה
             // (תמונת התצוגה המקדימה נטענת אוטומטית מתגי ה-OG שבראש הדף)
-            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(url);
+            (function(a, url){
+                // בטלפון: תפריט השיתוף עם הקישור בלבד — וואטסאפ מציג רק כרטיס תמונה (בלי שורת קישור), ולחיצה עליו פותחת את ההצעה.
+                // במחשב: wa.me כרגיל.
+                a.href = 'https://wa.me/?text=' + encodeURIComponent(url);
+                a.onclick = e => {
+                    const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '') || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                    if (!(navigator.share && mobile)) return;
+                    e.preventDefault();
+                    navigator.share({ url }).catch(err => { if (err && err.name !== 'AbortError') window.open(a.href, '_blank'); });
+                };
+            })(document.getElementById('wa-share-btn'), url);
 
             saveQuoteRecord(quoteId, {
                 clientName, eventType, location: loc, date, startTime, endTime,
