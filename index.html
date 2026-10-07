@@ -427,7 +427,7 @@
 
                     <div id="pdf-hide-controls" class="space-y-4">
                         <div class="rounded-xl bg-turq/[.07] border border-turq/25 p-4 text-[13px] text-turq-bright/90 leading-relaxed">
-                            <strong>סיום:</strong> לחיצה על הכפתור תוריד את ה-PDF המלא של ההסכם למכשיר שלך, ובמקביל תשלח את האישור והחתימה ל-Snap Box. לצורך תוקף משפטי מוגבר של החתימה הדיגיטלית, יתועדו גם תאריך, שעה, כתובת IP וסוג הדפדפן שממנו נחתם ההסכם.
+                            <strong>סיום:</strong> לחיצה על הכפתור תוריד את ה-PDF המלא של ההסכם למכשיר שלך, ובמקביל תשלח את האישור והחתימה ל-Snap Box. לצורך תוקף משפטי מוגבר של החתימה הדיגיטלית, יתועדו גם תאריך, שעה וסוג הדפדפן שממנו נחתם ההסכם.
                         </div>
                         <label class="flex items-start gap-2.5 text-[12.5px] text-zinc-400 leading-relaxed cursor-pointer">
                             <input type="checkbox" id="agree-terms" required class="mt-0.5 w-4 h-4 shrink-0 accent-turq">
@@ -479,7 +479,6 @@
         <input type="hidden" name="יתרה לתשלום" id="fs_balance">
         <input type="hidden" name="הערות" id="fs_notes">
         <input type="hidden" name="נחתם בתאריך" id="fs_signed">
-        <input type="hidden" name="כתובת IP" id="fs_ip">
         <input type="hidden" name="דפדפן (User Agent)" id="fs_ua">
         <input type="hidden" name="הורדת ההסכם החתום (PDF)" id="fs_link">
         <input type="file" name="attachment" id="fs_files" multiple>
@@ -1021,9 +1020,9 @@
                 </div>
                 <div class="doc-section doc-sign">
                   <div class="doc-h">אישור וחתימת הלקוח</div>
-                  <p>אני, <b>${esc(c.name)}</b>, מאשר/ת בזאת את פרטי הצעת המחיר ואת תנאי ההסכם המפורטים במסמך זה, וחותם/ת עליהם בחתימה דיגיטלית מחייבת. לצורך תוקפה המשפטי של החתימה מתועדים להלן מועד, כתובת IP וסוג הדפדפן שמהם בוצעה החתימה.</p>
+                  <p>אני, <b>${esc(c.name)}</b>, מאשר/ת בזאת את פרטי הצעת המחיר ואת תנאי ההסכם המפורטים במסמך זה, וחותם/ת עליהם בחתימה דיגיטלית מחייבת. לצורך תוקפה המשפטי של החתימה מתועדים להלן מועד וסוג הדפדפן שמהם בוצעה החתימה.</p>
                   <img class="sig" src="${sigDataUrl}" alt="חתימת הלקוח">
-                  <div class="doc-meta">חתימה דיגיטלית · תאריך: ${m.ts.toLocaleDateString('he-IL')} · שעה: ${m.ts.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}<br>כתובת IP: ${esc(m.ip || 'לא זוהתה')} · דפדפן: ${esc(m.ua)}</div>
+                  <div class="doc-meta">חתימה דיגיטלית · תאריך: ${m.ts.toLocaleDateString('he-IL')} · שעה: ${m.ts.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}<br>דפדפן: ${esc(m.ua)}</div>
                 </div>
                 <div class="doc-foot">Snap Box Events · ${SUPPLIER_EMAIL} · © 2026 כל הזכויות שמורות</div>
               </div>`;
@@ -1109,15 +1108,7 @@
             return null;
         }
 
-        // מזהה את כתובת ה-IP הציבורית של המכשיר החותם — לתיעוד ותוקף משפטי מוגבר של החתימה הדיגיטלית
-        async function getClientIp(){
-            try {
-                const r = await withTimeout(fetch('https://api.ipify.org?format=json'), 5000, null);
-                if (!r) return null;
-                const j = await r.json();
-                return (j && j.ip) || null;
-            } catch(e){ console.warn('ip lookup failed', e); return null; }
-        }
+                async function getClientIp(){ return null; }   // כתובת IP לא נאספת
 
         // גודל מרבי לקובץ שנשמר בתוך מסמך Firestore (מגבלת Firestore היא 1MB למסמך שלם;
         // קידוד base64 מנפח בכ-33%, אז נשארים בבטחה הרבה מתחתיה)
@@ -1189,7 +1180,6 @@
                 document.getElementById('fs_balance').value = fields['יתרה לתשלום'];
                 document.getElementById('fs_notes').value = fields['הערות'];
                 document.getElementById('fs_signed').value = fields['נחתם בתאריך'];
-                document.getElementById('fs_ip').value = fields['כתובת IP'];
                 document.getElementById('fs_ua').value = fields['דפדפן (User Agent)'];
                 document.getElementById('fs_link').value = fields['הורדת ההסכם החתום (PDF)'];
                 try {
@@ -1223,7 +1213,6 @@
                 'יתרה לתשלום': `${c.price - c.deposit} ש"ח`,
                 'הערות': c.notes || '—',
                 'נחתם בתאריך': m.ts.toLocaleString('he-IL'),
-                'כתובת IP': m.ip || 'לא זוהתה',
                 'דפדפן (User Agent)': m.ua,
                 'הורדת ההסכם החתום (PDF)': link ? link + '  (זמין בשעה הקרובה — הקובץ גם מצורף למייל)' : 'הקובץ מצורף למייל'
             };
