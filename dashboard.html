@@ -292,6 +292,8 @@
       q.clientName || '', q.eventType || '', q.location || '', q.date || '', q.startTime || '', q.endTime || '',
       q.guests || '', q.price || 0, q.deposit || 0, (q.notes || '').replace(/\|/g,'/'), q.id
     ].join('|');
+    // הצעות חדשות נשמרות עם q — מחזירים את הקישור הקצר (?k=), כמו שנשלח ללקוח
+    if (q.q) return location.origin + location.pathname.replace(/dashboard\.html$/, '') + '?k=' + q.id;
     const base = location.origin + location.pathname.replace(/dashboard\.html$/, 'index.html');
     return base + '?q=' + b64UrlEncode(raw);
   }

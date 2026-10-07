@@ -829,16 +829,21 @@
         async function saveQuoteRecord(quoteId, data){
             try {
                 const fb = await initFirebase();
-                if (!fb) return;
+                if (!fb) return false;
                 await fb.fs.setDoc(fb.fs.doc(fb.db, 'snapbox_quotes', quoteId), {
                     ...data, status: 'pending', createdAt: fb.fs.serverTimestamp()
                 });
-            } catch(err){ console.warn('quote save failed', err); }
+                return true;
+            } catch(err){ console.warn('quote save failed', err); return false; }
         }
 
-        /* ================= יצירת קישור ללקוח (ישיר — ללא קיצור) ================= */
-        function generateShareLink(e){
+        /* ================= יצירת קישור ללקוח — קישור קצר (?k=<מזהה ההצעה>) =================
+           כל פרטי ההצעה נשמרים ברשומה (שדה q), והקישור ללקוח הוא רק המזהה — כך בוואטסאפ
+           בולטת התמונה ומתחתיה שורה קצרה. אם השמירה נכשלת — הקישור הארוך ?q= (ממשיך לעבוד). */
+        async function generateShareLink(e){
             e.preventDefault();
+            const genBtn = document.getElementById('gen-btn'), genHtml = genBtn.innerHTML;
+            genBtn.disabled = true; genBtn.textContent = 'יוצר קישור…';
             const g = id => document.getElementById(id).value.trim();
             const quoteId = genQuoteId();
             const clientName = g('in_clientName'), eventType = g('in_eventType'), loc = g('in_location'),
@@ -850,19 +855,23 @@
 
             const raw = [clientName, eventType, loc, date, startTime, endTime, guests, price, deposit, notes, quoteId].join('|');
 
-            const url = `${location.origin}${location.pathname}?q=${b64UrlEncode(raw)}`;
+            const q = b64UrlEncode(raw), base = location.origin + location.pathname.replace(/index\.html$/, '');
+            const saved = await Promise.race([
+                saveQuoteRecord(quoteId, {
+                    clientName, eventType, location: loc, date, startTime, endTime,
+                    guests: Number(guests) || 0, price: Number(price) || 0, deposit: Number(deposit) || 0, notes, q
+                }),
+                new Promise(r => setTimeout(() => r(false), 10000))
+            ]);
+            const url = saved ? `${base}?k=${quoteId}` : `${base}?q=${q}`;
 
             document.getElementById('shareable-url').value = url;
             document.getElementById('link-result').classList.remove('hidden');
 
-            // שיתוף בוואטסאפ — הקישור המלא בלבד, ללא שום טקסט בגוף ההודעה
+            // שיתוף בוואטסאפ — הקישור בלבד, ללא שום טקסט בגוף ההודעה
             // (תמונת התצוגה המקדימה נטענת אוטומטית מתגי ה-OG שבראש הדף)
             document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(url);
-
-            saveQuoteRecord(quoteId, {
-                clientName, eventType, location: loc, date, startTime, endTime,
-                guests: Number(guests) || 0, price: Number(price) || 0, deposit: Number(deposit) || 0, notes
-            });
+            genBtn.disabled = false; genBtn.innerHTML = genHtml;
         }
 
         function copyGeneratedLink(){
@@ -932,6 +941,22 @@
                     '<div class="glass p-8 text-center text-red-300">הקישור אינו תקין. אנא בקש מ-Snap Box קישור חדש.</div>';
                 console.error(err);
             }
+        } else if (/^[a-z0-9]{6,30}$/.test(new URLSearchParams(location.search).get('k') || '')) {
+            // קישור קצר (?k=) — שולפים את ההצעה מהרשומה ועוברים לקישור המלא (בלי התחברות, כמו ?q=)
+            const k = new URLSearchParams(location.search).get('k');
+            const cv = document.getElementById('client-view');
+            cv.classList.remove('hidden');
+            cv.innerHTML = '<div class="glass p-8 text-center text-zinc-300">טוען את הצעת המחיר…</div>';
+            (async () => {
+                let q = null;
+                try {
+                    const fb = await initFirebase();
+                    const snap = fb ? await fb.fs.getDoc(fb.fs.doc(fb.db, 'snapbox_quotes', k)) : null;
+                    if (snap && snap.exists()) q = snap.data().q || null;
+                } catch(err){ console.warn('short link failed', err); }
+                if (q) location.replace(location.pathname + '?q=' + q);
+                else cv.innerHTML = '<div class="glass p-8 text-center text-red-300">ההצעה לא נמצאה. אנא בקש מ-Snap Box קישור חדש.</div>';
+            })();
         } else {
             // אין ?q= בכתובת — זהו ניסיון גישה למסך יצירת ההצעות, שמוגן בהתחברות מנהל.
             initAdminGate();
