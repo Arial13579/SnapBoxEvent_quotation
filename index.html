@@ -917,8 +917,8 @@
                 // שורת "שעות פעילות" — משתנה לפי משך השעות שהוזן בהצעה
                 const actWord = activityHoursWord(contractData.startTime, contractData.endTime);
                 document.getElementById('view_hours').innerHTML =
-                    `<span dir="ltr">${contractData.startTime} - ${contractData.endTime}</span>` +
-                    (actWord ? ` &nbsp;·&nbsp; ${actWord}` : '');
+                    `<span dir="ltr">${esc(contractData.startTime)} - ${esc(contractData.endTime)}</span>` +
+                    (actWord ? ` &nbsp;·&nbsp; ${esc(actWord)}` : '');
                 if (actWord) {
                     PKG_ITEMS[0] = `${actWord} של פעילות`;
                     renderPkgList();
@@ -962,7 +962,7 @@
         }
 
         /* ================= עזרי PDF ================= */
-        function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+        function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
         function dataUrlToBlob(dataUrl){
             const [head, b64] = dataUrl.split(',');
             const mime = (head.match(/:(.*?);/) || [])[1] || 'image/png';
