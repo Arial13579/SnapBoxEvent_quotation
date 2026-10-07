@@ -857,8 +857,7 @@
 
             // שיתוף בוואטסאפ — הקישור המלא בלבד, ללא שום טקסט בגוף ההודעה
             // (תמונת התצוגה המקדימה נטענת אוטומטית מתגי ה-OG שבראש הדף)
-            // וואטסאפ: 1000 תווים בלתי נראים (U+200E) לפני הקישור — הקישור מוסתר מאחורי "קרא עוד" וההודעה מוצגת ככרטיס תמונה בלבד
-            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent('\u200e'.repeat(1000) + ' ' + url);
+            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(url);
 
             saveQuoteRecord(quoteId, {
                 clientName, eventType, location: loc, date, startTime, endTime,
