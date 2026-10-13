@@ -106,6 +106,75 @@
   .dangerbtn:hover{ background:rgba(251,113,133,.18); }
   .dangerbtn:disabled{ opacity:.6; pointer-events:none; }
   .loading{ text-align:center; padding:30px; color:var(--txt-faint); font-size:13px; }
+
+  /* טאבים: הצעות · יומן · הכנסות והוצאות */
+  .tabs{ display:flex; gap:6px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:5px; margin-bottom:20px; flex-wrap:wrap; }
+  .tabs button{ flex:1 1 auto; border:0; background:transparent; color:var(--txt-dim); font-family:inherit; font-size:14px; font-weight:800; padding:11px 16px; border-radius:12px; cursor:pointer; }
+  .tabs button.on{ background:linear-gradient(135deg,var(--turq-br),var(--turq)); color:#04211D; }
+  .sec-h{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:16px 18px 0; }
+  .sec-h h3{ font-size:15px; font-weight:800; margin:0; }
+  .box{ padding:16px 18px 18px; }
+  .card + .card, .card + .books2, .books2 + .card{ margin-top:14px; }
+  /* יומן */
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:5px; }
+  .cal-dow{ text-align:center; font-size:11.5px; font-weight:800; color:var(--txt-faint); padding:4px 0; }
+  .cal-cell{ min-height:78px; min-width:0; display:flex; flex-direction:column; gap:3px; padding:6px; border-radius:12px; border:1px solid rgba(255,255,255,.08);
+    background:rgba(255,255,255,.03); color:var(--txt); font-family:inherit; text-align:right; cursor:pointer; overflow:hidden; }
+  .cal-cell.empty{ border:0; background:transparent; cursor:default; }
+  .cal-cell .n{ font-weight:800; font-size:13px; }
+  .cal-cell.today .n{ background:var(--turq); color:#04211D; border-radius:999px; width:24px; height:24px; display:grid; place-items:center; }
+  .cal-cell.has{ background:rgba(45,212,191,.12); border-color:rgba(45,212,191,.45); }
+  .cal-cell.sel{ outline:2px solid var(--turq-br); outline-offset:1px; }
+  .cal-cell .ev{ font-size:11px; line-height:1.25; background:var(--turq-dp); color:#fff; border-radius:6px; padding:1px 5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cal-cell .ev.more{ background:transparent; color:var(--turq-br); font-weight:800; padding:0; }
+  @media(max-width:560px){ .cal-cell{ min-height:48px; padding:4px; align-items:center; } .cal-cell .ev{ font-size:0; width:8px; height:8px; padding:0; border-radius:50%; } .cal-cell .ev.more{ display:none; } }
+  .ev-list{ display:flex; flex-direction:column; gap:10px; }
+  .ev-card{ display:flex; gap:14px; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:12px; background:rgba(255,255,255,.03); }
+  .ev-date{ flex:none; width:66px; border-radius:12px; background:linear-gradient(160deg,var(--turq),var(--turq-dp)); color:#04211D; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:8px 4px; text-align:center; }
+  .ev-date b{ font-size:24px; line-height:1; } .ev-date span{ font-size:12.5px; font-weight:800; } .ev-date small{ font-size:11px; font-weight:700; }
+  .ev-body{ flex:1; min-width:0; }
+  .ev-body h4{ margin:0 0 6px; font-size:15.5px; font-weight:800; overflow-wrap:anywhere; }
+  .ev-meta,.ev-money{ display:flex; flex-wrap:wrap; gap:6px 14px; font-size:13px; color:var(--txt-dim); }
+  .ev-money{ color:var(--txt); margin-top:6px; }
+  .ev-acts{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .badge-new{ display:inline-block; font-size:11px; font-weight:800; padding:2px 9px; border-radius:999px; background:rgba(45,212,191,.18); color:var(--turq-br); margin-inline-start:6px; }
+  @media(max-width:420px){ .ev-card{ flex-direction:column; gap:10px; } .ev-date{ flex-direction:row; width:auto; gap:8px; } }
+  .hint{ font-size:12px; color:var(--txt-faint); margin:8px 0 0; }
+  /* הכנסות והוצאות */
+  .bk-bar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .fld{ border-radius:12px; padding:10px 12px; font-size:14px; font-family:inherit; background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.12); color:var(--txt); width:100%; color-scheme:dark; }
+  .fld:focus{ outline:none; border-color:var(--turq); }
+  .bk-bar .fld{ width:auto; min-width:100px; }
+  .lbl{ display:block; font-size:12px; font-weight:800; color:var(--txt-dim); margin-bottom:5px; }
+  .ex-form{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; align-items:end; }
+  .kpi.neg .n{ color:var(--rose); } .kpi.pos .n{ color:var(--turq-br); }
+  .books2{ display:grid; grid-template-columns:1fr; gap:14px; }
+  @media(min-width:820px){ .books2{ grid-template-columns:1fr 1fr; } }
+  .books2 > *, .kpis > *, .charts > *{ min-width:0; }
+  .scrollx{ overflow-x:auto; }
+  table.mini{ min-width:0; }
+  table.mini th, table.mini td{ padding:8px 10px; white-space:normal; overflow-wrap:anywhere; }
+  table.mini td.num, table.mini td:first-child{ white-space:nowrap; }
+  table.mini td.num{ font-weight:800; }
+  .bk-kpis{ grid-template-columns:repeat(2,1fr); }
+  .chart-box canvas{ max-width:100%; }
+  /* פרטי לקוח שחתם + השדות של הבעלים */
+  tr.paid > td{ background:rgba(74,222,128,.16); }
+  tr.paid.main > td:first-child{ box-shadow:inset -4px 0 0 #4ADE80; }
+  tr.det > td{ padding:0 14px 14px; white-space:normal; border-bottom:1px solid rgba(255,255,255,.08); }
+  .det-box{ position:sticky; right:0; max-width:calc(100vw - 36px); display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px 16px; padding:12px 14px; border-radius:16px; background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.07); }
+  tr.paid .det-box{ background:rgba(74,222,128,.10); border-color:rgba(74,222,128,.35); }
+  .det-info{ grid-column:1/-1; display:flex; flex-wrap:wrap; gap:6px 18px; font-size:13px; color:var(--txt-dim); }
+  .det-info b{ color:var(--txt); }
+  .det-notes{ grid-column:1/-1; font-size:13px; color:var(--txt-dim); }
+  .det-box .wide{ grid-column:1/-1; }
+  .chk{ display:flex; align-items:center; gap:9px; font-size:13.5px; font-weight:800; cursor:pointer; min-height:40px; }
+  .chk input{ width:22px; height:22px; accent-color:#4ADE80; flex:none; }
+  .pkg-price{ font-size:13px; font-weight:800; color:var(--turq-br); margin-top:5px; min-height:18px; }
+  .det-st{ font-size:11.5px; color:var(--txt-faint); grid-column:1/-1; min-height:15px; }
+  .tag{ display:inline-block; font-size:11px; font-weight:800; padding:2px 9px; border-radius:999px; margin-inline-start:6px; }
+  .tag.ok{ background:rgba(74,222,128,.18); color:#86EFAC; } .tag.wait{ background:rgba(251,191,36,.14); color:var(--amber); }
+  @media(min-width:720px){ .bk-kpis{ grid-template-columns:repeat(3,1fr); } }
 </style>
 </head>
 <body>
@@ -135,6 +204,13 @@
       </div>
     </header>
 
+    <div class="tabs">
+      <button type="button" class="on" data-tab="quotes">הצעות ולקוחות</button>
+      <button type="button" data-tab="cal">יומן אירועים</button>
+      <button type="button" data-tab="books">הכנסות והוצאות</button>
+    </div>
+
+    <section id="tab-quotes">
     <div class="kpis" id="kpis"></div>
 
     <div class="charts">
@@ -143,7 +219,7 @@
     </div>
 
     <div class="toolbar">
-      <input type="text" id="search" placeholder="חיפוש לפי שם לקוח / סוג אירוע...">
+      <input type="text" id="search" placeholder="חיפוש לפי שם לקוח / חתן-כלה / סוג אירוע...">
       <div class="seg" id="statusSeg">
         <button type="button" data-v="all" class="on">הכל</button>
         <button type="button" data-v="pending">ממתינות</button>
@@ -163,6 +239,44 @@
         <tbody id="tbody"><tr><td colspan="8" class="loading">טוען נתונים…</td></tr></tbody>
       </table>
     </div>
+    </section>
+
+    <!-- יומן: כל הצעה שנחתמה נכנסת לבד לפי תאריך האירוע -->
+    <section id="tab-cal" class="hidden">
+      <div class="card">
+        <div class="sec-h"><h3 id="cal-title">יומן</h3>
+          <div style="display:flex; gap:6px;"><button type="button" class="iconbtn" id="cal-next" aria-label="החודש הבא">›</button><button type="button" class="iconbtn" id="cal-today">היום</button><button type="button" class="iconbtn" id="cal-prev" aria-label="החודש הקודם">‹</button></div></div>
+        <div class="box"><div class="cal-grid" id="cal-grid"></div><p class="hint">כל הצעה שהלקוח חותם עליה נכנסת ליומן לבד, לפי תאריך האירוע. לחיצה על יום מציגה את האירועים שלו.</p></div>
+      </div>
+      <div class="card">
+        <div class="sec-h"><h3 id="cal-list-h">האירועים הקרובים</h3><button type="button" class="iconbtn hidden" id="cal-ics">📥 הורדת כל האירועים ליומן</button></div>
+        <div class="box"><div class="ev-list" id="cal-list"><p class="loading">טוען…</p></div></div>
+      </div>
+    </section>
+
+    <!-- הכנסות (מחוזים חתומים, אוטומטי) והוצאות (ידני) -->
+    <section id="tab-books" class="hidden">
+      <div class="bk-bar"><label class="lbl" for="bk-year" style="margin:0">שנה</label><select id="bk-year" class="fld"></select><button type="button" class="iconbtn" id="bk-csv">📊 הורדה לאקסל (CSV)</button></div>
+      <div class="kpis bk-kpis" id="bk-kpis"></div>
+      <div class="card chart-card"><h3>הכנסות, הוצאות ורווח לפי חודש</h3><div class="chart-box"><canvas id="booksChart"></canvas></div></div>
+      <div class="card">
+        <div class="sec-h"><h3>הוספת הוצאה</h3></div>
+        <div class="box">
+          <form id="ex-form" class="ex-form" autocomplete="off" novalidate>
+            <div><label class="lbl" for="ex-amount">סכום (₪) *</label><input id="ex-amount" type="number" min="0" step="0.01" inputmode="decimal" class="fld" placeholder="250"></div>
+            <div><label class="lbl" for="ex-label">תיאור *</label><input id="ex-label" type="text" maxlength="120" class="fld" placeholder="למשל: נייר הדפסה, דלק, פרסום"></div>
+            <div><label class="lbl" for="ex-cat">קטגוריה</label><select id="ex-cat" class="fld"></select></div>
+            <div><label class="lbl" for="ex-date">תאריך</label><input id="ex-date" type="date" class="fld"></div>
+            <div><button type="submit" class="gbtn" id="ex-add" style="width:100%; justify-content:center">הוספה</button></div>
+          </form>
+          <p class="hint" id="ex-msg" role="status"></p>
+        </div>
+      </div>
+      <div class="books2">
+        <div class="card"><div class="sec-h"><h3>הכנסות מחוזים חתומים</h3></div><div class="box scrollx" id="inc-list"><p class="loading">טוען…</p></div></div>
+        <div class="card"><div class="sec-h"><h3>הוצאות</h3></div><div class="box scrollx" id="ex-list"><p class="loading">טוען…</p></div></div>
+      </div>
+    </section>
   </div>
 </div>
 
@@ -207,6 +321,8 @@
       }
       showApp(user);
       startLiveData(fsMod);
+      startEvents();
+      if (curTab === 'books') startExpenses();
     });
   }
 
@@ -226,7 +342,7 @@
     if (unsub) unsub();
     unsub = fs.onSnapshot(fs.query(quotesCol, fs.orderBy('createdAt', 'desc')), snap => {
       QUOTES = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderKpis(); renderCharts(); renderTable();
+      renderKpis(); renderCharts(); renderTable(); renderCal(); renderBooks();
     }, err => {
       console.error(err);
       document.getElementById('tbody').innerHTML = '<tr><td colspan="8" class="loading">שגיאת הרשאות — בדקו את Firestore Rules</td></tr>';
@@ -246,6 +362,7 @@
   async function deleteQuote(id){
     try {
       await fs.deleteDoc(fs.doc(db, 'snapbox_quotes', id));
+      fs.deleteDoc(fs.doc(db, 'snapbox_events', id)).catch(() => {});
       return true;
     } catch(err){
       console.error(err);
@@ -365,13 +482,15 @@
   function renderTable(){
     let rows = QUOTES.slice();
     if (statusFilter !== 'all') rows = rows.filter(q => (q.status || 'pending') === statusFilter);
-    if (searchTerm) rows = rows.filter(q => `${q.clientName || ''} ${q.eventType || ''}`.toLowerCase().includes(searchTerm));
+    if (searchTerm) rows = rows.filter(q => `${q.clientName || ''} ${q.eventType || ''} ${(EVENTS[q.id] || {}).couple || ''}`.toLowerCase().includes(searchTerm));
 
     if (!rows.length){
       document.getElementById('tbody').innerHTML = '<tr><td colspan="8" class="loading">אין הצעות להצגה</td></tr>';
       return;
     }
 
+    // שומרים את השדה שמקלידים בו (הטבלה מתרעננת כשמגיע עדכון)
+    const ae = document.activeElement, keep = ae && ae.dataset && ae.dataset.f ? { id: ae.dataset.id, f: ae.dataset.f, v: ae.value, a: ae.selectionStart, b: ae.selectionEnd } : null;
     document.getElementById('tbody').innerHTML = rows.map(q => {
       const created = q.createdAt && q.createdAt.toDate
         ? q.createdAt.toDate().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })
@@ -389,7 +508,8 @@
              <button type="button" class="rowbtn upload-file" data-id="${q.id}">🔄 החלף</button>
            </div>`
         : `<button type="button" class="rowbtn upload-file" data-id="${q.id}">📤 העלה קובץ</button>`;
-      return `<tr>
+      const E = EVENTS[q.id] || {};
+      return `<tr class="main${signed && E.paid ? ' paid' : ''}">
         <td>${created}</td>
         <td class="name">${esc(q.clientName)}</td>
         <td>${esc(q.eventType)}</td>
@@ -403,8 +523,9 @@
             <button type="button" class="rowbtn danger delete-row" data-id="${q.id}">מחק</button>
           </div>
         </td>
-      </tr>`;
+      </tr>${signed ? detailsRow(q, E) : ''}`;
     }).join('');
+    if (keep) { const el = document.querySelector(`[data-id="${keep.id}"][data-f="${keep.f}"]`); if (el) { el.value = keep.v; el.focus(); try { el.setSelectionRange(keep.a, keep.b); } catch(e){} } }
 
     document.querySelectorAll('.copy-link').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -446,6 +567,282 @@
       });
     });
   }
+
+
+  /* ================= פרטי האירוע של לקוח שחתם + השדות של הבעלים =================
+     השדות שלי (חתן/כלה, חבילה, מקדמה, שולם, הכנסתי ליומן, הערות שלי) נשמרים ב-snapbox_events/{מזהה ההצעה} —
+     אוסף נפרד שרק חשבון העסק קורא, כי את מסמך ההצעה הלקוח יכול לפתוח דרך הקישור. */
+  const PACKAGES = [['basic','בסיסי',1000],['basicPlus','בסיסי פלוס',1100],['premium','פרימיום',1200],['premiumPlus','פרימיום פלוס',1300],['gold','גולד',1400],['goldPlus','גולד פלוס',1500],['diamond','יהלום',1700]];
+  const DEPOSIT_FIXED = 200;
+  let EVENTS = {}, evUnsub = null, evErr = '';
+  const pkgOf = key => PACKAGES.find(p => p[0] === key);
+  function evHours(q){
+    const t = /^(\d{1,2}):(\d{2})$/, a = t.exec(String(q.startTime || '').trim()), b = t.exec(String(q.endTime || '').trim());
+    if (!a || !b) return null;
+    let m = (+b[1] * 60 + +b[2]) - (+a[1] * 60 + +a[2]); if (m <= 0) m += 1440;
+    return Math.round(m / 6) / 10;
+  }
+  const hoursText = h => h == null ? '' : (h === 1 ? 'שעה אחת' : (Number.isInteger(h) ? h : h.toLocaleString('he-IL')) + ' שעות');
+  function startEvents(){
+    if (evUnsub || !fs) return;
+    evUnsub = fs.onSnapshot(fs.collection(db, 'snapbox_events'), snap => {
+      evErr = ''; EVENTS = {}; snap.docs.forEach(d => { EVENTS[d.id] = d.data(); });
+      renderTable(); renderCal();
+    }, err => {
+      console.warn('events', err); evUnsub = null;
+      evErr = err && err.code === 'permission-denied' ? 'כדי לשמור את השדות שלך צריך להוסיף הרשאה ב-Firebase (פעם אחת, ההסבר בצ׳אט).' : 'טעינת הפרטים נכשלה (' + (err.code || err.message) + ').';
+      renderTable();
+    });
+  }
+  function detailsRow(q, E){
+    const h = evHours(q), pk = pkgOf(E.pkg), id = esc(q.id);
+    const opt = PACKAGES.map(p => `<option value="${p[0]}"${E.pkg === p[0] ? ' selected' : ''}>${p[1]} · ${money(p[2])}</option>`).join('');
+    return `<tr class="det${E.paid ? ' paid' : ''}"><td colspan="8"><div class="det-box">
+      <div class="det-info"><span>👤 <b>${esc(q.clientName || '')}</b></span>${q.location ? `<span>📍 ${esc(q.location)}</span>` : ''}
+        ${q.startTime ? `<span>🕒 <b dir="ltr">${esc(q.startTime)}${q.endTime ? '–' + esc(q.endTime) : ''}</b></span>` : ''}${h != null ? `<span>⏱ ${hoursText(h)}</span>` : ''}
+        <span>💰 מחיר בחוזה <b>${money(q.price)}</b></span>${q.guests ? `<span>👥 ${esc(q.guests)} מוזמנים</span>` : ''}</div>
+      <div class="det-notes">📝 הערות הלקוח: ${q.notes ? esc(q.notes) : '<span style="color:var(--txt-faint)">אין</span>'}</div>
+      <div><label class="lbl" for="cp-${id}">שם החתן / הכלה</label><input class="fld" id="cp-${id}" data-id="${id}" data-f="couple" maxlength="120" value="${esc(E.couple || '')}" placeholder="למשל: דנה ויואב"></div>
+      <div><label class="lbl" for="pk-${id}">סוג חבילה</label><select class="fld" id="pk-${id}" data-id="${id}" data-f="pkg"><option value="">בחירת חבילה…</option>${opt}</select>
+        <div class="pkg-price">${pk ? 'מחיר החבילה: ' + money(pk[2]) : ''}</div></div>
+      <label class="chk"><input type="checkbox" data-id="${id}" data-f="depositPaid"${E.depositPaid ? ' checked' : ''}> מקדמה ${money(DEPOSIT_FIXED)} שולמה</label>
+      <label class="chk"><input type="checkbox" data-id="${id}" data-f="paid"${E.paid ? ' checked' : ''}> שולם</label>
+      <label class="chk"><input type="checkbox" data-id="${id}" data-f="entered"${E.entered ? ' checked' : ''}> הכנסתי את האירוע</label>
+      <div class="wide"><label class="lbl" for="on-${id}">ההערות שלי</label><textarea class="fld" id="on-${id}" data-id="${id}" data-f="ownerNotes" rows="2" maxlength="2000" placeholder="רק אתה רואה את זה">${esc(E.ownerNotes || '')}</textarea></div>
+      <div class="det-st" id="st-${id}">${evErr ? `<span style="color:var(--amber)">${esc(evErr)}</span>` : ''}</div>
+    </div></td></tr>`;
+  }
+  async function saveEvent(id, patch){
+    const st = document.getElementById('st-' + id);
+    if (st) st.textContent = 'שומר…';
+    EVENTS[id] = Object.assign({}, EVENTS[id], patch);
+    try {
+      await fs.setDoc(fs.doc(db, 'snapbox_events', id), Object.assign({}, patch, { updatedAt: fs.serverTimestamp() }), { merge: true });
+      const s2 = document.getElementById('st-' + id); if (s2) s2.textContent = '✓ נשמר';
+      if (!evUnsub) startEvents();
+    } catch(err){
+      const s2 = document.getElementById('st-' + id);
+      if (s2) s2.innerHTML = `<span style="color:var(--amber)">${err.code === 'permission-denied' ? 'אין הרשאה לשמור עדיין — צריך להוסיף הרשאה ב-Firebase (ההסבר בצ׳אט).' : 'השמירה נכשלה (' + esc(err.code || err.message) + ').'}</span>`;
+    }
+  }
+  document.getElementById('tbody').addEventListener('change', e => {
+    const el = e.target.closest('[data-f]'); if (!el) return;
+    const id = el.dataset.id, f = el.dataset.f;
+    if (el.type === 'checkbox') { saveEvent(id, { [f]: el.checked }); renderTable(); renderCal(); return; }
+    if (f === 'pkg') { const pk = pkgOf(el.value); saveEvent(id, { pkg: el.value, pkgPrice: pk ? pk[2] : null }); renderTable(); renderCal(); return; }
+    saveEvent(id, { [f]: String(el.value).slice(0, f === 'ownerNotes' ? 2000 : 120) });
+  });
+
+  /* ================= טאבים ================= */
+  let curTab = 'quotes';
+  function showTab(t){
+    curTab = t;
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+    ['quotes','cal','books'].forEach(x => document.getElementById('tab-' + x).classList.toggle('hidden', x !== t));
+    history.replaceState(null, '', location.pathname + (t === 'quotes' ? '' : '#' + t));
+    if (t === 'cal') renderCal();
+    if (t === 'books') { startExpenses(); renderBooks(); }
+  }
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+
+  /* ================= יומן ================= */
+  const pad = n => String(n).padStart(2, '0');
+  const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const eventDate = q => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(q.date || '').trim()); return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null; };
+  const tsDate = v => v && v.toDate ? v.toDate() : null;
+  const HE_DAYS = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  const HE_MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  const SIGNED = () => QUOTES.filter(q => q.status === 'signed');
+  let calMonth = (() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1); })(), calDay = null;
+
+  const evTitle = q => `Snap Box · ${q.eventType || 'אירוע'} · ${q.clientName || ''}`.trim();
+  function evDetails(q){
+    const bal = (Number(q.price) || 0) - (Number(q.deposit) || 0);
+    const E = EVENTS[q.id] || {}, pk = pkgOf(E.pkg), h = evHours(q);
+    return [`לקוח: ${q.clientName || ''}`, E.couple ? `חתן/כלה: ${E.couple}` : '', `סוג אירוע: ${q.eventType || ''}`, q.location ? `מקום: ${q.location}` : '',
+      q.startTime ? `שעות: ${q.startTime}${q.endTime ? '–' + q.endTime : ''}${h != null ? ' (' + hoursText(h) + ')' : ''}` : '', q.guests ? `מוזמנים: ${q.guests}` : '', pk ? `חבילה: ${pk[1]} (${money(pk[2])})` : '',
+      `מחיר: ${money(q.price)} · מקדמה: ${money(q.deposit)} · יתרה: ${money(bal)}`, q.notes ? `הערות: ${q.notes}` : ''].filter(Boolean).join('\n');
+  }
+  // שעת סיום לפני ההתחלה = אחרי חצות (היום הבא)
+  function evTimes(q){
+    const d = eventDate(q); if (!d) return null;
+    const t = s => /^(\d{1,2}):(\d{2})$/.exec(String(s || '').trim());
+    const a = t(q.startTime), b = t(q.endTime);
+    if (!a) return { allDay: true, d };
+    const start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), +a[1], +a[2]);
+    let end = b ? new Date(d.getFullYear(), d.getMonth(), d.getDate(), +b[1], +b[2]) : new Date(start.getTime() + 4 * 3600e3);
+    if (end <= start) end = new Date(end.getTime() + 86400e3);
+    return { allDay: false, d, start, end };
+  }
+  const gStamp = d => d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + 'T' + pad(d.getHours()) + pad(d.getMinutes()) + '00';
+  const gDay = d => d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
+  function googleLink(q){
+    const t = evTimes(q); if (!t) return '';
+    const dates = t.allDay ? gDay(t.d) + '/' + gDay(new Date(t.d.getTime() + 86400e3)) : gStamp(t.start) + '/' + gStamp(t.end);
+    return 'https://calendar.google.com/calendar/render?action=TEMPLATE&ctz=Asia/Jerusalem&text=' + encodeURIComponent(evTitle(q))
+      + '&dates=' + dates + '&details=' + encodeURIComponent(evDetails(q)) + '&location=' + encodeURIComponent(q.location || '');
+  }
+  function download(name, blob){
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+  }
+  document.getElementById('cal-ics').addEventListener('click', () => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const ev = SIGNED().filter(q => { const d = eventDate(q); return d && d >= today; });
+    if (!ev.length) { alert('אין אירועים קרובים להורדה.'); return; }
+    const e = s => String(s || '').replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/([,;])/g, '\\$1');
+    const L = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//snapbox//he','CALSCALE:GREGORIAN'];
+    ev.forEach(q => { const t = evTimes(q);
+      L.push('BEGIN:VEVENT', 'UID:' + q.id + '@snapbox', 'DTSTAMP:' + gStamp(new Date()),
+        t.allDay ? 'DTSTART;VALUE=DATE:' + gDay(t.d) : 'DTSTART;TZID=Asia/Jerusalem:' + gStamp(t.start),
+        t.allDay ? 'DTEND;VALUE=DATE:' + gDay(new Date(t.d.getTime() + 86400e3)) : 'DTEND;TZID=Asia/Jerusalem:' + gStamp(t.end),
+        'SUMMARY:' + e(evTitle(q)), 'LOCATION:' + e(q.location), 'DESCRIPTION:' + e(evDetails(q)), 'END:VEVENT'); });
+    L.push('END:VCALENDAR');
+    download('snapbox-events.ics', new Blob([L.join('\r\n')], { type: 'text/calendar;charset=utf-8' }));
+  });
+  document.getElementById('cal-prev').addEventListener('click', () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); calDay = null; renderCal(); });
+  document.getElementById('cal-next').addEventListener('click', () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); calDay = null; renderCal(); });
+  document.getElementById('cal-today').addEventListener('click', () => { const n = new Date(); calMonth = new Date(n.getFullYear(), n.getMonth(), 1); calDay = null; renderCal(); });
+  document.getElementById('cal-grid').addEventListener('click', e => {
+    const b = e.target.closest('button[data-day]'); if (!b) return;
+    calDay = calDay === b.dataset.day ? null : b.dataset.day; renderCal();
+    document.getElementById('cal-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.getElementById('cal-list').addEventListener('click', e => {
+    const b = e.target.closest('button.cal-pdf'); if (!b) return;
+    const q = QUOTES.find(x => x.id === b.dataset.id); if (q) openPdf(q.pdfData);
+  });
+  function openPdf(b64){
+    if (!b64) return;
+    try { const bin = atob(b64), arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      const url = URL.createObjectURL(new Blob([arr], { type: 'application/pdf' })); window.open(url, '_blank'); setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch(err){ alert('פתיחת הקובץ נכשלה.'); }
+  }
+  function renderCal(){
+    if (curTab !== 'cal') return;
+    const y = calMonth.getFullYear(), m = calMonth.getMonth(), todayIso = iso(new Date());
+    document.getElementById('cal-title').textContent = HE_MONTHS[m] + ' ' + y;
+    const byDay = {};
+    SIGNED().forEach(q => { const d = eventDate(q); if (d) (byDay[iso(d)] = byDay[iso(d)] || []).push(q); });
+    Object.values(byDay).forEach(l => l.sort((a, b) => String(a.startTime || '').localeCompare(String(b.startTime || ''))));
+    const first = new Date(y, m, 1), days = new Date(y, m + 1, 0).getDate();
+    let h = HE_DAYS.map(d => `<div class="cal-dow" aria-hidden="true">${d.charAt(0)}׳</div>`).join('');
+    for (let i = 0; i < first.getDay(); i++) h += '<div class="cal-cell empty"></div>';
+    for (let day = 1; day <= days; day++) {
+      const k = y + '-' + pad(m + 1) + '-' + pad(day), ev = byDay[k] || [];
+      h += `<button type="button" class="cal-cell${k === todayIso ? ' today' : ''}${ev.length ? ' has' : ''}${calDay === k ? ' sel' : ''}" data-day="${k}" aria-pressed="${calDay === k}">
+        <span class="n">${day}</span>${ev.slice(0, 2).map(q => `<span class="ev">${esc(q.startTime || '')} ${esc(q.clientName || '')}</span>`).join('')}${ev.length > 2 ? `<span class="ev more">+${ev.length - 2}</span>` : ''}</button>`;
+    }
+    document.getElementById('cal-grid').innerHTML = h;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    let list, head;
+    if (calDay) { list = byDay[calDay] || []; const d = new Date(calDay + 'T00:00'); head = `יום ${HE_DAYS[d.getDay()]} · ${d.getDate()} ב${HE_MONTHS[d.getMonth()]}`; }
+    else { list = SIGNED().filter(q => { const d = eventDate(q); return d && d >= today; }).sort((a, b) => eventDate(a) - eventDate(b) || String(a.startTime || '').localeCompare(String(b.startTime || ''))); head = 'האירועים הקרובים'; }
+    document.getElementById('cal-list-h').textContent = head + (list.length ? ` (${list.length})` : '');
+    document.getElementById('cal-ics').classList.toggle('hidden', !SIGNED().some(q => { const d = eventDate(q); return d && d >= today; }));
+    const fresh = q => { const s = tsDate(q.signedAt); return s && Date.now() - s.getTime() < 2 * 86400e3; };
+    document.getElementById('cal-list').innerHTML = list.length ? list.map(q => {
+      const d = eventDate(q), bal = (Number(q.price) || 0) - (Number(q.deposit) || 0), E = EVENTS[q.id] || {};
+      return `<article class="ev-card">
+        <div class="ev-date"><b>${d.getDate()}</b><span>${HE_MONTHS[d.getMonth()]}</span><small>יום ${HE_DAYS[d.getDay()]}</small></div>
+        <div class="ev-body">
+          <h4>${esc(q.clientName || '')}${E.couple ? ` · ${esc(E.couple)}` : ''}${fresh(q) ? '<span class="badge-new">נחתם עכשיו</span>' : ''}${E.paid ? '<span class="tag ok">שולם ✓</span>' : E.depositPaid ? '<span class="tag wait">מקדמה שולמה</span>' : ''}</h4>
+          <div class="ev-meta"><span>🎉 ${esc(q.eventType || 'אירוע')}</span>${q.location ? `<span>📍 ${esc(q.location)}</span>` : ''}${q.startTime ? `<span>🕒 <b dir="ltr">${esc(q.startTime)}${q.endTime ? '–' + esc(q.endTime) : ''}</b></span>` : ''}${evHours(q) != null ? `<span>⏱ ${hoursText(evHours(q))}</span>` : ''}${q.guests ? `<span>👥 ${esc(q.guests)} מוזמנים</span>` : ''}</div>
+          <div class="ev-money"><span>מחיר <b>${money(q.price)}</b></span>${pkgOf(E.pkg) ? `<span>חבילה <b>${pkgOf(E.pkg)[1]} · ${money(pkgOf(E.pkg)[2])}</b></span>` : ''}<span>מקדמה <b>${money(q.deposit)}</b></span><span>יתרה לגבייה <b>${money(bal)}</b></span></div>
+          <p class="hint" style="margin-top:6px">📝 הערות: ${q.notes ? esc(q.notes) : 'אין'}</p>${E.ownerNotes ? `<p class="hint" style="margin-top:2px">🗒 ההערות שלי: ${esc(E.ownerNotes)}</p>` : ''}
+          <div class="ev-acts">
+            <a class="rowbtn" href="${esc(googleLink(q))}" target="_blank" rel="noopener">📅 הוספה ליומן Google</a>
+            ${q.location ? `<a class="rowbtn" href="https://waze.com/ul?q=${encodeURIComponent(q.location)}&navigate=yes" target="_blank" rel="noopener">🚗 ניווט ב-Waze</a>` : ''}
+            ${q.pdfData ? `<button type="button" class="rowbtn cal-pdf" data-id="${esc(q.id)}">📄 החוזה החתום</button>` : ''}
+          </div>
+        </div></article>`;
+    }).join('') : `<p class="hint">${calDay ? 'אין אירועים ביום הזה.' : 'עדיין אין אירועים קרובים. כשלקוח חותם על הצעה, האירוע נכנס לכאן לבד.'}</p>`;
+  }
+
+  /* ================= הכנסות והוצאות ================= */
+  // הכנסה = כל הצעה חתומה (לפי מועד החתימה וסכום ההצעה). הוצאות — באוסף snapbox_expenses (רק לבעלים).
+  const CATS = ['ציוד ותחזוקה','נייר והדפסות','נסיעות ודלק','שיווק ופרסום','עובדים ועוזרים','מנויים ותוכנות','אחר'];
+  let EXP = [], expUnsub = null, expErr = '', booksChart = null;
+  document.getElementById('ex-date').value = iso(new Date());
+  document.getElementById('ex-cat').innerHTML = CATS.map(c => `<option>${c}</option>`).join('');
+  function startExpenses(){
+    if (expUnsub || !fs) return;
+    expUnsub = fs.onSnapshot(fs.query(fs.collection(db, 'snapbox_expenses'), fs.orderBy('date', 'desc'), fs.limit(2000)), snap => {
+      expErr = ''; EXP = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderBooks();
+    }, err => {
+      console.warn('expenses', err);
+      expErr = err && err.code === 'permission-denied'
+        ? 'כדי לשמור הוצאות צריך להוסיף הרשאה ב-Firebase (פעם אחת) — ההסבר נשלח בצ׳אט. ההכנסות כבר עובדות.'
+        : 'טעינת ההוצאות נכשלה (' + (err.code || err.message) + ').';
+      expUnsub = null; renderBooks();
+    });
+  }
+  document.getElementById('ex-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const $ = id => document.getElementById(id), msg = $('ex-msg');
+    const amount = Math.round(Number($('ex-amount').value) * 100) / 100, label = $('ex-label').value.trim().slice(0, 120), date = $('ex-date').value;
+    if (!(amount > 0)) { msg.textContent = 'הזינו סכום.'; $('ex-amount').focus(); return; }
+    if (!label) { msg.textContent = 'הזינו תיאור (למשל "נייר הדפסה" או "דלק").'; $('ex-label').focus(); return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { msg.textContent = 'בחרו תאריך.'; return; }
+    const b = $('ex-add'); b.disabled = true; msg.textContent = '';
+    try {
+      await fs.addDoc(fs.collection(db, 'snapbox_expenses'), { date, amount, label, category: $('ex-cat').value, createdAt: fs.serverTimestamp() });
+      $('ex-amount').value = ''; $('ex-label').value = ''; msg.textContent = '✓ ההוצאה נוספה.';
+      if (!expUnsub) startExpenses();
+    } catch(err){ msg.textContent = err.code === 'permission-denied' ? 'אין הרשאה לשמור עדיין — צריך להוסיף הרשאה ב-Firebase (ההסבר בצ׳אט).' : 'השמירה נכשלה (' + (err.code || err.message) + ').'; }
+    b.disabled = false;
+  });
+  document.getElementById('ex-list').addEventListener('click', async e => {
+    const b = e.target.closest('button.ex-del'); if (!b || !confirm('למחוק את ההוצאה?')) return;
+    try { await fs.deleteDoc(fs.doc(db, 'snapbox_expenses', b.dataset.id)); } catch(err){ alert('המחיקה נכשלה.'); }
+  });
+  document.getElementById('bk-year').addEventListener('change', renderBooks);
+  const incomeRows = () => SIGNED().map(q => ({ q, d: tsDate(q.signedAt) })).filter(x => x.d)
+    .map(x => ({ id: x.q.id, date: iso(x.d), amount: Number(x.q.price) || 0, label: `${x.q.clientName || ''} · ${x.q.eventType || ''}`, eventDate: x.q.date || '' }));
+  function renderBooks(){
+    if (curTab !== 'books') return;
+    const sel = document.getElementById('bk-year'), cur = sel.value || String(new Date().getFullYear());
+    const ys = new Set([new Date().getFullYear()]); incomeRows().forEach(r => ys.add(+r.date.slice(0, 4))); EXP.forEach(r => ys.add(+String(r.date).slice(0, 4)));
+    sel.innerHTML = [...ys].filter(Boolean).sort((a, b) => b - a).map(y => `<option value="${y}"${String(y) === cur ? ' selected' : ''}>${y}</option>`).join('');
+    const Y = sel.value, inc = incomeRows().filter(r => r.date.startsWith(Y)), exp = EXP.filter(r => String(r.date).startsWith(Y));
+    const sum = l => l.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+    const now = new Date(), thisM = now.getFullYear() + '-' + pad(now.getMonth() + 1);
+    const mInc = sum(incomeRows().filter(r => r.date.startsWith(thisM))), mExp = sum(EXP.filter(r => String(r.date).startsWith(thisM)));
+    const yInc = sum(inc), yExp = sum(exp);
+    const k = (n, l, cls) => `<div class="card kpi${cls ? ' ' + cls : ''}"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+    document.getElementById('bk-kpis').innerHTML = k(money(mInc), 'הכנסות החודש') + k(money(mExp), 'הוצאות החודש') + k(money(mInc - mExp), 'רווח החודש', mInc - mExp >= 0 ? 'pos' : 'neg')
+      + k(money(yInc), 'הכנסות ' + Y) + k(money(yExp), 'הוצאות ' + Y) + k(money(yInc - yExp), 'רווח ' + Y, yInc - yExp >= 0 ? 'pos' : 'neg');
+    document.getElementById('inc-list').innerHTML = inc.length ? `<table class="mini"><thead><tr><th>נחתם</th><th>לקוח · אירוע</th><th>תאריך האירוע</th><th>סכום</th></tr></thead><tbody>${inc.sort((a, b) => b.date.localeCompare(a.date)).map(r =>
+      `<tr><td>${r.date.split('-').reverse().join('/')}</td><td>${esc(r.label)}</td><td dir="ltr">${esc(r.eventDate)}</td><td class="num">${money(r.amount)}</td></tr>`).join('')}</tbody></table>`
+      : '<p class="hint">עדיין אין הכנסות בשנה הזו. כל הסכם שהלקוח חותם נכנס לכאן לבד.</p>';
+    document.getElementById('ex-list').innerHTML = expErr ? `<p class="hint" style="color:var(--amber)">${esc(expErr)}</p>` : exp.length ? `<table class="mini"><thead><tr><th>תאריך</th><th>תיאור</th><th>קטגוריה</th><th>סכום</th><th></th></tr></thead><tbody>${exp.map(r =>
+      `<tr><td>${String(r.date).split('-').reverse().join('/')}</td><td>${esc(r.label)}</td><td>${esc(r.category || '')}</td><td class="num">${money(r.amount)}</td><td><button type="button" class="rowbtn danger ex-del" data-id="${esc(r.id)}">מחיקה</button></td></tr>`).join('')}</tbody></table>`
+      : '<p class="hint">עדיין אין הוצאות בשנה הזו.</p>';
+    if (!window.Chart) return;
+    const I = new Array(12).fill(0), E = new Array(12).fill(0);
+    inc.forEach(r => { I[+r.date.slice(5, 7) - 1] += r.amount; });
+    exp.forEach(r => { E[+String(r.date).slice(5, 7) - 1] += Number(r.amount) || 0; });
+    const font = { family: 'Assistant', weight: 700 };
+    if (booksChart) booksChart.destroy();
+    booksChart = new Chart(document.getElementById('booksChart'), {
+      data: { labels: HE_MONTHS.map(m => m.slice(0, 3)), datasets: [
+        { type: 'bar', label: 'הכנסות', data: I, backgroundColor: '#2DD4BF', borderRadius: 6, maxBarThickness: 26 },
+        { type: 'bar', label: 'הוצאות', data: E, backgroundColor: '#FB7185', borderRadius: 6, maxBarThickness: 26 },
+        { type: 'line', label: 'רווח', data: I.map((v, i) => v - E[i]), borderColor: '#FBBF24', backgroundColor: '#FBBF24', tension: .3, pointRadius: 3 } ] },
+      options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'bottom', labels: { color: '#9CA3AF', font, usePointStyle: true } }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${money(c.parsed.y)}` } } },
+        scales: { x: { ticks: { color: '#9CA3AF', font }, grid: { display: false } }, y: { ticks: { color: '#9CA3AF', font, callback: v => '₪' + Number(v).toLocaleString() }, grid: { color: 'rgba(255,255,255,.06)' } } } } });
+  }
+  document.getElementById('bk-csv').addEventListener('click', () => {
+    const Y = document.getElementById('bk-year').value, q = s => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
+    const rows = [['סוג','תאריך','תיאור','קטגוריה','סכום']];
+    incomeRows().filter(r => r.date.startsWith(Y)).forEach(r => rows.push(['הכנסה', r.date, r.label, 'חוזה חתום', r.amount]));
+    EXP.filter(r => String(r.date).startsWith(Y)).forEach(r => rows.push(['הוצאה', r.date, r.label, r.category || '', r.amount]));
+    download(`snapbox-income-expenses-${Y}.csv`, new Blob(['\ufeff' + rows.map(r => r.map(q).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+  });
+
+  // טאב מהכתובת (#cal / #books) — אחרי שכל המשתנים של היומן וההכנסות הוגדרו
+  if (['cal','books'].includes(location.hash.slice(1))) showTab(location.hash.slice(1));
 
   function blobToBase64(blob){
     return new Promise((resolve, reject) => {
