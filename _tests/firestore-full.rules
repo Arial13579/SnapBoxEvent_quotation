@@ -58,6 +58,14 @@ service cloud.firestore {
         && request.resource.data.label is string && request.resource.data.label.size() <= 120;
     }
 
+    match /snapbox_incomes/{id} {
+      allow read, delete: if isSnapAdmin();
+      allow create, update: if isSnapAdmin()
+        && request.resource.data.keys().hasOnly(['date', 'amount', 'label', 'category', 'createdAt'])
+        && request.resource.data.amount is number && request.resource.data.amount > 0
+        && request.resource.data.label is string && request.resource.data.label.size() <= 120;
+    }
+
     match /snapbox_events/{id} {
       allow read, delete: if isSnapAdmin();
       allow create, update: if isSnapAdmin() && request.resource.data.size() <= 40;
