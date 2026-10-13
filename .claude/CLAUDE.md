@@ -15,5 +15,5 @@
 - `snapbox_quotes/{id}` — ההצעה. **הלקוח יכול לקרוא אותה לפי מזהה (הקישור `?k=`)** — לכן אסור לשמור בה מידע פנימי.
 - `snapbox_events/{quoteId}` = `{clientName, couple, eventType, date dd/mm/yyyy, startTime, endTime, location, guests, notes, pkg ('custom'/מפתח), price, deposit, depositPaid, paid, entered, ownerNotes, updatedAt}` — רק חשבון העסק. (`pkgPrice` — מגרסה קודמת, נקרא אם אין `price`.) הכלל: רק חשבון העסק, עד 40 שדות (בלי רשימת שדות — כדי שלא יצטרכו להדביק שוב בכל שינוי).
 - `snapbox_expenses/{id}` = `{date YYYY-MM-DD, amount, label, category, createdAt}` — רק חשבון העסק.
-- הכללים לשני האוספים: `_tests/firestore-snippet.rules` — להדביק **בתוך** `match /databases/{database}/documents { … }` בכללים הקיימים (Firebase ← wedding-rsvp-e2e0f ← Firestore ← Rules/Security ← Publish). בלי זה: היומן וההכנסות עובדים, השמירה של השדות שלי וההוצאות מציגה הודעה ברורה.
+- **הכללים המלאים שפורסמו (2026-10-13):** `_tests/firestore-full.rules` (כולל guests/meta של אתר החתונה; ב-`snapbox_quotes` רשימה/עריכה/מחיקה רק לחשבון העסק). הקטע לבד: `_tests/firestore-snippet.rules` — להדביק **בתוך** `match /databases/{database}/documents { … }` בכללים הקיימים (Firebase ← wedding-rsvp-e2e0f ← Firestore ← Rules/Security ← Publish). בלי זה: היומן וההכנסות עובדים, השמירה של השדות שלי וההוצאות מציגה הודעה ברורה.
 - בדיקה: `_tests/dashboard.e2e.js` (אמולטורים, `RULES=open|closed`).
