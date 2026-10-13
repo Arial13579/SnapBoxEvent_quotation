@@ -161,17 +161,28 @@
   /* פרטי לקוח שחתם + השדות של הבעלים */
   tr.paid > td{ background:rgba(74,222,128,.16); }
   tr.paid.main > td:first-child{ box-shadow:inset -4px 0 0 #4ADE80; }
-  tr.det > td{ padding:0 14px 14px; white-space:normal; border-bottom:1px solid rgba(255,255,255,.08); }
-  .det-box{ position:sticky; right:0; max-width:calc(100vw - 36px); display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px 16px; padding:12px 14px; border-radius:16px; background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.07); }
-  tr.paid .det-box{ background:rgba(74,222,128,.10); border-color:rgba(74,222,128,.35); }
-  .det-info{ grid-column:1/-1; display:flex; flex-wrap:wrap; gap:6px 18px; font-size:13px; color:var(--txt-dim); }
-  .det-info b{ color:var(--txt); }
-  .det-notes{ grid-column:1/-1; font-size:13px; color:var(--txt-dim); }
-  .det-box .wide{ grid-column:1/-1; }
-  .chk{ display:flex; align-items:center; gap:9px; font-size:13.5px; font-weight:800; cursor:pointer; min-height:40px; }
+  dialog.dlg{ border:1px solid rgba(255,255,255,.12); border-radius:22px; padding:0; width:min(640px, calc(100vw - 20px)); max-height:calc(100dvh - 24px);
+    background:linear-gradient(160deg,#101415,#0a0c0d); color:var(--txt); box-shadow:0 40px 100px -20px rgba(0,0,0,.85); }
+  dialog.dlg::backdrop{ background:rgba(0,0,0,.65); backdrop-filter:blur(3px); }
+  .dlg-h{ position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 20px; background:#0f1314; border-bottom:1px solid rgba(255,255,255,.08); }
+  .dlg-h h2{ margin:0; font-size:18px; font-weight:900; }
+  .dlg-b{ padding:16px 20px 20px; }
+  .dlg-f{ position:sticky; bottom:0; display:flex; gap:8px; flex-wrap:wrap; padding:14px 20px; background:#0f1314; border-top:1px solid rgba(255,255,255,.08); }
+  .grp{ border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; margin-bottom:12px; background:rgba(255,255,255,.025); }
+  .grp h3{ margin:0 0 10px; font-size:13px; font-weight:900; color:var(--turq-br); }
+  .g2{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px 12px; }
+  .g2 .wide{ grid-column:1/-1; }
+  .info{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
+  .info > div{ background:rgba(255,255,255,.04); border-radius:12px; padding:10px 12px; }
+  .info .k{ font-size:11.5px; color:var(--txt-faint); font-weight:800; }
+  .info .v{ font-size:15px; font-weight:800; margin-top:2px; overflow-wrap:anywhere; }
+  .info .wide{ grid-column:1/-1; }
+  .info .v.note{ font-weight:600; font-size:14px; white-space:pre-wrap; }
+  .ref{ font-size:12px; color:var(--txt-faint); margin-top:5px; }
+  .dlg-st{ font-size:13px; min-height:18px; margin:4px 0 0; }
+  .gbtn.sm{ padding:10px 18px; font-size:13.5px; }
+  .chk{ display:flex; align-items:center; gap:9px; font-size:14px; font-weight:800; cursor:pointer; min-height:40px; }
   .chk input{ width:22px; height:22px; accent-color:#4ADE80; flex:none; }
-  .pkg-price{ font-size:13px; font-weight:800; color:var(--turq-br); margin-top:5px; min-height:18px; }
-  .det-st{ font-size:11.5px; color:var(--txt-faint); grid-column:1/-1; min-height:15px; }
   .tag{ display:inline-block; font-size:11px; font-weight:800; padding:2px 9px; border-radius:999px; margin-inline-start:6px; }
   .tag.ok{ background:rgba(74,222,128,.18); color:#86EFAC; } .tag.wait{ background:rgba(251,191,36,.14); color:var(--amber); }
   @media(min-width:720px){ .bk-kpis{ grid-template-columns:repeat(3,1fr); } }
@@ -279,6 +290,43 @@
     </section>
   </div>
 </div>
+
+<dialog class="dlg" id="evView" aria-labelledby="vw-title">
+  <div class="dlg-h"><h2 id="vw-title">פרטי אירוע</h2><button type="button" class="iconbtn" id="vw-close" aria-label="סגירה">✕</button></div>
+  <div class="dlg-b" id="vw-body"></div>
+  <div class="dlg-f"><button type="button" class="gbtn sm" id="vw-edit">✏️ עריכת פרטי אירוע</button><a class="rowbtn" id="vw-google" target="_blank" rel="noopener">📅 יומן Google</a><a class="rowbtn" id="vw-waze" target="_blank" rel="noopener">🚗 Waze</a><button type="button" class="rowbtn" id="vw-pdf">📄 החוזה החתום</button><button type="button" class="rowbtn" id="vw-close2">סגירה</button></div>
+</dialog>
+<dialog class="dlg" id="evEdit" aria-labelledby="ee-title">
+  <form id="ee-form" novalidate autocomplete="off">
+  <div class="dlg-h"><h2 id="ee-title">עריכת פרטי אירוע</h2><button type="button" class="iconbtn" id="ee-x" aria-label="סגירה">✕</button></div>
+  <div class="dlg-b">
+    <div class="grp"><h3>פרטי הלקוח והאירוע</h3><div class="g2">
+      <div><label class="lbl" for="ee-name">שם מלא *</label><input class="fld" id="ee-name" maxlength="120"></div>
+      <div><label class="lbl" for="ee-couple">שם החתן / הכלה</label><input class="fld" id="ee-couple" maxlength="120" placeholder="למשל: דנה ויואב"></div>
+      <div><label class="lbl" for="ee-type">סוג האירוע</label><input class="fld" id="ee-type" maxlength="80"></div>
+      <div><label class="lbl" for="ee-date">תאריך</label><input class="fld" id="ee-date" type="date"></div>
+      <div><label class="lbl" for="ee-start">שעת התחלה</label><input class="fld" id="ee-start" type="time"></div>
+      <div><label class="lbl" for="ee-end">שעת סיום</label><input class="fld" id="ee-end" type="time"><div class="ref" id="ee-hours"></div></div>
+      <div class="wide"><label class="lbl" for="ee-loc">מיקום האירוע</label><input class="fld" id="ee-loc" maxlength="200"></div>
+      <div><label class="lbl" for="ee-guests">מוזמנים</label><input class="fld" id="ee-guests" inputmode="numeric" maxlength="20"></div>
+      <div class="wide"><label class="lbl" for="ee-notes">הערות (של הלקוח)</label><textarea class="fld" id="ee-notes" rows="2" maxlength="2000"></textarea></div>
+    </div></div>
+    <div class="grp"><h3>מחיר ותשלום</h3><div class="g2">
+      <div><label class="lbl" for="ee-pkg">סוג חבילה</label><select class="fld" id="ee-pkg"></select></div>
+      <div><label class="lbl" for="ee-price">מחיר (₪)</label><input class="fld" id="ee-price" type="number" min="0" step="1" inputmode="numeric"><div class="ref" id="ee-ref"></div></div>
+      <div><label class="lbl" for="ee-deposit">מקדמה (₪)</label><input class="fld" id="ee-deposit" type="number" min="0" step="1" inputmode="numeric"></div>
+      <label class="chk"><input type="checkbox" id="ee-depPaid"> המקדמה שולמה</label>
+      <label class="chk"><input type="checkbox" id="ee-paid"> שולם (השורה תהיה בירוק)</label>
+    </div></div>
+    <div class="grp"><h3>שלי</h3><div class="g2">
+      <label class="chk wide"><input type="checkbox" id="ee-entered"> הכנסתי את האירוע</label>
+      <div class="wide"><label class="lbl" for="ee-own">ההערות שלי</label><textarea class="fld" id="ee-own" rows="3" maxlength="2000" placeholder="רק אתה רואה את זה"></textarea></div>
+    </div></div>
+    <p class="dlg-st" id="ee-st" role="status"></p>
+  </div>
+  <div class="dlg-f"><button type="submit" class="gbtn sm" id="ee-save">שמירה</button><button type="button" class="rowbtn" id="ee-cancel">ביטול</button></div>
+  </form>
+</dialog>
 
 <input type="file" id="fileUploadInput" accept="application/pdf" style="display:none">
 
@@ -489,8 +537,6 @@
       return;
     }
 
-    // שומרים את השדה שמקלידים בו (הטבלה מתרעננת כשמגיע עדכון)
-    const ae = document.activeElement, keep = ae && ae.dataset && ae.dataset.f ? { id: ae.dataset.id, f: ae.dataset.f, v: ae.value, a: ae.selectionStart, b: ae.selectionEnd } : null;
     document.getElementById('tbody').innerHTML = rows.map(q => {
       const created = q.createdAt && q.createdAt.toDate
         ? q.createdAt.toDate().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })
@@ -508,24 +554,25 @@
              <button type="button" class="rowbtn upload-file" data-id="${q.id}">🔄 החלף</button>
            </div>`
         : `<button type="button" class="rowbtn upload-file" data-id="${q.id}">📤 העלה קובץ</button>`;
-      const E = EVENTS[q.id] || {};
+      const E = EVENTS[q.id] || {}, v = signed ? M(q) : q;
+      const tags = signed ? (E.paid ? '<div><span class="tag ok" style="margin:4px 0 0">שולם ✓</span></div>' : E.depositPaid ? '<div><span class="tag wait" style="margin:4px 0 0">מקדמה שולמה</span></div>' : '') : '';
       return `<tr class="main${signed && E.paid ? ' paid' : ''}">
         <td>${created}</td>
-        <td class="name">${esc(q.clientName)}</td>
-        <td>${esc(q.eventType)}</td>
-        <td dir="ltr">${esc(q.date)}</td>
-        <td>${money(q.price)}</td>
-        <td>${pill}</td>
+        <td class="name">${esc(v.clientName)}${E.couple && signed ? `<div style="font-size:11.5px; color:var(--txt-dim); font-weight:600">${esc(E.couple)}</div>` : ''}</td>
+        <td>${esc(v.eventType)}</td>
+        <td dir="ltr">${esc(v.date)}</td>
+        <td>${money(v.price)}</td>
+        <td>${pill}${tags}</td>
         <td>${fileBtn}</td>
         <td>
           <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            ${signed ? `<button type="button" class="rowbtn ev-view" data-id="${q.id}">📋 פרטי אירוע</button><button type="button" class="rowbtn ev-edit" data-id="${q.id}">✏️ עריכת פרטי אירוע</button>` : ''}
             <button type="button" class="rowbtn copy-link" data-id="${q.id}">העתק קישור</button>
             <button type="button" class="rowbtn danger delete-row" data-id="${q.id}">מחק</button>
           </div>
         </td>
-      </tr>${signed ? detailsRow(q, E) : ''}`;
+      </tr>`;
     }).join('');
-    if (keep) { const el = document.querySelector(`[data-id="${keep.id}"][data-f="${keep.f}"]`); if (el) { el.value = keep.v; el.focus(); try { el.setSelectionRange(keep.a, keep.b); } catch(e){} } }
 
     document.querySelectorAll('.copy-link').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -573,7 +620,6 @@
      השדות שלי (חתן/כלה, חבילה, מקדמה, שולם, הכנסתי ליומן, הערות שלי) נשמרים ב-snapbox_events/{מזהה ההצעה} —
      אוסף נפרד שרק חשבון העסק קורא, כי את מסמך ההצעה הלקוח יכול לפתוח דרך הקישור. */
   const PACKAGES = [['basic','בסיסי',1000],['basicPlus','בסיסי פלוס',1100],['premium','פרימיום',1200],['premiumPlus','פרימיום פלוס',1300],['gold','גולד',1400],['goldPlus','גולד פלוס',1500],['diamond','יהלום',1700]];
-  const DEPOSIT_FIXED = 200;
   let EVENTS = {}, evUnsub = null, evErr = '';
   const pkgOf = key => PACKAGES.find(p => p[0] === key);
   function evHours(q){
@@ -594,43 +640,105 @@
       renderTable();
     });
   }
-  function detailsRow(q, E){
-    const h = evHours(q), pk = pkgOf(E.pkg), id = esc(q.id);
-    const opt = PACKAGES.map(p => `<option value="${p[0]}"${E.pkg === p[0] ? ' selected' : ''}>${p[1]} · ${money(p[2])}</option>`).join('');
-    return `<tr class="det${E.paid ? ' paid' : ''}"><td colspan="8"><div class="det-box">
-      <div class="det-info"><span>👤 <b>${esc(q.clientName || '')}</b></span>${q.location ? `<span>📍 ${esc(q.location)}</span>` : ''}
-        ${q.startTime ? `<span>🕒 <b dir="ltr">${esc(q.startTime)}${q.endTime ? '–' + esc(q.endTime) : ''}</b></span>` : ''}${h != null ? `<span>⏱ ${hoursText(h)}</span>` : ''}
-        <span>💰 מחיר בחוזה <b>${money(q.price)}</b></span>${q.guests ? `<span>👥 ${esc(q.guests)} מוזמנים</span>` : ''}</div>
-      <div class="det-notes">📝 הערות הלקוח: ${q.notes ? esc(q.notes) : '<span style="color:var(--txt-faint)">אין</span>'}</div>
-      <div><label class="lbl" for="cp-${id}">שם החתן / הכלה</label><input class="fld" id="cp-${id}" data-id="${id}" data-f="couple" maxlength="120" value="${esc(E.couple || '')}" placeholder="למשל: דנה ויואב"></div>
-      <div><label class="lbl" for="pk-${id}">סוג חבילה</label><select class="fld" id="pk-${id}" data-id="${id}" data-f="pkg"><option value="">בחירת חבילה…</option>${opt}</select>
-        <div class="pkg-price">${pk ? 'מחיר החבילה: ' + money(pk[2]) : ''}</div></div>
-      <label class="chk"><input type="checkbox" data-id="${id}" data-f="depositPaid"${E.depositPaid ? ' checked' : ''}> מקדמה ${money(DEPOSIT_FIXED)} שולמה</label>
-      <label class="chk"><input type="checkbox" data-id="${id}" data-f="paid"${E.paid ? ' checked' : ''}> שולם</label>
-      <label class="chk"><input type="checkbox" data-id="${id}" data-f="entered"${E.entered ? ' checked' : ''}> הכנסתי את האירוע</label>
-      <div class="wide"><label class="lbl" for="on-${id}">ההערות שלי</label><textarea class="fld" id="on-${id}" data-id="${id}" data-f="ownerNotes" rows="2" maxlength="2000" placeholder="רק אתה רואה את זה">${esc(E.ownerNotes || '')}</textarea></div>
-      <div class="det-st" id="st-${id}">${evErr ? `<span style="color:var(--amber)">${esc(evErr)}</span>` : ''}</div>
-    </div></td></tr>`;
+  // פרטי האירוע אחרי העריכה שלי (snapbox_events) גוברים על מה שהלקוח מילא — ההצעה החתומה עצמה לא משתנה
+  const OVR = ['clientName','eventType','date','startTime','endTime','location','guests','notes','price','deposit'];
+  function M(q){
+    const E = EVENTS[q.id] || {}, o = Object.assign({}, q, { contractPrice: q.price, contractDeposit: q.deposit });
+    OVR.forEach(k => { if (E[k] !== undefined && E[k] !== null && E[k] !== '') o[k] = E[k]; });
+    if ((E.price === undefined || E.price === null) && E.pkgPrice) o.price = E.pkgPrice;   // שמירה מגרסה קודמת
+    return o;
   }
-  async function saveEvent(id, patch){
-    const st = document.getElementById('st-' + id);
-    if (st) st.textContent = 'שומר…';
-    EVENTS[id] = Object.assign({}, EVENTS[id], patch);
+  const isoFromDmy = d => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(d || '').trim()); return m ? `${m[3]}-${m[2]}-${m[1]}` : ''; };
+  const dmyFromIso = d => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d || '')); return m ? `${m[3]}/${m[2]}/${m[1]}` : ''; };
+  const $id = x => document.getElementById(x);
+
+  /* ---- חלון "פרטי אירוע" ---- */
+  let VIEW_ID = null, EDIT_ID = null;
+  function openView(id){
+    const q0 = QUOTES.find(x => x.id === id); if (!q0) return;
+    VIEW_ID = id;
+    const q = M(q0), E = EVENTS[id] || {}, pk = pkgOf(E.pkg), h = evHours(q), d = eventDate(q);
+    const bal = (Number(q.price) || 0) - (Number(q.deposit) || 0);
+    const box = (k, v, cls) => `<div class="${cls || ''}"><div class="k">${k}</div><div class="v${cls && cls.includes('wide') ? ' note' : ''}">${v}</div></div>`;
+    $id('vw-title').textContent = (q.clientName || '') + (E.couple ? ' · ' + E.couple : '');
+    $id('vw-body').innerHTML = `<div class="info">
+      ${box('🎉 סוג האירוע', esc(q.eventType || '—'))}
+      ${box('📅 תאריך', d ? `${esc(q.date)} · יום ${HE_DAYS[d.getDay()]}` : esc(q.date || '—'))}
+      ${box('🕒 שעות', q.startTime ? `<span dir="ltr">${esc(q.startTime)}${q.endTime ? '–' + esc(q.endTime) : ''}</span>${h != null ? ' · ' + hoursText(h) : ''}` : '—')}
+      ${box('📍 מיקום', esc(q.location || '—'))}
+      ${box('👥 מוזמנים', esc(q.guests || '—'))}
+      ${box('📦 חבילה', pk ? `${pk[1]} · ${money(pk[2])}` : E.pkg === 'custom' ? 'מחיר מותאם אישית' : '—')}
+      ${box('💰 מחיר', money(q.price) + (Number(q.contractPrice) !== Number(q.price) ? `<div class="ref">בחוזה החתום: ${money(q.contractPrice)}</div>` : ''))}
+      ${box('💵 מקדמה', money(q.deposit) + (E.depositPaid ? ' · <span class="tag ok" style="margin:0">שולמה ✓</span>' : ' · <span class="tag wait" style="margin:0">לא שולמה</span>'))}
+      ${box('🧾 יתרה לגבייה', E.paid ? '<span class="tag ok" style="margin:0">שולם הכול ✓</span>' : money(bal))}
+      ${box('📌 הכנסתי את האירוע', E.entered ? '✓ כן' : 'עדיין לא')}
+      ${box('📝 הערות הלקוח', q.notes ? esc(q.notes) : 'אין', 'wide')}
+      ${box('🗒 ההערות שלי', E.ownerNotes ? esc(E.ownerNotes) : 'אין', 'wide')}
+    </div>`;
+    $id('vw-google').href = googleLink(q) || '#';
+    $id('vw-waze').classList.toggle('hidden', !q.location); $id('vw-waze').href = 'https://waze.com/ul?q=' + encodeURIComponent(q.location || '') + '&navigate=yes';
+    $id('vw-pdf').classList.toggle('hidden', !q0.pdfData);
+    if (!$id('evView').open) $id('evView').showModal();
+  }
+  $id('vw-close').addEventListener('click', () => $id('evView').close());
+  $id('vw-close2').addEventListener('click', () => $id('evView').close());
+  $id('vw-edit').addEventListener('click', () => { const id = VIEW_ID; $id('evView').close(); openEdit(id); });
+  $id('vw-pdf').addEventListener('click', () => { const q = QUOTES.find(x => x.id === VIEW_ID); if (q) openPdf(q.pdfData); });
+
+  /* ---- חלון "עריכת פרטי אירוע" ---- */
+  $id('ee-pkg').innerHTML = '<option value="">בחירת חבילה…</option>' + PACKAGES.map(p => `<option value="${p[0]}">${p[1]} · ${money(p[2])}</option>`).join('') + '<option value="custom">מחיר מותאם אישית ✍️</option>';
+  function editHours(){ const h = evHours({ startTime: $id('ee-start').value, endTime: $id('ee-end').value }); $id('ee-hours').textContent = h != null ? '⏱ ' + hoursText(h) : ''; }
+  function openEdit(id){
+    const q0 = QUOTES.find(x => x.id === id); if (!q0) return;
+    EDIT_ID = id;
+    const q = M(q0), E = EVENTS[id] || {};
+    $id('ee-title').textContent = 'עריכת פרטי אירוע · ' + (q.clientName || '');
+    $id('ee-name').value = q.clientName || ''; $id('ee-couple').value = E.couple || ''; $id('ee-type').value = q.eventType || '';
+    $id('ee-date').value = isoFromDmy(q.date); $id('ee-start').value = q.startTime || ''; $id('ee-end').value = q.endTime || '';
+    $id('ee-loc').value = q.location || ''; $id('ee-guests').value = q.guests || ''; $id('ee-notes').value = q.notes || '';
+    $id('ee-pkg').value = E.pkg || ''; $id('ee-price').value = Number(q.price) || 0;
+    $id('ee-deposit').value = E.deposit != null && E.deposit !== '' ? E.deposit : (Number(q.contractDeposit) || 200);
+    $id('ee-depPaid').checked = !!E.depositPaid; $id('ee-paid').checked = !!E.paid; $id('ee-entered').checked = !!E.entered;
+    $id('ee-own').value = E.ownerNotes || '';
+    $id('ee-ref').textContent = 'המחיר בחוזה החתום: ' + money(q0.price);
+    $id('ee-st').textContent = evErr ? evErr : '';
+    editHours();
+    if (!$id('evEdit').open) $id('evEdit').showModal();
+  }
+  $id('ee-pkg').addEventListener('change', () => { const pk = pkgOf($id('ee-pkg').value); if (pk) $id('ee-price').value = pk[2]; else if ($id('ee-pkg').value === 'custom') { $id('ee-price').focus(); $id('ee-price').select(); } });
+  $id('ee-price').addEventListener('input', () => { const pk = pkgOf($id('ee-pkg').value); if (pk && Number($id('ee-price').value) !== pk[2]) $id('ee-pkg').value = 'custom'; });
+  ['ee-start','ee-end'].forEach(x => $id(x).addEventListener('input', editHours));
+  $id('ee-cancel').addEventListener('click', () => $id('evEdit').close());
+  $id('ee-x').addEventListener('click', () => $id('evEdit').close());
+  $id('ee-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const id = EDIT_ID, st = $id('ee-st'), b = $id('ee-save'); if (!id) return;
+    const cut = (v, n) => String(v || '').trim().slice(0, n);
+    const price = Math.round(Number($id('ee-price').value) * 100) / 100, deposit = Math.round(Number($id('ee-deposit').value) * 100) / 100;
+    if (!cut($id('ee-name').value, 1)) { st.textContent = 'צריך שם לקוח.'; $id('ee-name').focus(); return; }
+    if (!(price >= 0) || !(deposit >= 0)) { st.textContent = 'מחיר ומקדמה צריכים להיות מספרים.'; return; }
+    const data = {
+      clientName: cut($id('ee-name').value, 120), couple: cut($id('ee-couple').value, 120), eventType: cut($id('ee-type').value, 80),
+      date: dmyFromIso($id('ee-date').value), startTime: $id('ee-start').value || '', endTime: $id('ee-end').value || '',
+      location: cut($id('ee-loc').value, 200), guests: cut($id('ee-guests').value, 20), notes: cut($id('ee-notes').value, 2000),
+      pkg: $id('ee-pkg').value || '', price, deposit,
+      depositPaid: $id('ee-depPaid').checked, paid: $id('ee-paid').checked, entered: $id('ee-entered').checked,
+      ownerNotes: cut($id('ee-own').value, 2000), updatedAt: fs.serverTimestamp()
+    };
+    b.disabled = true; st.textContent = 'שומר…';
     try {
-      await fs.setDoc(fs.doc(db, 'snapbox_events', id), Object.assign({}, patch, { updatedAt: fs.serverTimestamp() }), { merge: true });
-      const s2 = document.getElementById('st-' + id); if (s2) s2.textContent = '✓ נשמר';
+      await fs.setDoc(fs.doc(db, 'snapbox_events', id), data, { merge: true });
+      EVENTS[id] = Object.assign({}, EVENTS[id], data);
       if (!evUnsub) startEvents();
+      $id('evEdit').close(); renderTable(); renderCal(); renderBooks();
     } catch(err){
-      const s2 = document.getElementById('st-' + id);
-      if (s2) s2.innerHTML = `<span style="color:var(--amber)">${err.code === 'permission-denied' ? 'אין הרשאה לשמור עדיין — צריך להוסיף הרשאה ב-Firebase (ההסבר בצ׳אט).' : 'השמירה נכשלה (' + esc(err.code || err.message) + ').'}</span>`;
+      st.innerHTML = `<span style="color:var(--amber)">${err.code === 'permission-denied' ? 'אין הרשאה לשמור — צריך לעדכן את ההרשאה ב-Firebase (ההסבר בצ׳אט).' : 'השמירה נכשלה (' + esc(err.code || err.message) + ').'}</span>`;
     }
-  }
-  document.getElementById('tbody').addEventListener('change', e => {
-    const el = e.target.closest('[data-f]'); if (!el) return;
-    const id = el.dataset.id, f = el.dataset.f;
-    if (el.type === 'checkbox') { saveEvent(id, { [f]: el.checked }); renderTable(); renderCal(); return; }
-    if (f === 'pkg') { const pk = pkgOf(el.value); saveEvent(id, { pkg: el.value, pkgPrice: pk ? pk[2] : null }); renderTable(); renderCal(); return; }
-    saveEvent(id, { [f]: String(el.value).slice(0, f === 'ownerNotes' ? 2000 : 120) });
+    b.disabled = false;
+  });
+  document.getElementById('tbody').addEventListener('click', e => {
+    const v = e.target.closest('.ev-view'), ed = e.target.closest('.ev-edit');
+    if (v) openView(v.dataset.id); if (ed) openEdit(ed.dataset.id);
   });
 
   /* ================= טאבים ================= */
@@ -652,7 +760,7 @@
   const tsDate = v => v && v.toDate ? v.toDate() : null;
   const HE_DAYS = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
   const HE_MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
-  const SIGNED = () => QUOTES.filter(q => q.status === 'signed');
+  const SIGNED = () => QUOTES.filter(q => q.status === 'signed').map(M);
   let calMonth = (() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1); })(), calDay = null;
 
   const evTitle = q => `Snap Box · ${q.eventType || 'אירוע'} · ${q.clientName || ''}`.trim();
@@ -660,7 +768,7 @@
     const bal = (Number(q.price) || 0) - (Number(q.deposit) || 0);
     const E = EVENTS[q.id] || {}, pk = pkgOf(E.pkg), h = evHours(q);
     return [`לקוח: ${q.clientName || ''}`, E.couple ? `חתן/כלה: ${E.couple}` : '', `סוג אירוע: ${q.eventType || ''}`, q.location ? `מקום: ${q.location}` : '',
-      q.startTime ? `שעות: ${q.startTime}${q.endTime ? '–' + q.endTime : ''}${h != null ? ' (' + hoursText(h) + ')' : ''}` : '', q.guests ? `מוזמנים: ${q.guests}` : '', pk ? `חבילה: ${pk[1]} (${money(pk[2])})` : '',
+      q.startTime ? `שעות: ${q.startTime}${q.endTime ? '–' + q.endTime : ''}${h != null ? ' (' + hoursText(h) + ')' : ''}` : '', q.guests ? `מוזמנים: ${q.guests}` : '', pk ? `חבילה: ${pk[1]}` : '',
       `מחיר: ${money(q.price)} · מקדמה: ${money(q.deposit)} · יתרה: ${money(bal)}`, q.notes ? `הערות: ${q.notes}` : ''].filter(Boolean).join('\n');
   }
   // שעת סיום לפני ההתחלה = אחרי חצות (היום הבא)
@@ -709,6 +817,8 @@
     document.getElementById('cal-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
   document.getElementById('cal-list').addEventListener('click', e => {
+    const cv = e.target.closest('.cal-view'), ce = e.target.closest('.cal-edit');
+    if (cv) return openView(cv.dataset.id); if (ce) return openEdit(ce.dataset.id);
     const b = e.target.closest('button.cal-pdf'); if (!b) return;
     const q = QUOTES.find(x => x.id === b.dataset.id); if (q) openPdf(q.pdfData);
   });
@@ -748,9 +858,10 @@
         <div class="ev-body">
           <h4>${esc(q.clientName || '')}${E.couple ? ` · ${esc(E.couple)}` : ''}${fresh(q) ? '<span class="badge-new">נחתם עכשיו</span>' : ''}${E.paid ? '<span class="tag ok">שולם ✓</span>' : E.depositPaid ? '<span class="tag wait">מקדמה שולמה</span>' : ''}</h4>
           <div class="ev-meta"><span>🎉 ${esc(q.eventType || 'אירוע')}</span>${q.location ? `<span>📍 ${esc(q.location)}</span>` : ''}${q.startTime ? `<span>🕒 <b dir="ltr">${esc(q.startTime)}${q.endTime ? '–' + esc(q.endTime) : ''}</b></span>` : ''}${evHours(q) != null ? `<span>⏱ ${hoursText(evHours(q))}</span>` : ''}${q.guests ? `<span>👥 ${esc(q.guests)} מוזמנים</span>` : ''}</div>
-          <div class="ev-money"><span>מחיר <b>${money(q.price)}</b></span>${pkgOf(E.pkg) ? `<span>חבילה <b>${pkgOf(E.pkg)[1]} · ${money(pkgOf(E.pkg)[2])}</b></span>` : ''}<span>מקדמה <b>${money(q.deposit)}</b></span><span>יתרה לגבייה <b>${money(bal)}</b></span></div>
+          <div class="ev-money"><span>מחיר <b>${money(q.price)}</b></span>${pkgOf(E.pkg) ? `<span>חבילה <b>${pkgOf(E.pkg)[1]}</b></span>` : ''}<span>מקדמה <b>${money(q.deposit)}</b></span><span>יתרה לגבייה <b>${money(bal)}</b></span></div>
           <p class="hint" style="margin-top:6px">📝 הערות: ${q.notes ? esc(q.notes) : 'אין'}</p>${E.ownerNotes ? `<p class="hint" style="margin-top:2px">🗒 ההערות שלי: ${esc(E.ownerNotes)}</p>` : ''}
           <div class="ev-acts">
+            <button type="button" class="rowbtn cal-view" data-id="${esc(q.id)}">📋 פרטי אירוע</button><button type="button" class="rowbtn cal-edit" data-id="${esc(q.id)}">✏️ עריכה</button>
             <a class="rowbtn" href="${esc(googleLink(q))}" target="_blank" rel="noopener">📅 הוספה ליומן Google</a>
             ${q.location ? `<a class="rowbtn" href="https://waze.com/ul?q=${encodeURIComponent(q.location)}&navigate=yes" target="_blank" rel="noopener">🚗 ניווט ב-Waze</a>` : ''}
             ${q.pdfData ? `<button type="button" class="rowbtn cal-pdf" data-id="${esc(q.id)}">📄 החוזה החתום</button>` : ''}

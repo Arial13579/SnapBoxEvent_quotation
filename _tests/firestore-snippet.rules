@@ -1,4 +1,3 @@
-    // ---- Snap Box — לוח הבקרה: הוצאות + הפרטים שלי על כל אירוע. רק חשבון העסק ----
     match /snapbox_expenses/{id} {
       allow read, delete: if request.auth != null && request.auth.token.email == 'snapboxevent.official@gmail.com';
       allow create, update: if request.auth != null && request.auth.token.email == 'snapboxevent.official@gmail.com'
@@ -9,5 +8,5 @@
     match /snapbox_events/{id} {
       allow read, delete: if request.auth != null && request.auth.token.email == 'snapboxevent.official@gmail.com';
       allow create, update: if request.auth != null && request.auth.token.email == 'snapboxevent.official@gmail.com'
-        && request.resource.data.keys().hasOnly(['couple', 'pkg', 'pkgPrice', 'depositPaid', 'paid', 'entered', 'ownerNotes', 'updatedAt']);
+        && request.resource.data.size() <= 40;
     }
