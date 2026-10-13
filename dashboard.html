@@ -147,6 +147,8 @@
   .bk-bar .fld{ width:auto; min-width:100px; }
   .lbl{ display:block; font-size:12px; font-weight:800; color:var(--txt-dim); margin-bottom:5px; }
   .ex-form{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; align-items:end; }
+  .kpi{ min-width:0; } .kpi .n{ overflow-wrap:anywhere; }
+  @media(max-width:420px){ .kpi .n{ font-size:clamp(15px, 5.2vw, 22px); } }
   .kpi.neg .n{ color:var(--rose); } .kpi.pos .n{ color:var(--turq-br); }
   .books2{ display:grid; grid-template-columns:1fr; gap:14px; }
   @media(min-width:820px){ .books2{ grid-template-columns:1fr 1fr; } }
@@ -268,6 +270,12 @@
     <!-- הכנסות (מחוזים חתומים, אוטומטי) והוצאות (ידני) -->
     <section id="tab-books" class="hidden">
       <div class="bk-bar"><label class="lbl" for="bk-year" style="margin:0">שנה</label><select id="bk-year" class="fld"></select><button type="button" class="iconbtn" id="bk-csv">📊 הורדה לאקסל (CSV)</button></div>
+      <div class="card"><div class="box">
+        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center"><button type="button" class="gbtn sm" id="imp-inc">📥 ייבוא הכנסות מאקסל</button><button type="button" class="gbtn sm" id="imp-exp">📥 ייבוא הוצאות מאקסל</button><button type="button" class="iconbtn" id="imp-sample">קובץ דוגמה</button></div>
+        <p class="hint">קובץ אקסל (xlsx) או CSV עם עמודות תאריך, תיאור, סכום (וקטגוריה — לא חובה). הקובץ נקרא רק במכשיר שלך. שורות שכבר קיימות לא ייובאו פעמיים.</p>
+        <p class="hint" id="imp-msg" role="status" aria-live="polite" style="color:var(--txt-dim)"></p>
+        <input type="file" id="imp-file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" hidden>
+      </div></div>
       <div class="kpis bk-kpis" id="bk-kpis"></div>
       <div class="card chart-card"><h3>הכנסות, הוצאות ורווח לפי חודש</h3><div class="chart-box"><canvas id="booksChart"></canvas></div></div>
       <div class="card">
@@ -331,6 +339,7 @@
 <input type="file" id="fileUploadInput" accept="application/pdf" style="display:none">
 
 <script src="firebase-config.js"></script>
+<script src="sheet-import.js?v=1"></script>
 <script type="module">
   const cfg = window.SNAPBOX_CONFIG || {};
   const APP  = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -873,10 +882,13 @@
   /* ================= הכנסות והוצאות ================= */
   // הכנסה = כל הצעה חתומה (לפי מועד החתימה וסכום ההצעה). הוצאות — באוסף snapbox_expenses (רק לבעלים).
   const CATS = ['ציוד ותחזוקה','נייר והדפסות','נסיעות ודלק','שיווק ופרסום','עובדים ועוזרים','מנויים ותוכנות','אחר'];
-  let EXP = [], expUnsub = null, expErr = '', booksChart = null;
+  let EXP = [], INC = [], expUnsub = null, incUnsub = null, expErr = '', booksChart = null;
   document.getElementById('ex-date').value = iso(new Date());
   document.getElementById('ex-cat').innerHTML = CATS.map(c => `<option>${c}</option>`).join('');
   function startExpenses(){
+    if (!incUnsub && fs) incUnsub = fs.onSnapshot(fs.query(fs.collection(db, 'snapbox_incomes'), fs.orderBy('date', 'desc'), fs.limit(2000)), snap => {
+      INC = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderBooks();
+    }, err => { console.warn('incomes', err); incUnsub = null; });
     if (expUnsub || !fs) return;
     expUnsub = fs.onSnapshot(fs.query(fs.collection(db, 'snapbox_expenses'), fs.orderBy('date', 'desc'), fs.limit(2000)), snap => {
       expErr = ''; EXP = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderBooks();
@@ -909,22 +921,61 @@
   });
   document.getElementById('bk-year').addEventListener('change', renderBooks);
   const incomeRows = () => SIGNED().map(q => ({ q, d: tsDate(q.signedAt) })).filter(x => x.d)
-    .map(x => ({ id: x.q.id, date: iso(x.d), amount: Number(x.q.price) || 0, label: `${x.q.clientName || ''} · ${x.q.eventType || ''}`, eventDate: x.q.date || '' }));
+    .map(x => ({ id: x.q.id, date: iso(x.d), amount: Number(x.q.price) || 0, label: `${x.q.clientName || ''} · ${x.q.eventType || ''}`, eventDate: x.q.date || '' }))
+    .concat(INC.map(r => ({ id: r.id, date: String(r.date), amount: Number(r.amount) || 0, label: r.label || '', eventDate: '', manual: true, category: r.category || '' })));
+
+  /* ---- ייבוא מאקסל: הכנסות (snapbox_incomes) והוצאות (snapbox_expenses) ---- */
+  let impKind = 'expense';
+  document.getElementById('imp-inc').addEventListener('click', () => { impKind = 'income'; document.getElementById('imp-file').click(); });
+  document.getElementById('imp-exp').addEventListener('click', () => { impKind = 'expense'; document.getElementById('imp-file').click(); });
+  document.getElementById('imp-sample').addEventListener('click', () => download('דוגמה-הכנסות-הוצאות.csv', SheetImport.sample('expense')));
+  document.getElementById('imp-file').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (f) await importFile(f, impKind); });
+  document.getElementById('inc-list').addEventListener('click', async e => {
+    const b = e.target.closest('button.inc-del'); if (!b || !confirm('למחוק את ההכנסה?')) return;
+    try { await fs.deleteDoc(fs.doc(db, 'snapbox_incomes', b.dataset.id)); } catch(err){ alert('המחיקה נכשלה.'); }
+  });
+  async function importFile(file, kind){
+    const msg = document.getElementById('imp-msg'), name = kind === 'income' ? 'הכנסות' : 'הוצאות';
+    msg.textContent = 'קורא את הקובץ…';
+    let res;
+    try { res = await SheetImport.parse(file, kind); } catch(e) { msg.textContent = SheetImport.message(e); return; }
+    const have = new Set((kind === 'income' ? INC : EXP).map(SheetImport.key));
+    const fresh = res.items.filter(x => !have.has(SheetImport.key(x))), dup = res.items.length - fresh.length;
+    if (!fresh.length) { msg.textContent = res.items.length ? `כל ${res.items.length} השורות כבר קיימות — לא נוסף כלום.` : `לא נמצאו שורות עם תאריך וסכום. ${res.skipped ? '(' + res.skipped + ' שורות דולגו)' : ''} אפשר להוריד קובץ דוגמה.`; return; }
+    const sum = fresh.reduce((t, x) => t + x.amount, 0);
+    const lines = [`נמצאו ${fresh.length} ${name} בסך ${money(sum)}.`];
+    if (dup) lines.push(`${dup} שורות כבר קיימות ולא ייובאו שוב.`);
+    if (res.skipped) lines.push(`${res.skipped} שורות בלי תאריך או סכום דולגו (למשל שורת סה"כ).`);
+    lines.push('', 'לדוגמה:', ...fresh.slice(0, 3).map(x => `• ${x.date.split('-').reverse().join('/')} · ${x.label} · ${money(x.amount)}`), '', 'לייבא?');
+    if (!confirm(lines.join('\n'))) { msg.textContent = 'הייבוא בוטל.'; return; }
+    const col = fs.collection(db, kind === 'income' ? 'snapbox_incomes' : 'snapbox_expenses');
+    try {
+      for (let i = 0; i < fresh.length; i += 400) {
+        const b = fs.writeBatch(db);
+        fresh.slice(i, i + 400).forEach(x => b.set(fs.doc(col), { date: x.date, amount: x.amount, label: x.label, category: x.category, createdAt: fs.serverTimestamp() }));
+        await b.commit();
+        msg.textContent = `מייבא… ${Math.min(i + 400, fresh.length)}/${fresh.length}`;
+      }
+      msg.textContent = `✓ יובאו ${fresh.length} ${name} (${money(sum)}).`;
+      if (!incUnsub || !expUnsub) startExpenses();
+      renderBooks();
+    } catch(err) { msg.textContent = err.code === 'permission-denied' ? 'אין הרשאה לשמור — צריך לעדכן את ההרשאה ב-Firebase (ההסבר בצ׳אט).' : 'הייבוא נכשל (' + (err.code || err.message) + ').'; }
+  }
   function renderBooks(){
     if (curTab !== 'books') return;
     const sel = document.getElementById('bk-year'), cur = sel.value || String(new Date().getFullYear());
-    const ys = new Set([new Date().getFullYear()]); incomeRows().forEach(r => ys.add(+r.date.slice(0, 4))); EXP.forEach(r => ys.add(+String(r.date).slice(0, 4)));
+    const ys = new Set([new Date().getFullYear()]); incomeRows().forEach(r => ys.add(+String(r.date).slice(0, 4))); EXP.forEach(r => ys.add(+String(r.date).slice(0, 4)));
     sel.innerHTML = [...ys].filter(Boolean).sort((a, b) => b - a).map(y => `<option value="${y}"${String(y) === cur ? ' selected' : ''}>${y}</option>`).join('');
-    const Y = sel.value, inc = incomeRows().filter(r => r.date.startsWith(Y)), exp = EXP.filter(r => String(r.date).startsWith(Y));
+    const Y = sel.value, inc = incomeRows().filter(r => String(r.date).startsWith(Y)), exp = EXP.filter(r => String(r.date).startsWith(Y));
     const sum = l => l.reduce((s, r) => s + (Number(r.amount) || 0), 0);
     const now = new Date(), thisM = now.getFullYear() + '-' + pad(now.getMonth() + 1);
-    const mInc = sum(incomeRows().filter(r => r.date.startsWith(thisM))), mExp = sum(EXP.filter(r => String(r.date).startsWith(thisM)));
+    const mInc = sum(incomeRows().filter(r => String(r.date).startsWith(thisM))), mExp = sum(EXP.filter(r => String(r.date).startsWith(thisM)));
     const yInc = sum(inc), yExp = sum(exp);
     const k = (n, l, cls) => `<div class="card kpi${cls ? ' ' + cls : ''}"><div class="n">${n}</div><div class="l">${l}</div></div>`;
     document.getElementById('bk-kpis').innerHTML = k(money(mInc), 'הכנסות החודש') + k(money(mExp), 'הוצאות החודש') + k(money(mInc - mExp), 'רווח החודש', mInc - mExp >= 0 ? 'pos' : 'neg')
       + k(money(yInc), 'הכנסות ' + Y) + k(money(yExp), 'הוצאות ' + Y) + k(money(yInc - yExp), 'רווח ' + Y, yInc - yExp >= 0 ? 'pos' : 'neg');
-    document.getElementById('inc-list').innerHTML = inc.length ? `<table class="mini"><thead><tr><th>נחתם</th><th>לקוח · אירוע</th><th>תאריך האירוע</th><th>סכום</th></tr></thead><tbody>${inc.sort((a, b) => b.date.localeCompare(a.date)).map(r =>
-      `<tr><td>${r.date.split('-').reverse().join('/')}</td><td>${esc(r.label)}</td><td dir="ltr">${esc(r.eventDate)}</td><td class="num">${money(r.amount)}</td></tr>`).join('')}</tbody></table>`
+    document.getElementById('inc-list').innerHTML = inc.length ? `<table class="mini"><thead><tr><th>תאריך</th><th>תיאור</th><th>מקור</th><th>סכום</th><th></th></tr></thead><tbody>${inc.sort((a, b) => b.date.localeCompare(a.date)).map(r =>
+      `<tr><td>${r.date.split('-').reverse().join('/')}</td><td>${esc(r.label)}</td><td>${r.manual ? esc(r.category || 'ייבוא') : 'חוזה חתום' + (r.eventDate ? ' · <span dir="ltr">' + esc(r.eventDate) + '</span>' : '')}</td><td class="num">${money(r.amount)}</td><td>${r.manual ? `<button type="button" class="rowbtn danger inc-del" data-id="${esc(r.id)}">מחיקה</button>` : ''}</td></tr>`).join('')}</tbody></table>`
       : '<p class="hint">עדיין אין הכנסות בשנה הזו. כל הסכם שהלקוח חותם נכנס לכאן לבד.</p>';
     document.getElementById('ex-list').innerHTML = expErr ? `<p class="hint" style="color:var(--amber)">${esc(expErr)}</p>` : exp.length ? `<table class="mini"><thead><tr><th>תאריך</th><th>תיאור</th><th>קטגוריה</th><th>סכום</th><th></th></tr></thead><tbody>${exp.map(r =>
       `<tr><td>${String(r.date).split('-').reverse().join('/')}</td><td>${esc(r.label)}</td><td>${esc(r.category || '')}</td><td class="num">${money(r.amount)}</td><td><button type="button" class="rowbtn danger ex-del" data-id="${esc(r.id)}">מחיקה</button></td></tr>`).join('')}</tbody></table>`
@@ -947,7 +998,7 @@
   document.getElementById('bk-csv').addEventListener('click', () => {
     const Y = document.getElementById('bk-year').value, q = s => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
     const rows = [['סוג','תאריך','תיאור','קטגוריה','סכום']];
-    incomeRows().filter(r => r.date.startsWith(Y)).forEach(r => rows.push(['הכנסה', r.date, r.label, 'חוזה חתום', r.amount]));
+    incomeRows().filter(r => String(r.date).startsWith(Y)).forEach(r => rows.push(['הכנסה', r.date, r.label, r.manual ? (r.category || 'ייבוא') : 'חוזה חתום', r.amount]));
     EXP.filter(r => String(r.date).startsWith(Y)).forEach(r => rows.push(['הוצאה', r.date, r.label, r.category || '', r.amount]));
     download(`snapbox-income-expenses-${Y}.csv`, new Blob(['\ufeff' + rows.map(r => r.map(q).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
   });

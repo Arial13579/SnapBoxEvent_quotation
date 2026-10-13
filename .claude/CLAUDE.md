@@ -9,11 +9,12 @@
   מקדמה (ברירת מחדל 200) + ☐ שולמה, ☐ שולם (**כל השורה בירוק בהיר** + תג), ☐ הכנסתי את האירוע, ההערות שלי. שמירה בכפתור.
   הערכים הערוכים (`M(q)`) גוברים על ההצעה בכל מקום: טבלה, יומן, Google/ics, הכנסות. ההצעה החתומה עצמה לא משתנה (מוצג "בחוזה החתום: ₪X").
 - **יומן אירועים**: רק הצעות חתומות, לפי תאריך האירוע (dd/mm/yyyy). כרטיס: שם, חתן/כלה, סוג, מיקום, שעות + כמות, מחיר/חבילה/מקדמה/יתרה, הערות, ההערות שלי, Google Calendar, Waze, החוזה החתום, ics.
-- **הכנסות והוצאות**: הכנסה = כל הצעה חתומה (לפי מועד החתימה, והמחיר אחרי עריכה — אחרת מחיר החוזה). הוצאות ידניות (`snapbox_expenses`). מדדים חודש/שנה, גרף, CSV.
+- **הכנסות והוצאות**: הכנסה = כל הצעה חתומה (לפי מועד החתימה, והמחיר אחרי עריכה — אחרת מחיר החוזה) + הכנסות מיובאות (`snapbox_incomes`). הוצאות ידניות/מיובאות (`snapbox_expenses`). מדדים חודש/שנה, גרף, CSV.
+- **ייבוא מאקסל** (2026-10-13): "📥 ייבוא הכנסות מאקסל" / "📥 ייבוא הוצאות מאקסל" + קובץ דוגמה. `sheet-import.js` (עותק של `system.snapbox/vendors/sheet-import.js` — לשמור זהים): xlsx/CSV בלי ספרייה, זיהוי עמודות, אישור, בלי כפולים.
 
 ## נתונים
 - `snapbox_quotes/{id}` — ההצעה. **הלקוח יכול לקרוא אותה לפי מזהה (הקישור `?k=`)** — לכן אסור לשמור בה מידע פנימי.
 - `snapbox_events/{quoteId}` = `{clientName, couple, eventType, date dd/mm/yyyy, startTime, endTime, location, guests, notes, pkg ('custom'/מפתח), price, deposit, depositPaid, paid, entered, ownerNotes, updatedAt}` — רק חשבון העסק. (`pkgPrice` — מגרסה קודמת, נקרא אם אין `price`.) הכלל: רק חשבון העסק, עד 40 שדות (בלי רשימת שדות — כדי שלא יצטרכו להדביק שוב בכל שינוי).
-- `snapbox_expenses/{id}` = `{date YYYY-MM-DD, amount, label, category, createdAt}` — רק חשבון העסק.
+- `snapbox_expenses/{id}`, `snapbox_incomes/{id}` = `{date YYYY-MM-DD, amount, label, category, createdAt}` — רק חשבון העסק.
 - **הכללים המלאים שפורסמו (2026-10-13):** `_tests/firestore-full.rules` (כולל guests/meta של אתר החתונה; ב-`snapbox_quotes` רשימה/עריכה/מחיקה רק לחשבון העסק). הקטע לבד: `_tests/firestore-snippet.rules` — להדביק **בתוך** `match /databases/{database}/documents { … }` בכללים הקיימים (Firebase ← wedding-rsvp-e2e0f ← Firestore ← Rules/Security ← Publish). בלי זה: היומן וההכנסות עובדים, השמירה של השדות שלי וההוצאות מציגה הודעה ברורה.
 - בדיקה: `_tests/dashboard.e2e.js` (אמולטורים, `RULES=open|closed`).

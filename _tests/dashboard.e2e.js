@@ -159,11 +159,35 @@ const WRAP = {
     check(/אין הרשאה|צריך להוסיף הרשאה/.test(await p.textContent('#ex-msg') + await p.textContent('#ex-list')), 'clear message until the rule is published');
     check(/₪6,400 ?הכנסות החודש/.test(await k()), 'income still works');
   }
+  if (OPEN) {
+    console.log('3b. Import from Excel');
+    const IMP = S + '/imp/', dialogs = []; p.on('dialog', d => dialogs.push(d.message()));
+    const pick = async (btn, file) => { const [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click(btn)]); await fc.setFiles(IMP + file); };
+    await pick('#imp-exp', 'exp.xlsx');
+    await p.waitForFunction(() => /יובאו/.test(document.getElementById('imp-msg').textContent), null, { timeout: 15000 }).catch(() => {});
+    check(/✓ יובאו 3 הוצאות/.test(await p.textContent('#imp-msg')) && /נמצאו 3 הוצאות/.test(dialogs.join(' ')), 'xlsx expenses imported after confirmation: ' + await p.textContent('#imp-msg'));
+    await p.waitForTimeout(600);
+    check(/נייר הדפסה/.test(await p.textContent('#ex-list')), 'imported expenses listed');
+    await pick('#imp-exp', 'exp.xlsx');
+    await p.waitForFunction(() => /כבר קיימות/.test(document.getElementById('imp-msg').textContent), null, { timeout: 10000 }).catch(() => {});
+    check(/כבר קיימות/.test(await p.textContent('#imp-msg')), 'no duplicates on re-import');
+    await pick('#imp-inc', 'inc-nohead.xlsx');
+    await p.waitForFunction(() => /יובאו 3 הכנסות/.test(document.getElementById('imp-msg').textContent), null, { timeout: 15000 }).catch(() => {});
+    await p.waitForTimeout(600);
+    check(/✓ יובאו 3 הכנסות \(₪7,500\)/.test(await p.textContent('#imp-msg')) && /אירוע כהן/.test(await p.textContent('#inc-list')) && await p.locator('#inc-list .inc-del').count() === 3, 'incomes imported and listed next to signed contracts');
+    await pick('#imp-exp', 'old.xls');
+    await p.waitForFunction(() => /xls/.test(document.getElementById('imp-msg').textContent), null, { timeout: 10000 }).catch(() => {});
+    check(/שמירה בשם/.test(await p.textContent('#imp-msg')), 'old .xls → clear message');
+    await p.click('#inc-list .inc-del >> nth=0'); await p.waitForTimeout(800);
+    check(await p.locator('#inc-list .inc-del').count() === 2, 'imported income can be deleted');
+    await axe(p, 'income & expenses with import');
+    await p.screenshot({ path: S + '/q/import.png', fullPage: true });
+  }
   await p.reload(); await p.waitForTimeout(1500);  if (await p.isVisible('#signInBtn')) await p.click('#signInBtn'); await p.waitForSelector('#tbody tr td.name', { timeout: 20000, state: 'attached' });
   check(await p.isVisible('#tab-books') && await p.isHidden('#tab-quotes'), 'reload keeps the tab (#books)');
   for (const w of [320, 768, 1280]) { await p.setViewportSize({ width: w, height: 800 });
     for (const t of ['quotes', 'cal', 'books']) { await p.click(`.tabs button[data-tab=${t}]`); await p.waitForTimeout(300);
-      check(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `no sideways scroll: ${t} @${w}px`); } }
+      check(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `no sideways scroll: ${t} @${w}px`); if (process.env.DBG) console.log('OVF', t, w, await p.evaluate(() => [document.documentElement.scrollWidth, innerWidth, (() => { const out = []; const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n; while ((n = tw.nextNode()) && out.length < 5) { const r = document.createRange(); r.selectNodeContents(n); const b = r.getBoundingClientRect(); if (b.width && (b.right > innerWidth + 1 || b.left < -1)) out.push(n.parentElement.tagName + '#' + n.parentElement.id + ' ' + JSON.stringify(n.textContent.slice(0, 40)) + ' ' + Math.round(b.left) + '..' + Math.round(b.right)); } return out; })()].concat([...document.querySelectorAll('body *')].filter(e => e.getBoundingClientRect().width && (e.getBoundingClientRect().right > innerWidth + 1 || e.getBoundingClientRect().left < -1)).slice(0, 8).map(e => e.tagName + '#' + e.id + '.' + e.className + ' ' + Math.round(e.getBoundingClientRect().left) + '..' + Math.round(e.getBoundingClientRect().right))))); } }
   await p.setViewportSize({ width: 390, height: 844 }); await p.click('.tabs button[data-tab=cal]'); await p.waitForTimeout(400);
   await p.screenshot({ path: S + '/q/cal.png', fullPage: true });
   check(!errors.length, 'no page errors' + (errors.length ? ': ' + errors.join(' | ') : ''));
