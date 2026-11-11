@@ -181,6 +181,15 @@
   .info .wide{ grid-column:1/-1; }
   .info .v.note{ font-weight:600; font-size:14px; white-space:pre-wrap; }
   .ref{ font-size:12px; color:var(--txt-faint); margin-top:5px; }
+  .disc-row{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+  .disc-btn{ min-height:44px; border-radius:12px; cursor:pointer; font-family:inherit; font-weight:800; font-size:14px; touch-action:manipulation;
+    color:var(--txt); background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); transition:border-color .2s, background .2s, transform .15s; }
+  .disc-btn:hover{ border-color:rgba(94,234,212,.4); }
+  .disc-btn:active{ transform:scale(.97); }
+  .disc-btn[aria-pressed="true"]{ color:#04211D; border-color:transparent; background:linear-gradient(135deg,#5EEAD4,#2DD4BF 55%,#0D9488); }
+  .disc-custom{ display:flex; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap; font-size:12px; color:var(--txt-dim); }
+  .disc-custom .fld{ width:90px; text-align:center; }
+  .disc-sum{ font-size:13.5px; font-weight:800; color:#5EEAD4; margin-top:8px; }
   .dlg-st{ font-size:13px; min-height:18px; margin:4px 0 0; }
   .gbtn.sm{ padding:10px 18px; font-size:13.5px; }
   .chk{ display:flex; align-items:center; gap:9px; font-size:14px; font-weight:800; cursor:pointer; min-height:40px; }
@@ -322,6 +331,15 @@
     <div class="grp"><h3>מחיר ותשלום</h3><div class="g2">
       <div><label class="lbl" for="ee-pkg">סוג חבילה</label><select class="fld" id="ee-pkg"></select></div>
       <div><label class="lbl" for="ee-price">מחיר (₪)</label><input class="fld" id="ee-price" type="number" min="0" step="1" inputmode="numeric"><div class="ref" id="ee-ref"></div></div>
+      <div class="wide"><span class="lbl">הנחה</span>
+        <div class="disc-row" role="group" aria-label="בחירת הנחה">
+          <button type="button" class="disc-btn" data-disc="0" aria-pressed="true">ללא הנחה</button>
+          <button type="button" class="disc-btn" data-disc="10" aria-pressed="false">10% הנחה</button>
+          <button type="button" class="disc-btn" data-disc="15" aria-pressed="false">15% הנחה</button>
+        </div>
+        <div class="disc-custom"><label for="ee-disc">או אחוז אחר:</label><input class="fld" id="ee-disc" type="number" min="0" max="100" step="1" inputmode="decimal" placeholder="0"><span>%</span></div>
+        <div class="disc-sum" id="ee-discSum" role="status"></div>
+      </div>
       <div><label class="lbl" for="ee-deposit">מקדמה (₪)</label><input class="fld" id="ee-deposit" type="number" min="0" step="1" inputmode="numeric"></div>
       <label class="chk"><input type="checkbox" id="ee-depPaid"> המקדמה שולמה</label>
       <label class="chk"><input type="checkbox" id="ee-paid"> שולם (השורה תהיה בירוק)</label>
@@ -656,6 +674,10 @@
     const E = EVENTS[q.id] || {}, o = Object.assign({}, q, { contractPrice: q.price, contractDeposit: q.deposit });
     OVR.forEach(k => { if (E[k] !== undefined && E[k] !== null && E[k] !== '') o[k] = E[k]; });
     if ((E.price === undefined || E.price === null) && E.pkgPrice) o.price = E.pkgPrice;   // שמירה מגרסה קודמת
+    // הנחה: אם ערכתי מחיר — ההנחה מהעריכה שלי (או בלי הנחה); אחרת — ההנחה מההצעה המקורית
+    if (E.price !== undefined && E.price !== null && E.price !== '') { o.discountPct = Number(E.discountPct) || 0; o.listPrice = Number(E.listPrice) || 0; }
+    else { o.discountPct = Number(q.discountPct) || 0; o.listPrice = Number(q.listPrice) || 0; }
+    if (!(o.discountPct > 0 && o.listPrice > Number(o.price))) { o.discountPct = 0; o.listPrice = 0; }
     return o;
   }
   const isoFromDmy = d => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(d || '').trim()); return m ? `${m[3]}-${m[2]}-${m[1]}` : ''; };
@@ -678,7 +700,7 @@
       ${box('📍 מיקום', esc(q.location || '—'))}
       ${box('👥 מוזמנים', esc(q.guests || '—'))}
       ${box('📦 חבילה', pk ? `${pk[1]} · ${money(pk[2])}` : E.pkg === 'custom' ? 'מחיר מותאם אישית' : '—')}
-      ${box('💰 מחיר', money(q.price) + (Number(q.contractPrice) !== Number(q.price) ? `<div class="ref">בחוזה החתום: ${money(q.contractPrice)}</div>` : ''))}
+      ${box('💰 מחיר', money(q.price) + (q.discountPct ? `<div class="ref">אחרי ${q.discountPct}% הנחה · לפני הנחה: ${money(q.listPrice)}</div>` : '') + (Number(q.contractPrice) !== Number(q.price) ? `<div class="ref">בחוזה החתום: ${money(q.contractPrice)}</div>` : ''))}
       ${box('💵 מקדמה', money(q.deposit) + (E.depositPaid ? ' · <span class="tag ok" style="margin:0">שולמה ✓</span>' : ' · <span class="tag wait" style="margin:0">לא שולמה</span>'))}
       ${box('🧾 יתרה לגבייה', E.paid ? '<span class="tag ok" style="margin:0">שולם הכול ✓</span>' : money(bal))}
       ${box('📌 הכנסתי את האירוע', E.entered ? '✓ כן' : 'עדיין לא')}
@@ -698,6 +720,23 @@
   /* ---- חלון "עריכת פרטי אירוע" ---- */
   $id('ee-pkg').innerHTML = '<option value="">בחירת חבילה…</option>' + PACKAGES.map(p => `<option value="${p[0]}">${p[1]} · ${money(p[2])}</option>`).join('') + '<option value="custom">מחיר מותאם אישית ✍️</option>';
   function editHours(){ const h = evHours({ startTime: $id('ee-start').value, endTime: $id('ee-end').value }); $id('ee-hours').textContent = h != null ? '⏱ ' + hoursText(h) : ''; }
+  let EE_DISC = 0;
+  const discounted = (p, d) => Math.round((Number(p) || 0) * (1 - (Number(d) || 0) / 100));
+  function setEditDisc(v, fromInput){
+    let n = Number(v); if (!isFinite(n) || n < 0) n = 0; if (n > 100) n = 100;
+    EE_DISC = n;
+    document.querySelectorAll('#evEdit .disc-btn').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.disc) === n)));
+    if (!fromInput) $id('ee-disc').value = n ? n : '';
+    editDiscSum();
+  }
+  function editDiscSum(){
+    const p = Number($id('ee-price').value) || 0, el = $id('ee-discSum');
+    if (!EE_DISC || !p) { el.textContent = ''; return; }
+    const f = discounted(p, EE_DISC);
+    el.textContent = `מחיר סופי אחרי ${EE_DISC}% הנחה: ${money(f)} (במקום ${money(p)} · חיסכון ${money(p - f)})`;
+  }
+  document.querySelectorAll('#evEdit .disc-btn').forEach(b => b.addEventListener('click', () => setEditDisc(b.dataset.disc)));
+  $id('ee-disc').addEventListener('input', () => setEditDisc($id('ee-disc').value, true));
   function openEdit(id){
     const q0 = QUOTES.find(x => x.id === id); if (!q0) return;
     EDIT_ID = id;
@@ -706,7 +745,8 @@
     $id('ee-name').value = q.clientName || ''; $id('ee-couple').value = E.couple || ''; $id('ee-type').value = q.eventType || '';
     $id('ee-date').value = isoFromDmy(q.date); $id('ee-start').value = q.startTime || ''; $id('ee-end').value = q.endTime || '';
     $id('ee-loc').value = q.location || ''; $id('ee-guests').value = q.guests || ''; $id('ee-notes').value = q.notes || '';
-    $id('ee-pkg').value = E.pkg || ''; $id('ee-price').value = Number(q.price) || 0;
+    $id('ee-pkg').value = E.pkg || ''; $id('ee-price').value = q.discountPct ? q.listPrice : (Number(q.price) || 0);
+    setEditDisc(q.discountPct || 0);
     $id('ee-deposit').value = E.deposit != null && E.deposit !== '' ? E.deposit : (Number(q.contractDeposit) || 200);
     $id('ee-depPaid').checked = !!E.depositPaid; $id('ee-paid').checked = !!E.paid; $id('ee-entered').checked = !!E.entered;
     $id('ee-own').value = E.ownerNotes || '';
@@ -715,8 +755,8 @@
     editHours();
     if (!$id('evEdit').open) $id('evEdit').showModal();
   }
-  $id('ee-pkg').addEventListener('change', () => { const pk = pkgOf($id('ee-pkg').value); if (pk) $id('ee-price').value = pk[2]; else if ($id('ee-pkg').value === 'custom') { $id('ee-price').focus(); $id('ee-price').select(); } });
-  $id('ee-price').addEventListener('input', () => { const pk = pkgOf($id('ee-pkg').value); if (pk && Number($id('ee-price').value) !== pk[2]) $id('ee-pkg').value = 'custom'; });
+  $id('ee-pkg').addEventListener('change', () => { const pk = pkgOf($id('ee-pkg').value); if (pk) { $id('ee-price').value = pk[2]; editDiscSum(); } else if ($id('ee-pkg').value === 'custom') { $id('ee-price').focus(); $id('ee-price').select(); } });
+  $id('ee-price').addEventListener('input', () => { const pk = pkgOf($id('ee-pkg').value); if (pk && Number($id('ee-price').value) !== pk[2]) $id('ee-pkg').value = 'custom'; editDiscSum(); });
   ['ee-start','ee-end'].forEach(x => $id(x).addEventListener('input', editHours));
   $id('ee-cancel').addEventListener('click', () => $id('evEdit').close());
   $id('ee-x').addEventListener('click', () => $id('evEdit').close());
@@ -724,14 +764,15 @@
     e.preventDefault();
     const id = EDIT_ID, st = $id('ee-st'), b = $id('ee-save'); if (!id) return;
     const cut = (v, n) => String(v || '').trim().slice(0, n);
-    const price = Math.round(Number($id('ee-price').value) * 100) / 100, deposit = Math.round(Number($id('ee-deposit').value) * 100) / 100;
+    const listPrice = Math.round(Number($id('ee-price').value) * 100) / 100, disc = listPrice > 0 ? EE_DISC : 0,
+          price = disc ? discounted(listPrice, disc) : listPrice, deposit = Math.round(Number($id('ee-deposit').value) * 100) / 100;
     if (!cut($id('ee-name').value, 1)) { st.textContent = 'צריך שם לקוח.'; $id('ee-name').focus(); return; }
     if (!(price >= 0) || !(deposit >= 0)) { st.textContent = 'מחיר ומקדמה צריכים להיות מספרים.'; return; }
     const data = {
       clientName: cut($id('ee-name').value, 120), couple: cut($id('ee-couple').value, 120), eventType: cut($id('ee-type').value, 80),
       date: dmyFromIso($id('ee-date').value), startTime: $id('ee-start').value || '', endTime: $id('ee-end').value || '',
       location: cut($id('ee-loc').value, 200), guests: cut($id('ee-guests').value, 20), notes: cut($id('ee-notes').value, 2000),
-      pkg: $id('ee-pkg').value || '', price, deposit,
+      pkg: $id('ee-pkg').value || '', price, deposit, discountPct: disc, listPrice: disc ? listPrice : 0,
       depositPaid: $id('ee-depPaid').checked, paid: $id('ee-paid').checked, entered: $id('ee-entered').checked,
       ownerNotes: cut($id('ee-own').value, 2000), updatedAt: fs.serverTimestamp()
     };
@@ -779,7 +820,7 @@
     const E = EVENTS[q.id] || {}, pk = pkgOf(E.pkg), h = evHours(q);
     return [`לקוח: ${q.clientName || ''}`, E.couple ? `חתן/כלה: ${E.couple}` : '', `סוג אירוע: ${q.eventType || ''}`, q.location ? `מקום: ${q.location}` : '',
       q.startTime ? `שעות: ${q.startTime}${q.endTime ? '–' + q.endTime : ''}${h != null ? ' (' + hoursText(h) + ')' : ''}` : '', q.guests ? `מוזמנים: ${q.guests}` : '', pk ? `חבילה: ${pk[1]}` : '',
-      `מחיר: ${money(q.price)} · מקדמה: ${money(q.deposit)} · יתרה: ${money(bal)}`, q.notes ? `הערות: ${q.notes}` : ''].filter(Boolean).join('\n');
+      `מחיר: ${money(q.price)}${q.discountPct ? ` (אחרי ${q.discountPct}% הנחה, לפני: ${money(q.listPrice)})` : ''} · מקדמה: ${money(q.deposit)} · יתרה: ${money(bal)}`, q.notes ? `הערות: ${q.notes}` : ''].filter(Boolean).join('\n');
   }
   // שעת סיום לפני ההתחלה = אחרי חצות (היום הבא)
   function evTimes(q){
@@ -868,7 +909,7 @@
         <div class="ev-body">
           <h4>${esc(q.clientName || '')}${E.couple ? ` · ${esc(E.couple)}` : ''}${fresh(q) ? '<span class="badge-new">נחתם עכשיו</span>' : ''}${E.paid ? '<span class="tag ok">שולם ✓</span>' : E.depositPaid ? '<span class="tag wait">מקדמה שולמה</span>' : ''}</h4>
           <div class="ev-meta"><span>🎉 ${esc(q.eventType || 'אירוע')}</span>${q.location ? `<span>📍 ${esc(q.location)}</span>` : ''}${q.startTime ? `<span>🕒 <b dir="ltr">${esc(q.startTime)}${q.endTime ? '–' + esc(q.endTime) : ''}</b></span>` : ''}${evHours(q) != null ? `<span>⏱ ${hoursText(evHours(q))}</span>` : ''}${q.guests ? `<span>👥 ${esc(q.guests)} מוזמנים</span>` : ''}</div>
-          <div class="ev-money"><span>מחיר <b>${money(q.price)}</b></span>${pkgOf(E.pkg) ? `<span>חבילה <b>${pkgOf(E.pkg)[1]}</b></span>` : ''}<span>מקדמה <b>${money(q.deposit)}</b></span><span>יתרה לגבייה <b>${money(bal)}</b></span></div>
+          <div class="ev-money"><span>מחיר <b>${money(q.price)}</b>${q.discountPct ? ` (${q.discountPct}% הנחה)` : ''}</span>${pkgOf(E.pkg) ? `<span>חבילה <b>${pkgOf(E.pkg)[1]}</b></span>` : ''}<span>מקדמה <b>${money(q.deposit)}</b></span><span>יתרה לגבייה <b>${money(bal)}</b></span></div>
           <p class="hint" style="margin-top:6px">📝 הערות: ${q.notes ? esc(q.notes) : 'אין'}</p>${E.ownerNotes ? `<p class="hint" style="margin-top:2px">🗒 ההערות שלי: ${esc(E.ownerNotes)}</p>` : ''}
           <div class="ev-acts">
             <button type="button" class="rowbtn cal-view" data-id="${esc(q.id)}">📋 פרטי אירוע</button><button type="button" class="rowbtn cal-edit" data-id="${esc(q.id)}">✏️ עריכה</button>
