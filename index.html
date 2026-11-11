@@ -176,6 +176,8 @@
         .pay-btn.bit{ background:#00B4C5; color:#fff; }
         .pay-btn.paybox{ background:#1F6FEB; color:#fff; }
         .pay-btn.ghost{ min-height:40px; font-size:13px; background:rgba(255,255,255,.06); color:var(--txt); border-color:rgba(255,255,255,.15); }
+        .pay-phone{ -webkit-user-select:all; user-select:all; font-size:17px; letter-spacing:.02em; }
+        .pay-copy-msg{ min-height:18px; font-size:12.5px; font-weight:700; color:var(--turq-br); margin-top:6px; }
         .pay-note{ font-size:12px; color:var(--txt-faint); margin-top:10px; }
         /* ===== כפתורי הנחה ===== */
         .disc-row{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
@@ -363,7 +365,7 @@
                     <div><label class="lbl">תאריך האירוע *</label><input type="text" id="in_date" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY" oninput="formatDate(this, event); checkDateConflict()" onblur="checkDateConflict()"><div id="date-conflict" class="dc-box hidden" role="status" aria-live="polite"></div></div>
                     <div><label class="lbl">שעת תחילה *</label><input type="text" id="in_startTime" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="formatTime(this, event); onCalcInputs()"></div>
                     <div><label class="lbl">שעת סיום *</label><input type="text" id="in_endTime" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="formatTime(this, event); onCalcInputs()"></div>
-                    <div><label class="lbl">כמות מוזמנים (משוער) *</label><input type="number" id="in_guests" required min="1" class="field" placeholder="למשל 250" oninput="onCalcInputs()"></div>
+                    <div><label class="lbl">כמות מוזמנים (משוער) *</label><input type="text" id="in_guests" required inputmode="numeric" pattern="[1-9][0-9]*" maxlength="5" autocomplete="off" class="field" placeholder="למשל 250" oninput="this.value = this.value.replace(/[^0-9]/g, ''); onCalcInputs()"></div>
                     <div>
                         <label class="lbl">מרחק מתל אביב (ק"מ) — מחושב אוטומטית</label>
                         <input type="number" id="in_distance" min="0" class="field" placeholder="0" oninput="distanceTouched = true; onCalcInputs()">
@@ -1383,18 +1385,39 @@
             let h = `<div class="pay-card">
                 <p class="pay-title">💳 תשלום המקדמה · ₪${dep.toLocaleString()}</p>
                 <p class="pay-sub">כדי לשריין את התאריך, אפשר להעביר את המקדמה עכשיו:</p>`;
-            if (phone) h += `<div class="pay-row"><span>ב-Bit למספר <b dir="ltr">${esc(phoneTxt)}</b></span>
-                <button type="button" class="pay-btn ghost" onclick="copyPayPhone(this, '${phone}')">העתק מספר</button></div>`;
+            if (phone) h += `<div class="pay-row"><span>ב-Bit למספר <b id="pay-phone" class="pay-phone" dir="ltr">${esc(phoneTxt)}</b></span>
+                <button type="button" class="pay-btn ghost" onclick="copyPayPhone(this, '${phone}')">העתק מספר</button></div>
+                <p id="pay-copy-msg" class="pay-copy-msg" role="status" aria-live="polite"></p>`;
             h += `<div class="pay-btns">`;
             if (okUrl(pay.bitLink)) h += `<a class="pay-btn bit" href="${esc(pay.bitLink)}" target="_blank" rel="noopener">תשלום ב-Bit</a>`;
             if (okUrl(pay.payboxLink)) h += `<a class="pay-btn paybox" href="${esc(pay.payboxLink)}" target="_blank" rel="noopener">תשלום ב-PayBox</a>`;
             h += `</div><p class="pay-note">בהעברה כתבו את השם שלכם ואת תאריך האירוע (${esc(contractData.date || '')}).</p></div>`;
             return h;
         }
+        // העתקה שעובדת בכל דפדפן — גם בדפדפן שנפתח מתוך וואטסאפ/אינסטגרם (שם אין navigator.clipboard)
+        function copyTextFallback(text){
+            const ta = document.createElement('textarea');
+            ta.value = text; ta.setAttribute('readonly', '');
+            ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;font-size:16px;';
+            document.body.appendChild(ta);
+            ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);   // setSelectionRange — נדרש באייפון
+            let ok = false;
+            try { ok = document.execCommand('copy'); } catch(e){}
+            ta.remove();
+            return ok;
+        }
         function copyPayPhone(btn, phone){
-            const done = () => { btn.textContent = 'הועתק ✓'; setTimeout(() => btn.textContent = 'העתק מספר', 2000); };
-            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(phone).then(done).catch(done);
-            else done();
+            const msg = document.getElementById('pay-copy-msg');
+            const show = ok => {
+                btn.textContent = ok ? 'הועתק ✓' : 'העתק מספר';
+                if (msg) msg.textContent = ok ? 'המספר הועתק — אפשר להדביק באפליקציית Bit' : 'לא הצלחנו להעתיק אוטומטית — לחצו לחיצה ארוכה על המספר והעתיקו';
+                if (!ok) { const n = document.getElementById('pay-phone'); if (n) { const r = document.createRange(); r.selectNodeContents(n); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); } }
+                if (ok) setTimeout(() => { btn.textContent = 'העתק מספר'; if (msg) msg.textContent = ''; }, 2500);
+            };
+            // קודם הדרך הסינכרונית (בתוך הלחיצה עצמה — עובד גם באייפון ובדפדפנים פנימיים), ואז ה-API החדש
+            if (copyTextFallback(phone)) return show(true);
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(phone).then(() => show(true), () => show(false));
+            else show(false);
         }
 
         /* ================= מעקב "הלקוח פתח את ההצעה" =================

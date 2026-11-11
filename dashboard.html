@@ -325,7 +325,7 @@
       <div><label class="lbl" for="ee-start">שעת התחלה</label><input class="fld" id="ee-start" type="time"></div>
       <div><label class="lbl" for="ee-end">שעת סיום</label><input class="fld" id="ee-end" type="time"><div class="ref" id="ee-hours"></div></div>
       <div class="wide"><label class="lbl" for="ee-loc">מיקום האירוע</label><input class="fld" id="ee-loc" maxlength="200"></div>
-      <div><label class="lbl" for="ee-guests">מוזמנים</label><input class="fld" id="ee-guests" inputmode="numeric" maxlength="20"></div>
+      <div><label class="lbl" for="ee-guests">מוזמנים</label><input class="fld" id="ee-guests" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="20" autocomplete="off" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
       <div class="wide"><label class="lbl" for="ee-notes">הערות (של הלקוח)</label><textarea class="fld" id="ee-notes" rows="2" maxlength="2000"></textarea></div>
     </div></div>
     <div class="grp"><h3>מחיר ותשלום</h3><div class="g2">
