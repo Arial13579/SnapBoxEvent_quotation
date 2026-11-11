@@ -52,17 +52,19 @@ const WRAP = {
   check(await p.locator('.tabs button').count() === 3, '3 tabs: הצעות ולקוחות / יומן אירועים / הכנסות והוצאות');
 
   console.log('1b. "פרטי אירוע" / "עריכת פרטי אירוע" for signed clients');
-  check(await p.locator('#tbody .ev-view').count() === 2 && await p.locator('#tbody .ev-edit').count() === 2 && await p.locator('#tbody .ev-view[data-id="SB2"]').count() === 0, 'buttons only on signed clients (2), not on the pending one');
+  check(await p.locator('#tbody .ev-view').count() === 3 && await p.locator('#tbody .ev-edit').count() === 0, 'one "פרטי אירוע" button per row (no separate edit button)');
   check(await p.locator('#tbody tr.det').count() === 0, 'no details box under the rows any more');
   await p.click('#tbody .ev-view[data-id="SB1"]');
   await p.waitForSelector('#evView[open]');
   let vt = (await p.textContent('#vw-body')).replace(/\s+/g, ' ');
   check(/אולמי הגן/.test(vt) && /20:00–00:30/.test(vt) && /4\.5 שעות/.test(vt) && /₪2,900/.test(vt) && /כניסה צדדית/.test(vt) && /250/.test(vt) && (await p.textContent('#vw-title')).includes('משפחת לוי'), 'event details window: name, place, start–end, hours, price, guests, notes');
+  check(/לא הוזן/.test(vt) && await p.isVisible('#vw-edit'), 'phone not entered yet; pencil in the header');
   await axe(p, 'event details window');
   await p.screenshot({ path: S + '/q/vw.png' });
   await p.click('#vw-edit');
   await p.waitForSelector('#evEdit[open]');
   check(await p.inputValue('#ee-name') === 'משפחת לוי' && await p.inputValue('#ee-start') === '20:00' && await p.inputValue('#ee-end') === '00:30' && await p.inputValue('#ee-price') === '2900', 'edit window pre-filled from the signed quote');
+  await p.fill('#ee-phone', '050-7654321');
   await p.fill('#ee-couple', 'מאיה ודניאל');
   await p.selectOption('#ee-pkg', 'gold');
   check(await p.inputValue('#ee-price') === '1400', 'choosing "גולד" fills ₪1,400');
@@ -79,6 +81,10 @@ const WRAP = {
     await p.screenshot({ path: S + '/q/ee.png' });
     await p.click('#ee-save');
     await p.waitForSelector('#evEdit:not([open])', { timeout: 8000 }).catch(() => {});
+    await p.waitForSelector('#evView[open]', { timeout: 5000 }).catch(() => {});
+    const back = (await p.textContent('#vw-body')).replace(/\s+/g, ' ');
+    check(/050-7654321/.test(back) && /רק אתה רואה/.test(back) && await p.locator('#vw-body a[href^="https://wa.me/972507654321"]').count() === 1, 'after saving → back to the details: phone with WhatsApp / call');
+    await p.click('#vw-close');
     await p.waitForTimeout(600);
     check(await p.locator('#tbody tr.main.paid').count() === 1, '"שולם" → the client row turns light green');
     const bg = await p.evaluate(() => getComputedStyle(document.querySelector('#tbody tr.main.paid td')).backgroundColor);
@@ -88,6 +94,7 @@ const WRAP = {
     const F = (await emu('GET', 'snapbox_events/SB1')).body.fields || {};
     check(F.couple.stringValue === 'מאיה ודניאל' && F.pkg.stringValue === 'custom' && +(F.price.integerValue || F.price.doubleValue) === 1350 && +(F.deposit.integerValue || F.deposit.doubleValue) === 200 && F.location.stringValue === 'אולם חדש, ראשון לציון' && F.endTime.stringValue === '01:00' && F.paid.booleanValue && F.depositPaid.booleanValue && F.entered.booleanValue && F.ownerNotes.stringValue === 'להביא רקע לבן', 'all edits saved (separate from the quote)');
     const Q = (await emu('GET', 'snapbox_quotes/SB1')).body.fields;
+    check(F.clientPhone && F.clientPhone.stringValue === '050-7654321' && !('clientPhone' in Q), 'phone saved only in my private event details, not in the quote');
     check(+Q.price.integerValue === 2900 && Q.location.stringValue === 'אולמי הגן, ראשון לציון' && !('ownerNotes' in Q), 'the signed quote itself is unchanged (and holds no private notes)');
     const anon = await fetch(EMU + 'snapbox_events/SB1');
     check(anon.status === 403, 'nobody else can read my fields (' + anon.status + ')');
@@ -105,6 +112,8 @@ const WRAP = {
     await p.check('#ee-paid'); await p.click('#ee-save'); await p.waitForTimeout(1200);
     check(/אין הרשאה/.test(await p.textContent('#ee-st')) && await p.locator('#evEdit[open]').count() === 1, 'clear message until the rule is published (window stays open)');
     await p.click('#ee-cancel');
+    await p.waitForSelector('#evView[open]', { timeout: 5000 }).catch(() => {});
+    await p.click('#vw-close');
   }
 
   console.log('2. Calendar');
@@ -135,13 +144,16 @@ const WRAP = {
   await p.click('.tabs button[data-tab=books]');
   await p.waitForFunction(() => /(6,400|4,850)/.test(document.getElementById('bk-kpis').textContent), null, { timeout: 8000 }).catch(() => {});
   const k = async () => (await p.textContent('#bk-kpis')).replace(/\s+/g, ' ');
-  check((OPEN ? /₪4,850 ?הכנסות החודש/ : /₪6,400 ?הכנסות החודש/).test(await k()), 'income this month = 2 signatures (edited 1,350 / 2,900 + 3,500): ' + await k());
-  check(await p.locator('#inc-list tbody tr').count() >= 2, 'income list');
+  check((OPEN ? /הכנסות החודש ?₪4,850/ : /הכנסות החודש ?₪6,400/).test(await k()), 'income this month = 2 signatures (edited 1,350 / 2,900 + 3,500): ' + await k());
+  check(await p.locator('#inc-list .tx').count() >= 2, 'income list');
+  check(await p.evaluate(() => getComputedStyle(document.querySelector('#bk-kpis .bk-kpi.inc .n')).color === 'rgb(74, 222, 128)' && getComputedStyle(document.querySelector('#bk-kpis .bk-kpi.exp .n')).color === 'rgb(248, 113, 113)'), 'numbers: income green, expenses red');
+  await p.waitForTimeout(400);
+  check(await p.evaluate(() => { const c = window.Chart && Chart.getChart(document.getElementById('booksChart')); return !!c && c.data.datasets[0].backgroundColor === '#22C55E' && c.data.datasets[1].backgroundColor === '#EF4444'; }), 'chart: income green, expenses red');
   await p.fill('#ex-amount', '180'); await p.fill('#ex-label', 'נייר הדפסה'); await p.selectOption('#ex-cat', 'נייר והדפסות'); await p.click('#ex-add');
   if (OPEN) {
-    await p.waitForSelector('#ex-list tbody tr', { timeout: 8000 }).catch(() => {});
+    await p.waitForSelector('#ex-list .tx', { timeout: 8000 }).catch(() => {});
     check(/נייר הדפסה/.test(await p.textContent('#ex-list')), 'expense saved and listed');
-    check(/₪180 ?הוצאות החודש/.test(await k()) && /₪4,670 ?רווח החודש/.test(await k()), 'expenses + profit: ' + await k());
+    check(/הוצאות החודש ?₪180/.test(await k()) && /רווח החודש ?₪4,670/.test(await k()), 'expenses + profit: ' + await k());
     await p.waitForTimeout(500);
     check(await p.evaluate(() => { const c = Chart.getChart(document.getElementById('booksChart')); const m = new Date().getMonth(); return c && c.data.datasets[0].data[m] === 4850 && c.data.datasets[1].data[m] === 180; }), 'chart: income / expenses / profit by month');
     const [dl2] = await Promise.all([p.waitForEvent('download'), p.click('#bk-csv')]);
@@ -149,15 +161,15 @@ const WRAP = {
     await axe(p, 'income & expenses');
     await p.screenshot({ path: S + '/q/books.png', fullPage: true });
     await p.click('#ex-list .ex-del');
-    await p.waitForFunction(() => !document.querySelector('#ex-list tbody tr'), null, { timeout: 8000 }).catch(() => {});
-    check(await p.locator('#ex-list tbody tr').count() === 0, 'expense deleted');
+    await p.waitForFunction(() => !document.querySelector('#ex-list .tx'), null, { timeout: 8000 }).catch(() => {});
+    check(await p.locator('#ex-list .tx').count() === 0, 'expense deleted');
     // another Google account cannot read the expenses
     const r = await fetch(EMU.replace('/documents/', '/documents:runQuery'), { method: 'POST' });
     check(r.status === 403 || r.status === 400 || r.status === 401, 'no access without login (' + r.status + ')');
   } else {
     await p.waitForTimeout(1200);
     check(/אין הרשאה|צריך להוסיף הרשאה/.test(await p.textContent('#ex-msg') + await p.textContent('#ex-list')), 'clear message until the rule is published');
-    check(/₪6,400 ?הכנסות החודש/.test(await k()), 'income still works');
+    check(/הכנסות החודש ?₪6,400/.test(await k()), 'income still works');
   }
   if (OPEN) {
     console.log('3b. Import from Excel');
@@ -180,6 +192,8 @@ const WRAP = {
     check(/שמירה בשם/.test(await p.textContent('#imp-msg')), 'old .xls → clear message');
     await p.click('#inc-list .inc-del >> nth=0'); await p.waitForTimeout(800);
     check(await p.locator('#inc-list .inc-del').count() === 2, 'imported income can be deleted');
+    const del = await p.locator('#inc-list .inc-del').first().boundingBox();
+    check(del && del.width >= 36 && await p.locator('#inc-list .inc-del svg').count() > 0 && !(await p.locator('#inc-list .inc-del').first().innerText()).trim() && await p.evaluate(() => getComputedStyle(document.querySelector('#inc-list .inc-del')).color) === 'rgb(248, 113, 113)', 'delete = red trash icon (no text)');
     await axe(p, 'income & expenses with import');
     await p.screenshot({ path: S + '/q/import.png', fullPage: true });
   }
@@ -189,6 +203,48 @@ const WRAP = {
     for (const t of ['quotes', 'cal', 'books']) { await p.click(`.tabs button[data-tab=${t}]`); await p.waitForTimeout(300);
       check(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `no sideways scroll: ${t} @${w}px`); if (process.env.DBG) console.log('OVF', t, w, await p.evaluate(() => [document.documentElement.scrollWidth, innerWidth, (() => { const out = []; const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n; while ((n = tw.nextNode()) && out.length < 5) { const r = document.createRange(); r.selectNodeContents(n); const b = r.getBoundingClientRect(); if (b.width && (b.right > innerWidth + 1 || b.left < -1)) out.push(n.parentElement.tagName + '#' + n.parentElement.id + ' ' + JSON.stringify(n.textContent.slice(0, 40)) + ' ' + Math.round(b.left) + '..' + Math.round(b.right)); } return out; })()].concat([...document.querySelectorAll('body *')].filter(e => e.getBoundingClientRect().width && (e.getBoundingClientRect().right > innerWidth + 1 || e.getBoundingClientRect().left < -1)).slice(0, 8).map(e => e.tagName + '#' + e.id + '.' + e.className + ' ' + Math.round(e.getBoundingClientRect().left) + '..' + Math.round(e.getBoundingClientRect().right))))); } }
   await p.setViewportSize({ width: 390, height: 844 }); await p.click('.tabs button[data-tab=cal]'); await p.waitForTimeout(400);
+
+  console.log('4. Generator: client phone is private (event details only)');
+  {
+    const c2 = await b.newContext({ viewport: { width: 390, height: 844 }, locale: 'he-IL' }), errs2 = [];
+    await c2.route('**/*', async route => {
+      const u = route.request().url(), H = { 'Access-Control-Allow-Origin': '*' };
+      const m = u.match(/gstatic\.com\/firebasejs\/[\d.]+\/(firebase-(app|auth|firestore)\.js)$/);
+      if (m) return route.fulfill({ body: WRAP[m[1]], contentType: 'application/javascript', headers: H });
+      const l = u.match(/\/__fb\/(firebase-(app|auth|firestore)\.js)$/);
+      if (l) return route.fulfill({ body: fs.readFileSync(FB + l[1]), contentType: 'application/javascript', headers: H });
+      if (u.includes('unpkg.com/lucide')) return route.fulfill({ body: 'window.lucide={createIcons(){}}', contentType: 'application/javascript' });
+      if (u.includes('cdn.tailwindcss.com')) return route.fulfill({ body: 'window.tailwind={}', contentType: 'application/javascript' });
+      if (u.includes('cdnjs.cloudflare.com')) return route.fulfill({ body: '', contentType: 'application/javascript' });
+      if (u.startsWith('http://localhost:8795') || u.includes('127.0.0.1')) return route.continue();
+      if (u.includes('nominatim') || u.includes('osrm')) return route.fulfill({ body: '[]', contentType: 'application/json' });
+      return route.fulfill({ body: '', contentType: 'text/plain' });
+    });
+    const g = await c2.newPage(); g.on('pageerror', e => errs2.push(e.message));
+    await g.goto(SITE + '/index.html');
+    await g.click('#admin-signin-btn', { timeout: 15000 });
+    await g.waitForSelector('#admin-section:not(.hidden)', { timeout: 15000 });
+    check(await g.isVisible('#in_clientPhone') && /לא מוצג ללקוח/.test(await g.textContent('label[for=in_clientPhone]')), 'generator has "טלפון הלקוח" (not shown to the client)');
+    await g.fill('#in_clientName', 'דנה כהן'); await g.fill('#in_clientPhone', '052-1112233'); await g.fill('#in_eventType', 'חתונה');
+    await g.fill('#in_location', 'תל אביב'); await g.fill('#in_date', dmy(ev)); await g.fill('#in_startTime', '19:00'); await g.fill('#in_endTime', '23:00');
+    await g.fill('#in_guests', '200'); await g.fill('#in_price', '2500');
+    await g.click('#gen-btn');
+    await g.waitForFunction(() => /\?k=/.test(document.getElementById('shareable-url').value), null, { timeout: 15000 }).catch(() => {});
+    const link = await g.inputValue('#shareable-url'), id = (link.match(/\?k=([^&]+)/) || [])[1];
+    check(!!id, 'short link created: ' + link);
+    check((await g.getAttribute('#wa-share-btn', 'href')).startsWith('https://wa.me/972521112233?text='), 'WhatsApp opens the client\'s chat directly');
+    const QD = id && (await emu('GET', 'snapbox_quotes/' + id)).body.fields || {}, ED = id && (await emu('GET', 'snapbox_events/' + id)).body.fields || {};
+    check(!JSON.stringify(QD).includes('1112233') && ED.clientPhone && ED.clientPhone.stringValue === '052-1112233', 'phone is NOT in the quote the client reads — only in the private event details');
+    const cl = await c2.newPage(); await cl.goto(link); await cl.waitForTimeout(2500);
+    check(!(await cl.content()).includes('1112233'), 'client page does not show the phone');
+    await p.click('.tabs button[data-tab=quotes]'); await p.waitForSelector(`#tbody .ev-view[data-id="${id}"]`, { timeout: 10000 }).catch(() => {});
+    await p.click(`#tbody .ev-view[data-id="${id}"]`); await p.waitForSelector('#evView[open]');
+    check(/052-1112233/.test(await p.textContent('#vw-body')) && /ממתין לחתימה/.test(await p.textContent('#vw-sub')), 'pending quote: "פרטי אירוע" shows the phone');
+    await p.screenshot({ path: S + '/q/vw-phone.png' });
+    await p.click('#vw-close');
+    check(!errs2.length, 'generator: no page errors' + (errs2.length ? ': ' + errs2.join(' | ') : ''));
+    await c2.close();
+  }
   await p.screenshot({ path: S + '/q/cal.png', fullPage: true });
   check(!errors.length, 'no page errors' + (errors.length ? ': ' + errors.join(' | ') : ''));
   await b.close();

@@ -197,6 +197,66 @@
   .tag{ display:inline-block; font-size:11px; font-weight:800; padding:2px 9px; border-radius:999px; margin-inline-start:6px; }
   .tag.ok{ background:rgba(74,222,128,.18); color:#86EFAC; } .tag.wait{ background:rgba(251,191,36,.14); color:var(--amber); }
   @media(min-width:720px){ .bk-kpis{ grid-template-columns:repeat(3,1fr); } }
+  /* ---- פרטי אירוע: עיפרון לעריכה ---- */
+  .dlg-t{ min-width:0; } .dlg-sub{ margin:4px 0 0; font-size:13px; color:var(--txt-dim); display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+  .dlg-sub .pill{ font-size:11px; padding:2px 9px; }
+  .dlg-tools{ display:flex; gap:8px; flex:none; align-self:flex-start; }
+  .iconbtn.round{ width:40px; height:40px; padding:0; border-radius:50%; display:grid; place-items:center; font-size:15px; transition:transform .15s, background .2s, color .2s; }
+  .iconbtn.round:active{ transform:scale(.92); }
+  .iconbtn.pencil{ color:#04211D; border-color:transparent; background:linear-gradient(135deg,#5EEAD4,#2DD4BF 55%,#0D9488); box-shadow:0 8px 20px -10px var(--glow); }
+  .iconbtn.pencil:hover{ color:#04211D; filter:brightness(1.08); }
+  .lock{ font-weight:700; font-size:11px; color:var(--txt-faint); margin-inline-start:4px; }
+  .info .phone-box{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px; background:rgba(45,212,191,.07); border:1px solid rgba(45,212,191,.22); }
+  .info .phone-box .k{ flex:1 0 100%; }
+  .info .phone-box .v a{ color:var(--turq-br); text-decoration:none; font-size:18px; }
+  .info .phone-box .v.muted{ color:var(--txt-faint); font-weight:600; font-size:14px; }
+  .info .phone-box.empty{ background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.08); }
+  .phone-acts{ display:flex; gap:6px; margin-inline-start:auto; }
+  @media(max-width:640px){
+    dialog.dlg{ width:100vw; max-width:100vw; margin:auto 0 0; border-radius:22px 22px 0 0; max-height:92dvh; border-bottom:0; }
+    dialog.dlg[open]{ animation:sheetUp .34s cubic-bezier(.2,.9,.25,1); }
+    .dlg-h{ padding-top:22px; } .dlg-h::before{ content:''; position:absolute; top:8px; left:50%; width:38px; height:5px; margin-left:-19px; border-radius:3px; background:rgba(255,255,255,.22); }
+    .dlg-f{ padding-bottom:calc(14px + env(safe-area-inset-bottom)); }
+  }
+  @keyframes sheetUp{ from{ transform:translateY(100%); } to{ transform:none; } }
+  @media(prefers-reduced-motion:reduce){ dialog.dlg[open]{ animation:none; } }
+
+  /* ---- הכנסות (ירוק) והוצאות (אדום) ---- */
+  .bk-kpis{ gap:10px; }
+  .bk-kpis .bk-kpi.pr{ grid-column:1/-1; }
+  @media(min-width:720px){ .bk-kpis .bk-kpi.pr{ grid-column:auto; } }
+  .bk-kh{ grid-column:1/-1; margin:6px 4px -2px; font-size:13px; font-weight:900; color:var(--txt-dim); }
+  .bk-kh:first-child{ margin-top:0; }
+  .bk-kpi{ padding:14px 16px; text-align:right; border-radius:18px; }
+  .bk-kpi .bk-top{ display:flex; align-items:center; gap:8px; }
+  .bk-kpi .l{ font-size:12.5px; font-weight:800; color:var(--txt-dim); }
+  .bk-kpi .n{ font-size:clamp(20px,3vw,27px); font-weight:900; margin-top:6px; white-space:nowrap; font-variant-numeric:tabular-nums; letter-spacing:-.01em; }
+  .bk-ic{ width:26px; height:26px; border-radius:50%; display:grid; place-items:center; flex:none; }
+  .bk-kpi.inc{ background:linear-gradient(160deg,rgba(34,197,94,.16),rgba(34,197,94,.03) 70%); border-color:rgba(74,222,128,.28); }
+  .bk-kpi.inc .n{ color:#4ADE80; } .bk-kpi.inc .bk-ic{ background:#22C55E; color:#04210F; }
+  .bk-kpi.exp{ background:linear-gradient(160deg,rgba(239,68,68,.16),rgba(239,68,68,.03) 70%); border-color:rgba(248,113,113,.28); }
+  .bk-kpi.exp .n{ color:#F87171; } .bk-kpi.exp .bk-ic{ background:#EF4444; color:#fff; }
+  .bk-kpi.pr.up{ background:linear-gradient(150deg,#16A34A,#14532D); border-color:#15803D; }
+  .bk-kpi.pr.down{ background:linear-gradient(150deg,#DC2626,#7F1D1D); border-color:#B91C1C; }
+  .bk-kpi.pr .n, .bk-kpi.pr .l{ color:#fff; } .bk-kpi.pr .bk-ic{ background:rgba(255,255,255,.2); color:#fff; }
+  .bk-kpi.pr.down .bk-ic svg{ transform:scaleY(-1); }
+  @media(max-width:420px){ .bk-kpi{ padding:12px; } .bk-kpi .n{ font-size:19px; } }
+  .tx-total{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:2px 4px 10px; font-size:13px; font-weight:800; color:var(--txt-dim); }
+  .tx-total b{ font-size:16px; } .tx-total.inc b{ color:#4ADE80; } .tx-total.exp b{ color:#F87171; }
+  .tx-list{ list-style:none; margin:0; padding:0; }
+  .tx{ display:flex; align-items:center; gap:12px; padding:11px 2px; min-height:56px; border-top:1px solid rgba(255,255,255,.07); }
+  .tx-dot{ width:10px; height:10px; border-radius:50%; flex:none; }
+  .tx.inc .tx-dot{ background:#22C55E; box-shadow:0 0 0 4px rgba(34,197,94,.15); }
+  .tx.exp .tx-dot{ background:#EF4444; box-shadow:0 0 0 4px rgba(239,68,68,.15); }
+  .tx-main{ flex:1; min-width:0; }
+  .tx-l{ font-weight:800; font-size:15px; color:var(--txt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tx-s{ font-size:12.5px; color:var(--txt-dim); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tx-a{ font-weight:900; font-size:15px; white-space:nowrap; flex:none; direction:ltr; unicode-bidi:isolate; font-variant-numeric:tabular-nums; }
+  .tx.inc .tx-a{ color:#4ADE80; } .tx.exp .tx-a{ color:#F87171; }
+  .tx-del, .tx-del-sp{ width:36px; height:36px; flex:none; }
+  .tx-del{ border:0; border-radius:50%; display:grid; place-items:center; background:transparent; color:#F87171; cursor:pointer; transition:background .15s, transform .12s; }
+  .tx-del:hover{ background:rgba(239,68,68,.14); } .tx-del:active{ transform:scale(.9); background:rgba(239,68,68,.22); }
+  .tx-del:focus-visible{ outline:2px solid #F87171; outline-offset:1px; }
 </style>
 </head>
 <body>
@@ -309,9 +369,9 @@
 </div>
 
 <dialog class="dlg" id="evView" aria-labelledby="vw-title">
-  <div class="dlg-h"><h2 id="vw-title">פרטי אירוע</h2><button type="button" class="iconbtn" id="vw-close" aria-label="סגירה">✕</button></div>
+  <div class="dlg-h"><div class="dlg-t"><h2 id="vw-title">פרטי אירוע</h2><p class="dlg-sub" id="vw-sub"></p></div><div class="dlg-tools"><button type="button" class="iconbtn round pencil" id="vw-edit" aria-label="עריכת פרטי האירוע" title="עריכה"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M16.9 3.6a2.1 2.1 0 0 1 3 3L8.6 17.9 4 19.5l1.5-4.6L16.9 3.6zM14.8 5.7l3 3"/></svg></button><button type="button" class="iconbtn round" id="vw-close" aria-label="סגירה" title="סגירה">✕</button></div></div>
   <div class="dlg-b" id="vw-body"></div>
-  <div class="dlg-f"><button type="button" class="gbtn sm" id="vw-edit">✏️ עריכת פרטי אירוע</button><a class="rowbtn" id="vw-google" target="_blank" rel="noopener">📅 יומן Google</a><a class="rowbtn" id="vw-waze" target="_blank" rel="noopener">🚗 Waze</a><button type="button" class="rowbtn" id="vw-pdf">📄 החוזה החתום</button><button type="button" class="rowbtn" id="vw-close2">סגירה</button></div>
+  <div class="dlg-f"><a class="rowbtn" id="vw-google" target="_blank" rel="noopener">📅 יומן Google</a><a class="rowbtn" id="vw-waze" target="_blank" rel="noopener">🚗 Waze</a><button type="button" class="rowbtn" id="vw-pdf">📄 החוזה החתום</button><button type="button" class="rowbtn" id="vw-close2">סגירה</button></div>
 </dialog>
 <dialog class="dlg" id="evEdit" aria-labelledby="ee-title">
   <form id="ee-form" novalidate autocomplete="off">
@@ -319,6 +379,7 @@
   <div class="dlg-b">
     <div class="grp"><h3>פרטי הלקוח והאירוע</h3><div class="g2">
       <div><label class="lbl" for="ee-name">שם מלא *</label><input class="fld" id="ee-name" maxlength="120"></div>
+      <div><label class="lbl" for="ee-phone">טלפון הלקוח <span class="lock">🔒 רק אתה רואה</span></label><input class="fld" id="ee-phone" type="tel" inputmode="tel" dir="ltr" maxlength="20" placeholder="050-0000000" style="text-align:left"></div>
       <div><label class="lbl" for="ee-couple">שם החתן / הכלה</label><input class="fld" id="ee-couple" maxlength="120" placeholder="למשל: דנה ויואב"></div>
       <div><label class="lbl" for="ee-type">סוג האירוע</label><input class="fld" id="ee-type" maxlength="80"></div>
       <div><label class="lbl" for="ee-date">תאריך</label><input class="fld" id="ee-date" type="date"></div>
@@ -583,7 +644,7 @@
              <button type="button" class="rowbtn upload-file" data-id="${q.id}">🔄 החלף</button>
            </div>`
         : `<button type="button" class="rowbtn upload-file" data-id="${q.id}">📤 העלה קובץ</button>`;
-      const E = EVENTS[q.id] || {}, v = signed ? M(q) : q;
+      const E = EVENTS[q.id] || {}, v = M(q);
       const tags = signed ? (E.paid ? '<div><span class="tag ok" style="margin:4px 0 0">שולם ✓</span></div>' : E.depositPaid ? '<div><span class="tag wait" style="margin:4px 0 0">מקדמה שולמה</span></div>' : '') : '';
       return `<tr class="main${signed && E.paid ? ' paid' : ''}">
         <td>${created}</td>
@@ -595,7 +656,7 @@
         <td>${fileBtn}</td>
         <td>
           <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            ${signed ? `<button type="button" class="rowbtn ev-view" data-id="${q.id}">📋 פרטי אירוע</button><button type="button" class="rowbtn ev-edit" data-id="${q.id}">✏️ עריכת פרטי אירוע</button>` : ''}
+            <button type="button" class="rowbtn ev-view" data-id="${q.id}">📋 פרטי אירוע</button>
             <button type="button" class="rowbtn copy-link" data-id="${q.id}">העתק קישור</button>
             <button type="button" class="rowbtn danger delete-row" data-id="${q.id}">מחק</button>
           </div>
@@ -684,6 +745,7 @@
   const isoFromDmy = d => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(d || '').trim()); return m ? `${m[3]}-${m[2]}-${m[1]}` : ''; };
   const dmyFromIso = d => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d || '')); return m ? `${m[3]}/${m[2]}/${m[1]}` : ''; };
   const $id = x => document.getElementById(x);
+  const waPhone = p => { let d = String(p || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('0')) d = '972' + d.slice(1); return /^\d{10,15}$/.test(d) ? d : ''; };
 
   /* ---- חלון "פרטי אירוע" ---- */
   let VIEW_ID = null, EDIT_ID = null;
@@ -693,8 +755,14 @@
     const q = M(q0), E = EVENTS[id] || {}, pk = pkgOf(E.pkg), h = evHours(q), d = eventDate(q);
     const bal = (Number(q.price) || 0) - (Number(q.deposit) || 0);
     const box = (k, v, cls) => `<div class="${cls || ''}"><div class="k">${k}</div><div class="v${cls && cls.includes('wide') ? ' note' : ''}">${v}</div></div>`;
+    const signed = q0.status === 'signed', ph = waPhone(E.clientPhone);
     $id('vw-title').textContent = (q.clientName || '') + (E.couple ? ' · ' + E.couple : '');
+    $id('vw-sub').innerHTML = `${esc(q.eventType || 'אירוע')}${q.date ? ` · <span dir="ltr">${esc(q.date)}</span>` : ''} ${signed ? '<span class="pill signed">נחתם</span>' : '<span class="pill pending">ממתין לחתימה</span>'}`;
+    const phoneBox = E.clientPhone
+      ? `<div class="wide phone-box"><div class="k">📞 טלפון הלקוח <span class="lock">🔒 רק אתה רואה</span></div><div class="v"><a href="tel:${esc(E.clientPhone)}" dir="ltr">${esc(E.clientPhone)}</a></div><div class="phone-acts">${ph ? `<a class="rowbtn" href="https://wa.me/${ph}" target="_blank" rel="noopener">💬 וואטסאפ</a>` : ''}<a class="rowbtn" href="tel:${esc(E.clientPhone)}">📞 חיוג</a></div></div>`
+      : `<div class="wide phone-box empty"><div class="k">📞 טלפון הלקוח</div><div class="v muted">לא הוזן · אפשר להוסיף בעיפרון ✎ למעלה</div></div>`;
     $id('vw-body').innerHTML = `<div class="info">
+      ${phoneBox}
       ${box('🎉 סוג האירוע', esc(q.eventType || '—'))}
       ${box('📅 תאריך', d ? `${esc(q.date)} · יום ${HE_DAYS[d.getDay()]}` : esc(q.date || '—'))}
       ${box('🕒 שעות', q.startTime ? `<span dir="ltr">${esc(q.startTime)}${q.endTime ? '–' + esc(q.endTime) : ''}</span>${h != null ? ' · ' + hoursText(h) : ''}` : '—')}
@@ -715,7 +783,9 @@
   }
   $id('vw-close').addEventListener('click', () => $id('evView').close());
   $id('vw-close2').addEventListener('click', () => $id('evView').close());
-  $id('vw-edit').addEventListener('click', () => { const id = VIEW_ID; $id('evView').close(); openEdit(id); });
+  let BACK_TO_VIEW = false;   // העיפרון: עוברים מהפרטים לעריכה, ואחרי שמירה/ביטול חוזרים לפרטים
+  $id('vw-edit').addEventListener('click', () => { const id = VIEW_ID; BACK_TO_VIEW = true; $id('evView').close(); openEdit(id); });
+  $id('evEdit').addEventListener('close', () => { if (BACK_TO_VIEW && EDIT_ID) { const id = EDIT_ID; BACK_TO_VIEW = false; openView(id); } BACK_TO_VIEW = false; });
   $id('vw-pdf').addEventListener('click', () => { const q = QUOTES.find(x => x.id === VIEW_ID); if (q) openPdf(q.pdfData); });
 
   /* ---- חלון "עריכת פרטי אירוע" ---- */
@@ -743,7 +813,7 @@
     EDIT_ID = id;
     const q = M(q0), E = EVENTS[id] || {};
     $id('ee-title').textContent = 'עריכת פרטי אירוע · ' + (q.clientName || '');
-    $id('ee-name').value = q.clientName || ''; $id('ee-couple').value = E.couple || ''; $id('ee-type').value = q.eventType || '';
+    $id('ee-name').value = q.clientName || ''; $id('ee-phone').value = E.clientPhone || ''; $id('ee-couple').value = E.couple || ''; $id('ee-type').value = q.eventType || '';
     $id('ee-date').value = isoFromDmy(q.date); $id('ee-start').value = q.startTime || ''; $id('ee-end').value = q.endTime || '';
     $id('ee-loc').value = q.location || ''; $id('ee-guests').value = q.guests || ''; $id('ee-notes').value = q.notes || '';
     $id('ee-pkg').value = E.pkg || ''; $id('ee-price').value = q.discountPct ? q.listPrice : (Number(q.price) || 0);
@@ -768,9 +838,10 @@
     const listPrice = Math.round(Number($id('ee-price').value) * 100) / 100, disc = listPrice > 0 ? EE_DISC : 0,
           price = disc ? discounted(listPrice, disc) : listPrice, deposit = Math.round(Number($id('ee-deposit').value) * 100) / 100;
     if (!cut($id('ee-name').value, 1)) { st.textContent = 'צריך שם לקוח.'; $id('ee-name').focus(); return; }
+    if (cut($id('ee-phone').value, 20) && !/^[\d+\-() ]{7,20}$/.test(cut($id('ee-phone').value, 20))) { st.textContent = 'מספר הטלפון לא תקין.'; $id('ee-phone').focus(); return; }
     if (!(price >= 0) || !(deposit >= 0)) { st.textContent = 'מחיר ומקדמה צריכים להיות מספרים.'; return; }
     const data = {
-      clientName: cut($id('ee-name').value, 120), couple: cut($id('ee-couple').value, 120), eventType: cut($id('ee-type').value, 80),
+      clientName: cut($id('ee-name').value, 120), clientPhone: cut($id('ee-phone').value, 20), couple: cut($id('ee-couple').value, 120), eventType: cut($id('ee-type').value, 80),
       date: dmyFromIso($id('ee-date').value), startTime: $id('ee-start').value || '', endTime: $id('ee-end').value || '',
       location: cut($id('ee-loc').value, 200), guests: cut($id('ee-guests').value, 20), notes: cut($id('ee-notes').value, 2000),
       pkg: $id('ee-pkg').value || '', price, deposit, discountPct: disc, listPrice: disc ? listPrice : 0,
@@ -789,8 +860,8 @@
     b.disabled = false;
   });
   document.getElementById('tbody').addEventListener('click', e => {
-    const v = e.target.closest('.ev-view'), ed = e.target.closest('.ev-edit');
-    if (v) openView(v.dataset.id); if (ed) openEdit(ed.dataset.id);
+    const v = e.target.closest('.ev-view');
+    if (v) openView(v.dataset.id);
   });
 
   /* ================= טאבים ================= */
@@ -881,8 +952,8 @@
     document.getElementById('cal-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
   document.getElementById('cal-list').addEventListener('click', e => {
-    const cv = e.target.closest('.cal-view'), ce = e.target.closest('.cal-edit');
-    if (cv) return openView(cv.dataset.id); if (ce) return openEdit(ce.dataset.id);
+    const cv = e.target.closest('.cal-view');
+    if (cv) return openView(cv.dataset.id);
     const b = e.target.closest('button.cal-pdf'); if (!b) return;
     const q = QUOTES.find(x => x.id === b.dataset.id); if (q) openPdf(q.pdfData);
   });
@@ -925,7 +996,7 @@
           <div class="ev-money"><span>מחיר <b>${money(q.price)}</b>${q.discountPct ? ` (${q.discountPct}% הנחה)` : ''}</span>${pkgOf(E.pkg) ? `<span>חבילה <b>${pkgOf(E.pkg)[1]}</b></span>` : ''}<span>מקדמה <b>${money(q.deposit)}</b></span><span>יתרה לגבייה <b>${money(bal)}</b></span></div>
           <p class="hint" style="margin-top:6px">📝 הערות: ${q.notes ? esc(q.notes) : 'אין'}</p>${E.ownerNotes ? `<p class="hint" style="margin-top:2px">🗒 ההערות שלי: ${esc(E.ownerNotes)}</p>` : ''}
           <div class="ev-acts">
-            <button type="button" class="rowbtn cal-view" data-id="${esc(q.id)}">📋 פרטי אירוע</button><button type="button" class="rowbtn cal-edit" data-id="${esc(q.id)}">✏️ עריכה</button>
+            <button type="button" class="rowbtn cal-view" data-id="${esc(q.id)}">📋 פרטי אירוע</button>
             <a class="rowbtn" href="${esc(googleLink(q))}" target="_blank" rel="noopener">📅 הוספה ליומן Google</a>
             ${q.location ? `<a class="rowbtn" href="https://waze.com/ul?q=${encodeURIComponent(q.location)}&navigate=yes" target="_blank" rel="noopener">🚗 ניווט ב-Waze</a>` : ''}
             ${q.pdfData ? `<button type="button" class="rowbtn cal-pdf" data-id="${esc(q.id)}">📄 החוזה החתום</button>` : ''}
@@ -1026,14 +1097,22 @@
     const now = new Date(), thisM = now.getFullYear() + '-' + pad(now.getMonth() + 1);
     const mInc = sum(incomeRows().filter(r => String(r.date).startsWith(thisM))), mExp = sum(EXP.filter(r => String(r.date).startsWith(thisM)));
     const yInc = sum(inc), yExp = sum(exp);
-    const k = (n, l, cls) => `<div class="card kpi${cls ? ' ' + cls : ''}"><div class="n">${n}</div><div class="l">${l}</div></div>`;
-    document.getElementById('bk-kpis').innerHTML = k(money(mInc), 'הכנסות החודש') + k(money(mExp), 'הוצאות החודש') + k(money(mInc - mExp), 'רווח החודש', mInc - mExp >= 0 ? 'pos' : 'neg')
-      + k(money(yInc), 'הכנסות ' + Y) + k(money(yExp), 'הוצאות ' + Y) + k(money(yInc - yExp), 'רווח ' + Y, yInc - yExp >= 0 ? 'pos' : 'neg');
-    document.getElementById('inc-list').innerHTML = inc.length ? `<table class="mini"><thead><tr><th>תאריך</th><th>תיאור</th><th>מקור</th><th>סכום</th><th></th></tr></thead><tbody>${inc.sort((a, b) => b.date.localeCompare(a.date)).map(r =>
-      `<tr><td>${r.date.split('-').reverse().join('/')}</td><td>${esc(r.label)}</td><td>${r.manual ? esc(r.category || 'ייבוא') : 'חוזה חתום' + (r.eventDate ? ' · <span dir="ltr">' + esc(r.eventDate) + '</span>' : '')}</td><td class="num">${money(r.amount)}</td><td>${r.manual ? `<button type="button" class="rowbtn danger inc-del" data-id="${esc(r.id)}">מחיקה</button>` : ''}</td></tr>`).join('')}</tbody></table>`
+    // הכנסות בירוק, הוצאות באדום, רווח — ירוק כשחיובי ואדום כשהפסד
+    const AR = { inc: '<path d="M12 19V5M6 11l6-6 6 6"/>', exp: '<path d="M12 5v14M6 13l6 6 6-6"/>', pr: '<path d="M4 17l6-6 4 4 6-7"/><path d="M15 8h5v5"/>' };
+    const tile = (kind, l, n, sub) => `<div class="card bk-kpi ${kind}"><div class="bk-top"><span class="bk-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${AR[kind.split(' ')[0]]}</svg></span><span class="l">${l}</span></div><div class="n">${n}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div>`;
+    const pk = v => 'pr ' + (v >= 0 ? 'up' : 'down');
+    document.getElementById('bk-kpis').innerHTML = '<h3 class="bk-kh">החודש</h3>' + tile('inc', 'הכנסות החודש', money(mInc)) + tile('exp', 'הוצאות החודש', money(mExp)) + tile(pk(mInc - mExp), mInc - mExp >= 0 ? 'רווח החודש' : 'הפסד החודש', money(mInc - mExp))
+      + `<h3 class="bk-kh">שנת ${esc(Y)}</h3>` + tile('inc', 'הכנסות ' + Y, money(yInc)) + tile('exp', 'הוצאות ' + Y, money(yExp)) + tile(pk(yInc - yExp), (yInc - yExp >= 0 ? 'רווח ' : 'הפסד ') + Y, money(yInc - yExp));
+    // הרשימות: שורה נקייה לכל רישום, סכום בצבע, ומחיקה = אייקון פח אדום
+    const TRASH = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4.8A.8.8 0 0 1 9.8 4h4.4a.8.8 0 0 1 .8.8V7"/></svg>';
+    const dmyOf = d => String(d).split('-').reverse().join('/');
+    const tx = (kind, r, src, del) => `<li class="tx ${kind}"><span class="tx-dot" aria-hidden="true"></span><div class="tx-main"><div class="tx-l">${esc(r.label || (kind === 'inc' ? 'הכנסה' : 'הוצאה'))}</div><div class="tx-s">${dmyOf(r.date)}${src ? ' · ' + src : ''}</div></div>`
+      + `<div class="tx-a">${kind === 'inc' ? '+' : '−'}${money(r.amount)}</div>${del ? `<button type="button" class="tx-del ${del}" data-id="${esc(r.id)}" aria-label="מחיקה: ${esc(r.label || '')} ${money(r.amount)}" title="מחיקה">${TRASH}</button>` : '<span class="tx-del-sp" aria-hidden="true"></span>'}</li>`;
+    const total = (kind, l, n) => `<div class="tx-total ${kind}"><span>${l}</span><b>${money(n)}</b></div>`;
+    document.getElementById('inc-list').innerHTML = inc.length ? total('inc', `סה"כ ${inc.length} הכנסות`, yInc) + `<ul class="tx-list">${inc.sort((a, b) => b.date.localeCompare(a.date)).map(r =>
+      tx('inc', r, r.manual ? esc(r.category || 'ייבוא') : 'חוזה חתום' + (r.eventDate ? ' · אירוע <span dir="ltr">' + esc(r.eventDate) + '</span>' : ''), r.manual ? 'inc-del' : '')).join('')}</ul>`
       : '<p class="hint">עדיין אין הכנסות בשנה הזו. כל הסכם שהלקוח חותם נכנס לכאן לבד.</p>';
-    document.getElementById('ex-list').innerHTML = expErr ? `<p class="hint" style="color:var(--amber)">${esc(expErr)}</p>` : exp.length ? `<table class="mini"><thead><tr><th>תאריך</th><th>תיאור</th><th>קטגוריה</th><th>סכום</th><th></th></tr></thead><tbody>${exp.map(r =>
-      `<tr><td>${String(r.date).split('-').reverse().join('/')}</td><td>${esc(r.label)}</td><td>${esc(r.category || '')}</td><td class="num">${money(r.amount)}</td><td><button type="button" class="rowbtn danger ex-del" data-id="${esc(r.id)}">מחיקה</button></td></tr>`).join('')}</tbody></table>`
+    document.getElementById('ex-list').innerHTML = expErr ? `<p class="hint" style="color:var(--amber)">${esc(expErr)}</p>` : exp.length ? total('exp', `סה"כ ${exp.length} הוצאות`, yExp) + `<ul class="tx-list">${exp.map(r => tx('exp', r, esc(r.category || ''), 'ex-del')).join('')}</ul>`
       : '<p class="hint">עדיין אין הוצאות בשנה הזו.</p>';
     if (!window.Chart) return;
     const I = new Array(12).fill(0), E = new Array(12).fill(0);
@@ -1043,12 +1122,14 @@
     if (booksChart) booksChart.destroy();
     booksChart = new Chart(document.getElementById('booksChart'), {
       data: { labels: HE_MONTHS.map(m => m.slice(0, 3)), datasets: [
-        { type: 'bar', label: 'הכנסות', data: I, backgroundColor: '#2DD4BF', borderRadius: 6, maxBarThickness: 26 },
-        { type: 'bar', label: 'הוצאות', data: E, backgroundColor: '#FB7185', borderRadius: 6, maxBarThickness: 26 },
-        { type: 'line', label: 'רווח', data: I.map((v, i) => v - E[i]), borderColor: '#FBBF24', backgroundColor: '#FBBF24', tension: .3, pointRadius: 3 } ] },
+        { type: 'bar', label: 'הכנסות', data: I, backgroundColor: '#22C55E', hoverBackgroundColor: '#4ADE80', borderRadius: 8, borderSkipped: false, maxBarThickness: 24, order: 2 },
+        { type: 'bar', label: 'הוצאות', data: E, backgroundColor: '#EF4444', hoverBackgroundColor: '#F87171', borderRadius: 8, borderSkipped: false, maxBarThickness: 24, order: 2 },
+        { type: 'line', label: 'רווח', data: I.map((v, i) => v - E[i]), borderColor: '#E5E7EB', backgroundColor: '#0a0c0d', borderWidth: 2, tension: .35, pointRadius: 3.5, pointBorderWidth: 2, order: 1,
+          segment: { borderColor: c => c.p1.parsed.y < 0 ? '#F87171' : '#E5E7EB' }, pointBorderColor: I.map((v, i) => v - E[i] < 0 ? '#F87171' : '#E5E7EB') } ] },
       options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-        plugins: { legend: { position: 'bottom', labels: { color: '#9CA3AF', font, usePointStyle: true } }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${money(c.parsed.y)}` } } },
-        scales: { x: { ticks: { color: '#9CA3AF', font }, grid: { display: false } }, y: { ticks: { color: '#9CA3AF', font, callback: v => '₪' + Number(v).toLocaleString() }, grid: { color: 'rgba(255,255,255,.06)' } } } } });
+        plugins: { legend: { position: 'bottom', labels: { color: '#9CA3AF', font, usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, padding: 18 } },
+          tooltip: { backgroundColor: 'rgba(17,24,39,.95)', padding: 10, cornerRadius: 10, titleFont: font, bodyFont: font, usePointStyle: true, callbacks: { label: c => ` ${c.dataset.label}: ${money(c.parsed.y)}` } } },
+        scales: { x: { ticks: { color: '#9CA3AF', font }, grid: { display: false }, border: { display: false } }, y: { ticks: { color: '#9CA3AF', font, callback: v => '₪' + Number(v).toLocaleString() }, grid: { color: 'rgba(255,255,255,.06)' }, border: { display: false } } } } });
   }
   document.getElementById('bk-csv').addEventListener('click', () => {
     const Y = document.getElementById('bk-year').value, q = s => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';

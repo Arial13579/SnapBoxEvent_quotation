@@ -360,6 +360,7 @@
             <form id="creator-form" onsubmit="generateShareLink(event)" class="space-y-5">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     <div><label class="lbl">לכבוד (שם הלקוח) *</label><input type="text" id="in_clientName" required class="field" placeholder="שם מלא / חברה"></div>
+                    <div><label class="lbl" for="in_clientPhone">טלפון הלקוח <span class="text-zinc-400 font-semibold">· 🔒 לא מוצג ללקוח, נשמר בפרטי האירוע</span></label><input type="tel" id="in_clientPhone" class="field text-left" dir="ltr" inputmode="tel" maxlength="20" autocomplete="off" placeholder="050-0000000"></div>
                     <div><label class="lbl">סוג אירוע *</label><input type="text" id="in_eventType" required class="field" placeholder="חתונה / בר מצווה"></div>
                     <div><label class="lbl">מיקום האירוע *</label><input type="text" id="in_location" required class="field" placeholder="שם האולם / עיר" onblur="autoDistance()"></div>
                     <div><label class="lbl">תאריך האירוע *</label><input type="text" id="in_date" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY" oninput="formatDate(this, event); checkDateConflict()" onblur="checkDateConflict()"><div id="date-conflict" class="dc-box hidden" role="status" aria-live="polite"></div></div>
@@ -908,6 +909,16 @@
                 return true;
             } catch(err){ console.warn('quote save failed', err); return false; }
         }
+        // טלפון הלקוח: נשמר רק בפרטי האירוע (snapbox_events — רק חשבון העסק קורא), לא בהצעה עצמה,
+        // כי את ההצעה הלקוח יכול לפתוח דרך הקישור. לא חוסם את יצירת הקישור אם נכשל.
+        async function saveClientPhone(quoteId, phone){
+            if (!phone) return;
+            try {
+                const fb = await initFirebase(); if (!fb) return;
+                await fb.fs.setDoc(fb.fs.doc(fb.db, 'snapbox_events', quoteId), { clientPhone: phone, updatedAt: fb.fs.serverTimestamp() }, { merge: true });
+            } catch(err){ console.warn('phone save failed', err); }
+        }
+        const waNumber = p => { let d = String(p || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('0')) d = '972' + d.slice(1); return /^\d{10,15}$/.test(d) ? d : ''; };
 
         /* ================= יצירת קישור ללקוח — קישור קצר (?k=<מזהה ההצעה>) =================
            כל פרטי ההצעה נשמרים ברשומה (שדה q), והקישור ללקוח הוא רק המזהה — כך בוואטסאפ
@@ -939,13 +950,16 @@
                 new Promise(r => setTimeout(() => r(false), 10000))
             ]);
             const url = saved ? `${base}?k=${quoteId}` : `${base}?q=${q}`;
+            const clientPhone = g('in_clientPhone').slice(0, 20);
+            if (saved) await Promise.race([saveClientPhone(quoteId, clientPhone), new Promise(r => setTimeout(r, 6000))]);
 
             document.getElementById('shareable-url').value = url;
             document.getElementById('link-result').classList.remove('hidden');
 
             // שיתוף בוואטסאפ — הקישור בלבד, ללא שום טקסט בגוף ההודעה
             // (תמונת התצוגה המקדימה נטענת אוטומטית מתגי ה-OG שבראש הדף)
-            document.getElementById('wa-share-btn').href = 'https://wa.me/?text=' + encodeURIComponent(url);
+            // אם הוזן טלפון — ההודעה נפתחת ישר בצ'אט של הלקוח
+            document.getElementById('wa-share-btn').href = 'https://wa.me/' + waNumber(clientPhone) + '?text=' + encodeURIComponent(url);
             genBtn.disabled = false; genBtn.innerHTML = genHtml;
         }
 
