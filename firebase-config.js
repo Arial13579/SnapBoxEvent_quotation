@@ -18,7 +18,7 @@ window.SNAPBOX_CONFIG = {
      bitLink:    קישור תשלום של Bit (אם יש), מתחיל ב-https://
      payboxLink: קישור התשלום האישי מ-PayBox (אם יש), מתחיל ב-https:// */
   payment: {
-    bitPhone:   '',
+    bitPhone:   '0546056180',
     bitLink:    '',
     payboxLink: ''
   },
