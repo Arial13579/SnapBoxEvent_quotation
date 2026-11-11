@@ -41,7 +41,7 @@ service cloud.firestore {
         || (
             resource.data.status == 'pending' &&
             request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['status', 'signedAt', 'ip', 'userAgent'])
+              .hasOnly(['status', 'signedAt', 'ip', 'userAgent', 'viewCount', 'lastViewedAt', 'firstViewedAt'])
            )
         || (
             resource.data.status == 'signed' &&

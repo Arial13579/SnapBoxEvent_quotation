@@ -16,6 +16,11 @@
 מתחת ל"מחיר כולל": כפתורים **ללא הנחה / 10% / 15%** + שדה "אחוז אחר". המחיר שנשמר (`price`) הוא **אחרי ההנחה**; נשמרים גם `listPrice`, `discountPct` ובקישור `q` (שדות 11–12). אצל הלקוח, בחוזה וב-PDF מוצג "₪X לפני הנחה · Y% הנחה".
 **גם בחלון "עריכת פרטי אירוע"** בלוח הבקרה: אותם כפתורים מתחת ל"מחיר". שדה המחיר = לפני הנחה; נשמר ב-`snapbox_events`: `price` (אחרי הנחה), `listPrice`, `discountPct`. `M(q)` לוקח את ההנחה מהעריכה אם נערך מחיר, אחרת מההצעה. מוצג בחלון הפרטים, ביומן וב-Google.
 
+## 2026-11-11 — תשלום מקדמה, תאריך תפוס, "נפתח"
+- **תשלום מקדמה (Bit/PayBox)**: כרטיס ללקוח מיד אחרי החתימה. ההגדרה ב-`firebase-config.js` ← `payment: {bitPhone, bitLink, payboxLink}`; ריק = לא מוצג.
+- **תאריך תפוס**: במחולל, אחרי הקלדת תאריך — בודק `snapbox_quotes` (date ==) + `snapbox_events` (תאריך ערוך גובר). אדום = יש חתום, כתום = רק ממתינות.
+- **"הלקוח פתח את ההצעה"**: בפתיחת קישור של הצעה ממתינה נכתב `viewCount` (increment), `firstViewedAt`, `lastViewedAt`. לא נספר במכשיר שבו נכנס חשבון העסק (`localStorage.snapbox_admin_device`). בלוח: "👁 נפתח N פעמים · לאחרונה…" / "עוד לא נפתח" (רק להצעות מ-11/11/2026). **דורש את הכלל המעודכן** ב-`_tests/firestore-full.rules` (3 השדות נוספו ל-hasOnly של הלקוח).
+
 ## נתונים
 - `snapbox_quotes/{id}` — ההצעה. **הלקוח יכול לקרוא אותה לפי מזהה (הקישור `?k=`)** — לכן אסור לשמור בה מידע פנימי.
 - `snapbox_events/{quoteId}` = `{clientName, couple, eventType, date dd/mm/yyyy, startTime, endTime, location, guests, notes, pkg ('custom'/מפתח), price, deposit, depositPaid, paid, entered, ownerNotes, updatedAt}` — רק חשבון העסק. (`pkgPrice` — מגרסה קודמת, נקרא אם אין `price`.) הכלל: רק חשבון העסק, עד 40 שדות (בלי רשימת שדות — כדי שלא יצטרכו להדביק שוב בכל שינוי).
