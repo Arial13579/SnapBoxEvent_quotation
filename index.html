@@ -157,6 +157,26 @@
             box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
         }
         .btn-glass:hover{ border-color:rgba(94,234,212,.4); }
+        /* ===== התראה על תאריך תפוס ===== */
+        .dc-box{ margin-top:8px; border-radius:14px; padding:10px 14px; font-size:13px; line-height:1.6; }
+        .dc-box.dc-bad{ background:rgba(239,68,68,.12); border:1px solid rgba(248,113,113,.45); color:#fee2e2; }
+        .dc-box.dc-warn{ background:rgba(245,158,11,.1); border:1px solid rgba(251,191,36,.4); color:#fef3c7; }
+        .dc-box .dc-h{ font-weight:800; }
+        .dc-box .dc-h + ul{ margin:2px 0 6px; padding-inline-start:18px; list-style:disc; }
+        .dc-box ul:last-child{ margin-bottom:0; }
+        /* ===== תשלום מקדמה ===== */
+        .pay-card{ margin-top:14px; border-radius:18px; padding:16px; background:rgba(255,255,255,.05); border:1px solid rgba(94,234,212,.3); text-align:center; }
+        .pay-title{ font-weight:900; font-size:17px; color:var(--turq-br); }
+        .pay-sub{ font-size:13px; color:var(--txt-dim); margin-top:4px; }
+        .pay-row{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:12px; font-size:15px; }
+        .pay-btns{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-top:12px; }
+        .pay-btns:empty{ display:none; }
+        .pay-btn{ display:flex; align-items:center; justify-content:center; min-height:48px; padding:10px 16px; border-radius:14px; font-weight:800; font-size:15px;
+            cursor:pointer; text-decoration:none; border:1px solid transparent; font-family:inherit; touch-action:manipulation; }
+        .pay-btn.bit{ background:#00B4C5; color:#fff; }
+        .pay-btn.paybox{ background:#1F6FEB; color:#fff; }
+        .pay-btn.ghost{ min-height:40px; font-size:13px; background:rgba(255,255,255,.06); color:var(--txt); border-color:rgba(255,255,255,.15); }
+        .pay-note{ font-size:12px; color:var(--txt-faint); margin-top:10px; }
         /* ===== כפתורי הנחה ===== */
         .disc-row{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
         .disc-btn{
@@ -340,7 +360,7 @@
                     <div><label class="lbl">לכבוד (שם הלקוח) *</label><input type="text" id="in_clientName" required class="field" placeholder="שם מלא / חברה"></div>
                     <div><label class="lbl">סוג אירוע *</label><input type="text" id="in_eventType" required class="field" placeholder="חתונה / בר מצווה"></div>
                     <div><label class="lbl">מיקום האירוע *</label><input type="text" id="in_location" required class="field" placeholder="שם האולם / עיר" onblur="autoDistance()"></div>
-                    <div><label class="lbl">תאריך האירוע *</label><input type="text" id="in_date" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY" oninput="formatDate(this, event)"></div>
+                    <div><label class="lbl">תאריך האירוע *</label><input type="text" id="in_date" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY" oninput="formatDate(this, event); checkDateConflict()" onblur="checkDateConflict()"><div id="date-conflict" class="dc-box hidden" role="status" aria-live="polite"></div></div>
                     <div><label class="lbl">שעת תחילה *</label><input type="text" id="in_startTime" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="formatTime(this, event); onCalcInputs()"></div>
                     <div><label class="lbl">שעת סיום *</label><input type="text" id="in_endTime" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="formatTime(this, event); onCalcInputs()"></div>
                     <div><label class="lbl">כמות מוזמנים (משוער) *</label><input type="number" id="in_guests" required min="1" class="field" placeholder="למשל 250" oninput="onCalcInputs()"></div>
@@ -870,6 +890,7 @@
                 document.getElementById('admin-gate').classList.add('hidden');
                 document.getElementById('admin-section').classList.remove('hidden');
                 document.getElementById('admin-user-email').textContent = user.email;
+                try { localStorage.setItem('snapbox_admin_device', '1'); } catch(e){}
                 lucide.createIcons();
             });
         }
@@ -962,6 +983,7 @@
                 contractData = { name:p[0], type:p[1], location:p[2], date:p[3], startTime:p[4], endTime:p[5],
                     guests:p[6] || '', price:Number(p[7]), deposit:Number(p[8]) || 0, notes:p[9] || '', quoteId:p[10] || '',
                     listPrice:Number(p[11]) || 0, discountPct:Number(p[12]) || 0 };
+                trackView(contractData.quoteId);
                 const set = (id,v) => document.getElementById(id).innerText = v;
                 set('view_clientName', contractData.name);
                 set('view_eventType', contractData.type);
@@ -1345,7 +1367,88 @@
                     </button>`;
                 btn.disabled = false;
             }
+            box.insertAdjacentHTML('beforeend', paymentCardHtml());
             lucide.createIcons();
+        }
+
+        /* ================= תשלום מקדמה אחרי החתימה (Bit / PayBox) =================
+           המספר והקישורים מוגדרים ב-firebase-config.js (payment). אם לא הוגדר כלום — לא מוצג. */
+        function paymentCardHtml(){
+            const pay = (window.SNAPBOX_CONFIG || {}).payment || {};
+            const dep = Number(contractData.deposit) || 0;
+            const phone = String(pay.bitPhone || '').replace(/[^\d]/g, '');
+            const okUrl = u => /^https:\/\/[^\s"'<>]+$/.test(String(u || ''));
+            if (!dep || (!phone && !okUrl(pay.bitLink) && !okUrl(pay.payboxLink))) return '';
+            const phoneTxt = phone.length === 10 ? phone.slice(0, 3) + '-' + phone.slice(3) : phone;
+            let h = `<div class="pay-card">
+                <p class="pay-title">💳 תשלום המקדמה · ₪${dep.toLocaleString()}</p>
+                <p class="pay-sub">כדי לשריין את התאריך, אפשר להעביר את המקדמה עכשיו:</p>`;
+            if (phone) h += `<div class="pay-row"><span>ב-Bit למספר <b dir="ltr">${esc(phoneTxt)}</b></span>
+                <button type="button" class="pay-btn ghost" onclick="copyPayPhone(this, '${phone}')">העתק מספר</button></div>`;
+            h += `<div class="pay-btns">`;
+            if (okUrl(pay.bitLink)) h += `<a class="pay-btn bit" href="${esc(pay.bitLink)}" target="_blank" rel="noopener">תשלום ב-Bit</a>`;
+            if (okUrl(pay.payboxLink)) h += `<a class="pay-btn paybox" href="${esc(pay.payboxLink)}" target="_blank" rel="noopener">תשלום ב-PayBox</a>`;
+            h += `</div><p class="pay-note">בהעברה כתבו את השם שלכם ואת תאריך האירוע (${esc(contractData.date || '')}).</p></div>`;
+            return h;
+        }
+        function copyPayPhone(btn, phone){
+            const done = () => { btn.textContent = 'הועתק ✓'; setTimeout(() => btn.textContent = 'העתק מספר', 2000); };
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(phone).then(done).catch(done);
+            else done();
+        }
+
+        /* ================= מעקב "הלקוח פתח את ההצעה" =================
+           נרשם רק בהצעה שעוד ממתינה, ולא במכשיר שבו התחבר חשבון העסק. דורש את הכלל המעודכן ב-Firebase. */
+        async function trackView(quoteId){
+            try {
+                if (!quoteId || localStorage.getItem('snapbox_admin_device') === '1') return;
+            } catch(e){}
+            try {
+                const fb = await initFirebase(); if (!fb) return;
+                const ref = fb.fs.doc(fb.db, 'snapbox_quotes', quoteId);
+                const snap = await fb.fs.getDoc(ref);
+                if (!snap.exists() || snap.data().status !== 'pending') return;
+                const upd = { viewCount: fb.fs.increment(1), lastViewedAt: fb.fs.serverTimestamp() };
+                if (!snap.data().firstViewedAt) upd.firstViewedAt = fb.fs.serverTimestamp();
+                await fb.fs.updateDoc(ref, upd);
+            } catch(err){ console.warn('view tracking skipped', err && err.code); }
+        }
+
+        /* ================= התראה על תאריך תפוס (במחולל) ================= */
+        let dateCheckSeq = 0;
+        async function checkDateConflict(){
+            const box = document.getElementById('date-conflict');
+            const date = document.getElementById('in_date').value.trim(), seq = ++dateCheckSeq;
+            const hide = () => { box.className = 'dc-box hidden'; box.innerHTML = ''; };
+            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date)) return hide();
+            try {
+                const fb = await initFirebase(); if (!fb) return hide();
+                const { fs, db } = fb;
+                const [qs, es] = await Promise.all([
+                    fs.getDocs(fs.query(fs.collection(db, 'snapbox_quotes'), fs.where('date', '==', date))),
+                    fs.getDocs(fs.query(fs.collection(db, 'snapbox_events'), fs.where('date', '==', date))).catch(() => null)
+                ]);
+                const booked = new Map(), pending = [];
+                for (const d of qs.docs) {
+                    const q = d.data();
+                    if (q.status === 'signed') {
+                        // אם בעריכה שיניתי את התאריך — האירוע כבר לא ביום הזה
+                        let ev = null;
+                        try { const e = await fs.getDoc(fs.doc(db, 'snapbox_events', d.id)); ev = e.exists() ? e.data() : null; } catch(e){}
+                        if (ev && ev.date && ev.date !== date) continue;
+                        booked.set(d.id, Object.assign({}, q, ev || {}));
+                    } else pending.push(q);
+                }
+                if (es) es.docs.forEach(d => { if (!booked.has(d.id)) booked.set(d.id, d.data()); });
+                if (seq !== dateCheckSeq) return;
+                if (!booked.size && !pending.length) return hide();
+                const line = q => `<li><b>${esc(q.clientName || '')}</b>${q.eventType ? ' · ' + esc(q.eventType) : ''}${q.startTime ? ` · <span dir="ltr">${esc(q.startTime)}${q.endTime ? '–' + esc(q.endTime) : ''}</span>` : ''}${q.location ? ' · ' + esc(q.location) : ''}</li>`;
+                let h = '';
+                if (booked.size) h += `<p class="dc-h">⚠️ התאריך הזה כבר תפוס — יש אירוע חתום:</p><ul>${[...booked.values()].map(line).join('')}</ul>`;
+                if (pending.length) h += `<p class="dc-h">ℹ️ יש לתאריך הזה ${pending.length === 1 ? 'הצעה ממתינה' : pending.length + ' הצעות ממתינות'}:</p><ul>${pending.map(line).join('')}</ul>`;
+                box.innerHTML = h;
+                box.className = 'dc-box ' + (booked.size ? 'dc-bad' : 'dc-warn');
+            } catch(err){ console.warn('date check failed', err); hide(); }
         }
 
         /* ================= כפתור צף · הוספת האירוע ליומן ================= */

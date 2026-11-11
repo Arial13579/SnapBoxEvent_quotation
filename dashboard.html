@@ -411,6 +411,7 @@
     document.getElementById('gate').classList.add('hidden');
     document.getElementById('app').style.display = 'block';
     document.getElementById('userEmail').textContent = user.email;
+    try { localStorage.setItem('snapbox_admin_device', '1'); } catch(e){}
   }
 
   function startLiveData(fs){
@@ -575,7 +576,7 @@
       const signed = q.status === 'signed';
       const pill = signed
         ? `<span class="pill signed">נחתם</span>${signedAt ? `<div style="font-size:10.5px; color:var(--txt-faint); margin-top:3px;">${signedAt}</div>` : ''}`
-        : '<span class="pill pending">ממתין</span>';
+        : '<span class="pill pending">ממתין</span>' + viewedLine(q);
       const fileBtn = q.pdfData
         ? `<div style="display:flex; gap:6px; flex-wrap:wrap;">
              <button type="button" class="rowbtn view-file" data-id="${q.id}">📄 צפייה</button>
@@ -809,6 +810,18 @@
   const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
   const eventDate = q => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(q.date || '').trim()); return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null; };
   const tsDate = v => v && v.toDate ? v.toDate() : null;
+  // "הלקוח פתח את ההצעה" — רק בהצעות ממתינות
+  function viewedLine(q){
+    const st = 'font-size:10.5px; margin-top:3px;';
+    const last = q.lastViewedAt && q.lastViewedAt.toDate ? q.lastViewedAt.toDate().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' }) : null;
+    if (!last) {
+      // הצעות מלפני שהמעקב נוסף — לא יודעים, לכן לא מציגים כלום
+      const c = q.createdAt && q.createdAt.toDate ? q.createdAt.toDate() : null;
+      return c && c >= new Date(2026, 10, 11) ? `<div style="${st} color:var(--txt-faint)">עוד לא נפתח</div>` : '';
+    }
+    const n = Number(q.viewCount) || 1;
+    return `<div style="${st} color:#5EEAD4; font-weight:700">👁 נפתח ${n === 1 ? 'פעם אחת' : n + ' פעמים'}<br><span style="font-weight:500; color:var(--txt-faint)">לאחרונה ${last}</span></div>`;
+  }
   const HE_DAYS = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
   const HE_MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
   const SIGNED = () => QUOTES.filter(q => q.status === 'signed').map(M);

@@ -13,6 +13,16 @@ window.SNAPBOX_CONFIG = {
   /* ---- חשבון הגוגל היחיד שמורשה להיכנס ללוח הבקרה ---- */
   adminEmail: 'snapboxevent.official@gmail.com',
 
+  /* ---- תשלום מקדמה — מוצג ללקוח מיד אחרי החתימה. להשאיר ריק = לא מוצג ----
+     bitPhone:   מספר הטלפון לקבלת Bit, למשל '0501234567'
+     bitLink:    קישור תשלום של Bit (אם יש), מתחיל ב-https://
+     payboxLink: קישור התשלום האישי מ-PayBox (אם יש), מתחיל ב-https:// */
+  payment: {
+    bitPhone:   '',
+    bitLink:    '',
+    payboxLink: ''
+  },
+
   firebase: {
     apiKey:            'AIzaSyCuC0SP-l3WSrZ57LdMbiEI15DwK8d1aQ4',
     authDomain:        'wedding-rsvp-e2e0f.firebaseapp.com',
