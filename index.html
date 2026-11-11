@@ -157,6 +157,19 @@
             box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
         }
         .btn-glass:hover{ border-color:rgba(94,234,212,.4); }
+        /* ===== כפתורי הנחה ===== */
+        .disc-row{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+        .disc-btn{
+            min-height:48px; border-radius:14px; cursor:pointer; font-family:inherit; font-weight:800; font-size:15px;
+            color:var(--txt); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+            transition:border-color .2s, background .2s, color .2s, transform .15s; touch-action:manipulation;
+        }
+        .disc-btn:hover{ border-color:rgba(94,234,212,.4); }
+        .disc-btn:active{ transform:scale(.97); }
+        .disc-btn[aria-pressed="true"]{ color:#04211D; border-color:transparent;
+            background:linear-gradient(135deg,var(--turq-br) 0%,var(--turq) 55%,var(--turq-dp) 100%); }
+        .disc-custom{ display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap; }
+        .disc-custom .field{ width:110px; padding:10px 12px; text-align:center; }
         .btn-wa{ padding:13px; color:#fff; background:linear-gradient(135deg,#25D366,#1EA855);
             box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 12px 30px -10px rgba(37,211,102,.45); }
 
@@ -339,7 +352,21 @@
 
                     <div id="price-breakdown" class="hidden sm:col-span-2 rounded-2xl bg-turq/[.06] border border-turq/20 p-4 text-[13px] space-y-1.5"></div>
 
-                    <div><label class="lbl">מחיר כולל (₪) * — מחושב אוטומטית, ניתן לעריכה</label><input type="number" id="in_price" required class="field" placeholder="מחושב לפי הנתונים" oninput="priceTouched = true"></div>
+                    <div><label class="lbl">מחיר כולל (₪) * — מחושב אוטומטית, ניתן לעריכה</label><input type="number" id="in_price" required class="field" placeholder="מחושב לפי הנתונים" oninput="priceTouched = true; updateDiscountSummary()"></div>
+                    <div class="sm:col-span-2 rounded-2xl bg-white/[.03] border border-white/10 p-4">
+                        <label class="lbl">הנחה (אופציונלי)</label>
+                        <div class="disc-row" role="group" aria-label="בחירת הנחה">
+                            <button type="button" class="disc-btn" data-disc="0" aria-pressed="true" onclick="setDiscount(0)">ללא הנחה</button>
+                            <button type="button" class="disc-btn" data-disc="10" aria-pressed="false" onclick="setDiscount(10)">10% הנחה</button>
+                            <button type="button" class="disc-btn" data-disc="15" aria-pressed="false" onclick="setDiscount(15)">15% הנחה</button>
+                        </div>
+                        <div class="disc-custom">
+                            <label for="in_discount" class="text-xs text-zinc-400 font-bold">או אחוז אחר:</label>
+                            <input type="number" id="in_discount" min="0" max="100" step="1" inputmode="decimal" class="field" placeholder="0" oninput="setDiscount(this.value, true)">
+                            <span class="text-xs text-zinc-400">%</span>
+                        </div>
+                        <p id="discount-summary" class="hidden mt-3 text-sm font-bold text-turq-bright"></p>
+                    </div>
                     <div><label class="lbl">מקדמה (₪) — ברירת מחדל 200, ניתן למחוק</label><input type="number" id="in_deposit" value="200" class="field" placeholder="200"></div>
                     <div class="sm:col-span-2"><label class="lbl">הערות / סיכומים (אופציונלי)</label><textarea id="in_notes" rows="2" class="field" placeholder="לדוגמה: תוספת מגנטים, מיקום חופה..."></textarea></div>
                 </div>
@@ -653,8 +680,31 @@
             html += `<button type="button" onclick="recalcPrice()" class="mt-1.5 text-xs text-turq-bright font-bold hover:underline">⟳ עדכן את שדה המחיר לסכום זה</button>`;
             box.innerHTML = html;
             if (!priceTouched) document.getElementById('in_price').value = q.total;
+            updateDiscountSummary();
         }
         function recalcPrice(){ priceTouched = false; onCalcInputs(); }
+
+        /* ================= הנחה ================= */
+        let discountPct = 0;
+        function discountedPrice(price, pct){ return Math.round((Number(price) || 0) * (1 - (Number(pct) || 0) / 100)); }
+        function setDiscount(v, fromInput){
+            let n = Number(v);
+            if (!isFinite(n) || n < 0) n = 0;
+            if (n > 100) n = 100;
+            discountPct = n;
+            document.querySelectorAll('.disc-btn').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.disc) === n)));
+            if (!fromInput) document.getElementById('in_discount').value = n ? n : '';
+            updateDiscountSummary();
+        }
+        function updateDiscountSummary(){
+            const el = document.getElementById('discount-summary');
+            if (!el) return;
+            const price = Number(document.getElementById('in_price').value) || 0;
+            if (!discountPct || !price) { el.classList.add('hidden'); el.textContent = ''; return; }
+            const fin = discountedPrice(price, discountPct);
+            el.textContent = `מחיר אחרי ${discountPct}% הנחה: ${fin.toLocaleString()} ₪ (במקום ${price.toLocaleString()} ₪ · חיסכון ${(price - fin).toLocaleString()} ₪)`;
+            el.classList.remove('hidden');
+        }
 
         /* ================= חישוב מרחק אוטומטי מתל אביב ================= */
         const ORIGIN_TA = { lat: 32.0853, lon: 34.7818 }; // מרכז תל אביב
@@ -848,17 +898,20 @@
             const clientName = g('in_clientName'), eventType = g('in_eventType'), loc = g('in_location'),
                   date = g('in_date'), startTime = g('in_startTime'), endTime = g('in_endTime'),
                   guests = document.getElementById('in_guests').value || '',
-                  price = document.getElementById('in_price').value,
+                  listPrice = Number(document.getElementById('in_price').value) || 0,
+                  discount = listPrice ? discountPct : 0,
+                  price = String(discount ? discountedPrice(listPrice, discount) : listPrice),
                   deposit = document.getElementById('in_deposit').value || '0',
                   notes = (document.getElementById('in_notes').value || '').replace(/\|/g,'/');
 
-            const raw = [clientName, eventType, loc, date, startTime, endTime, guests, price, deposit, notes, quoteId].join('|');
+            const raw = [clientName, eventType, loc, date, startTime, endTime, guests, price, deposit, notes, quoteId, discount ? listPrice : '', discount || ''].join('|');
 
             const q = b64UrlEncode(raw), base = location.origin + location.pathname.replace(/index\.html$/, '');
             const saved = await Promise.race([
                 saveQuoteRecord(quoteId, {
                     clientName, eventType, location: loc, date, startTime, endTime,
-                    guests: Number(guests) || 0, price: Number(price) || 0, deposit: Number(deposit) || 0, notes, q
+                    guests: Number(guests) || 0, price: Number(price) || 0, deposit: Number(deposit) || 0, notes, q,
+                    ...(discount ? { listPrice, discountPct: discount } : {})
                 }),
                 new Promise(r => setTimeout(() => r(false), 10000))
             ]);
@@ -907,7 +960,8 @@
             try {
                 const p = b64UrlDecode(dataParam).split('|');
                 contractData = { name:p[0], type:p[1], location:p[2], date:p[3], startTime:p[4], endTime:p[5],
-                    guests:p[6] || '', price:Number(p[7]), deposit:Number(p[8]) || 0, notes:p[9] || '', quoteId:p[10] || '' };
+                    guests:p[6] || '', price:Number(p[7]), deposit:Number(p[8]) || 0, notes:p[9] || '', quoteId:p[10] || '',
+                    listPrice:Number(p[11]) || 0, discountPct:Number(p[12]) || 0 };
                 const set = (id,v) => document.getElementById(id).innerText = v;
                 set('view_clientName', contractData.name);
                 set('view_eventType', contractData.type);
@@ -926,6 +980,10 @@
 
                 set('view_guests', contractData.guests ? `עד ${Number(contractData.guests).toLocaleString()}` : '—');
                 set('view_price', `₪${contractData.price.toLocaleString()}`);
+                if (hasDiscount(contractData)) {
+                    document.getElementById('view_price').insertAdjacentHTML('beforeend',
+                        `<span class="block text-xs font-bold text-zinc-400 mt-1"><s>₪${contractData.listPrice.toLocaleString()}</s> · ${contractData.discountPct}% הנחה</span>`);
+                }
                 set('view_deposit', `₪${contractData.deposit.toLocaleString()}`);
                 set('view_balance', `₪${(contractData.price - contractData.deposit).toLocaleString()}`);
                 set('sign-date', new Date().toLocaleDateString('he-IL'));
@@ -990,6 +1048,9 @@
             setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 6000);
         }
 
+        function hasDiscount(c){ return c && c.discountPct > 0 && c.listPrice > c.price; }
+        function discountText(c){ return hasDiscount(c) ? `${c.discountPct}% הנחה — לפני הנחה ${c.listPrice.toLocaleString()} ש"ח` : ''; }
+
         function buildPdfDoc(sigDataUrl, meta){
             const c = contractData, bal = c.price - c.deposit;
             const m = meta || lastSigMeta || { ts: new Date(), ip: null, ua: navigator.userAgent };
@@ -1005,7 +1066,7 @@
                     <tr><td class="k">לכבוד</td><td>${esc(c.name)}</td><td class="k">סוג אירוע</td><td>${esc(c.type)}</td></tr>
                     <tr><td class="k">מיקום</td><td>${esc(c.location)}</td><td class="k">תאריך</td><td dir="ltr">${esc(c.date)}</td></tr>
                     <tr><td class="k">שעות</td><td><span dir="ltr">${esc(c.startTime)} - ${esc(c.endTime)}</span>${activityHoursWord(c.startTime, c.endTime) ? ' &nbsp;·&nbsp; ' + esc(activityHoursWord(c.startTime, c.endTime)) : ''}</td><td class="k">כמות מוזמנים</td><td>${c.guests ? 'עד ' + Number(c.guests).toLocaleString() : '—'}</td></tr>
-                    <tr><td class="k">מחיר כולל</td><td><b>${c.price.toLocaleString()} ש"ח</b></td><td class="k">מקדמה</td><td>${c.deposit.toLocaleString()} ש"ח</td></tr>
+                    <tr><td class="k">מחיר כולל</td><td><b>${c.price.toLocaleString()} ש"ח</b>${hasDiscount(c) ? `<br><small>(${discountText(c)})</small>` : ''}</td><td class="k">מקדמה</td><td>${c.deposit.toLocaleString()} ש"ח</td></tr>
                     <tr><td class="k">יתרה בסיום</td><td colspan="3">${bal.toLocaleString()} ש"ח</td></tr>
                   </table>
                 </div>
@@ -1208,7 +1269,7 @@
                 'מיקום': c.location,
                 'תאריך האירוע': c.date,
                 'שעות': `${c.startTime} - ${c.endTime}`,
-                'מחיר כולל': `${c.price} ש"ח`,
+                'מחיר כולל': `${c.price} ש"ח` + (hasDiscount(c) ? ` (${discountText(c)})` : ''),
                 'מקדמה': `${c.deposit} ש"ח`,
                 'יתרה לתשלום': `${c.price - c.deposit} ש"ח`,
                 'הערות': c.notes || '—',
@@ -1319,7 +1380,7 @@
                 `שעות פעילות: ${c.startTime} - ${c.endTime}` +
                     (activityHoursWord(c.startTime, c.endTime) ? ` (${activityHoursWord(c.startTime, c.endTime)})` : ''),
                 c.guests ? `כמות מוזמנים: עד ${Number(c.guests).toLocaleString()}` : '',
-                `מחיר כולל: ₪${(c.price || 0).toLocaleString()} · מקדמה: ₪${(c.deposit || 0).toLocaleString()} · יתרה בסיום: ₪${bal.toLocaleString()}`,
+                `מחיר כולל: ₪${(c.price || 0).toLocaleString()}` + (hasDiscount(c) ? ` (${discountText(c)})` : '') + ` · מקדמה: ₪${(c.deposit || 0).toLocaleString()} · יתרה בסיום: ₪${bal.toLocaleString()}`,
                 c.notes && c.notes.trim() ? `הערות: ${c.notes.trim()}` : ''
             ].filter(Boolean).join('\n');
             return { start: parts.start, end: parts.end, title, location: c.location || '', details };
