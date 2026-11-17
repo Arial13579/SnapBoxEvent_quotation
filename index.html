@@ -277,6 +277,70 @@
         #cal-fab.is-busy{ animation:none; opacity:.75; pointer-events:none; }
         @media (prefers-reduced-motion:reduce){ #cal-fab{ animation:none } }
 
+        /* ===== מחולל ההצעות (מנהל) — סגנון Apple: קבוצות, שורות אחידות, רוחב מלא ===== */
+        #pdf-container:has(#admin-section:not(.hidden)){ max-width:880px; }
+        #admin-section{ padding:28px; }
+        #admin-section::after{ display:none; }
+        .adm-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:22px; }
+        .adm-title{ display:flex; align-items:center; gap:12px; min-width:0; }
+        .adm-title h2{ font-size:21px; font-weight:800; letter-spacing:-.01em; line-height:1.2; }
+        .adm-email{ display:block; font-size:12.5px; color:var(--txt-faint); margin-top:2px; text-align:right;
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .adm-actions{ display:flex; gap:8px; }
+        .pill{ display:inline-flex; align-items:center; justify-content:center; gap:7px; height:38px; padding:0 16px;
+            border-radius:999px; font-family:inherit; font-size:14px; font-weight:600; color:var(--txt); cursor:pointer;
+            background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1); text-decoration:none; white-space:nowrap;
+            transition:background .2s, transform .15s; touch-action:manipulation; }
+        .pill:hover{ background:rgba(255,255,255,.13); }
+        .pill:active{ transform:scale(.97); }
+        .pill svg{ width:16px; height:16px; }
+        .pill-tint{ color:var(--turq-br); background:rgba(45,212,191,.13); border-color:rgba(94,234,212,.25); }
+        .pill-tint:hover{ background:rgba(45,212,191,.2); }
+
+        .adm-form{ display:flex; flex-direction:column; gap:16px; }
+        .grp{ border-radius:20px; padding:20px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.05); }
+        .grp-h{ display:flex; align-items:center; gap:8px; font-size:15px; font-weight:700; color:var(--txt); margin-bottom:16px; }
+        .grp-h svg{ width:18px; height:18px; color:var(--turq-br); }
+        .grp-grid{ display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:16px 14px; align-items:start; }
+        .c-full{ grid-column:span 6; } .c-half{ grid-column:span 3; }
+        @media (min-width:768px){
+            .md\:c-2{ grid-column:span 2; } .md\:c-3{ grid-column:span 3; } .md\:c-6{ grid-column:span 6; }
+        }
+        #admin-section .lbl{ font-size:13.5px; font-weight:600; letter-spacing:0; text-transform:none; color:#D3D9DF;
+            margin-bottom:7px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #admin-section .field{ height:50px; padding:0 15px; font-size:16px; border-radius:13px;
+            background:rgba(0,0,0,.24); border:1px solid rgba(255,255,255,.1); box-shadow:none;
+            -webkit-backdrop-filter:none; backdrop-filter:none; }
+        #admin-section textarea.field{ height:auto; min-height:96px; padding:13px 15px; line-height:1.55; resize:vertical; display:block; }
+        #admin-section .field:focus{ border-color:var(--turq); background:rgba(0,0,0,.2); box-shadow:0 0 0 4px rgba(45,212,191,.18); }
+        #admin-section .field::-webkit-outer-spin-button, #admin-section .field::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+        #admin-section input[type=number]{ -moz-appearance:textfield; appearance:textfield; }
+        .hint{ font-size:12.5px; color:var(--txt-faint); margin-top:6px; line-height:1.45; }
+        .pb-box{ border-radius:16px; padding:14px 16px; font-size:14px; background:rgba(45,212,191,.07); border:1px solid rgba(94,234,212,.2); }
+        .pb-box > * + *{ margin-top:6px; }
+        #link-result{ margin-top:16px; }
+
+        /* בקרה מפולחת (Segmented control) */
+        .disc-wrap{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+        #admin-section .disc-row{ flex:1 1 260px; gap:3px; padding:3px; border-radius:13px; background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.08); }
+        #admin-section .disc-btn{ min-height:42px; border-radius:10px; border:0; background:transparent; font-size:15px; font-weight:600; }
+        #admin-section .disc-btn[aria-pressed="true"]{ color:#04211D; background:linear-gradient(135deg,var(--turq-br) 0%,var(--turq) 60%,var(--turq-dp) 100%); box-shadow:0 3px 10px -2px rgba(0,0,0,.45); }
+        #admin-section .disc-custom{ margin:0; gap:8px; font-size:14px; color:var(--txt-dim); font-weight:600; flex-wrap:nowrap; }
+        #admin-section .disc-custom .field{ width:84px; height:48px; padding:0 10px; text-align:center; }
+
+        @media (max-width:639px){
+            /* בטלפון: בלי מסגרת חיצונית — הקבוצות עצמן הן הכרטיסים, צמודות לשוליים של 16px */
+            #admin-section{ padding:0; background:none; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none; border-radius:0; }
+            #admin-section::before{ display:none; }
+            .adm-head{ padding:0 2px; margin-bottom:16px; }
+            .adm-actions{ width:100%; }
+            .adm-actions .pill{ flex:1; }
+            .grp{ padding:16px; border-radius:18px; }
+            .grp-grid{ gap:14px 10px; }
+            #admin-section .lbl{ font-size:13px; }
+        }
+
         /* ===== מסמך ה-PDF (שחור על לבן) ===== */
         #pdf-doc{ position:absolute; left:-10000px; top:0; width:760px; background:#fff; color:#111; font-family:'Heebo',Arial,sans-serif; z-index:-1; }
         #pdf-doc *,#pdf-doc *::before,#pdf-doc *::after{ box-sizing:border-box; margin:0; padding:0; }
@@ -343,57 +407,73 @@
         </div>
 
         <!-- ============ מצב מנהל ============ -->
-        <div id="admin-section" class="hidden glass p-5 sm:p-8 space-y-6 reveal">
-            <div class="section-title border-b border-white/[.08] pb-4 justify-between flex-wrap gap-3">
-                <div class="section-title">
+        <div id="admin-section" class="hidden glass reveal">
+            <div class="adm-head">
+                <div class="adm-title">
                     <span class="chip-ico"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg></span>
-                    <h2 class="text-lg sm:text-xl font-extrabold">מחולל הצעת מחיר וחוזה</h2>
+                    <div class="min-w-0">
+                        <h2>מחולל הצעת מחיר וחוזה</h2>
+                        <span id="admin-user-email" class="adm-email" dir="ltr"></span>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span id="admin-user-email" class="text-[11px] text-zinc-500"></span>
-                    <button type="button" id="admin-signout-btn" class="btn-glass !w-auto !rounded-xl !px-4 !py-2.5 text-xs shrink-0">התנתק</button>
-                    <a href="dashboard.html" class="btn-glass !w-auto !rounded-xl !px-4 !py-2.5 text-xs shrink-0 flex items-center gap-1.5">
-                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> לוח בקרה
-                    </a>
+                <div class="adm-actions">
+                    <a href="dashboard.html" class="pill pill-tint"><i data-lucide="layout-dashboard"></i> לוח בקרה</a>
+                    <button type="button" id="admin-signout-btn" class="pill"><i data-lucide="log-out"></i> התנתק</button>
                 </div>
             </div>
 
-            <form id="creator-form" onsubmit="generateShareLink(event)" class="space-y-5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                    <div><label class="lbl">לכבוד (שם הלקוח) *</label><input type="text" id="in_clientName" required class="field" placeholder="שם מלא / חברה"></div>
-                    <div><label class="lbl" for="in_clientPhone">טלפון הלקוח <span class="text-zinc-400 font-semibold">· 🔒 לא מוצג ללקוח, נשמר בפרטי האירוע</span></label><input type="tel" id="in_clientPhone" class="field text-left" dir="ltr" inputmode="tel" maxlength="20" autocomplete="off" placeholder="050-0000000"></div>
-                    <div><label class="lbl">סוג אירוע *</label><input type="text" id="in_eventType" required class="field" placeholder="חתונה / בר מצווה"></div>
-                    <div><label class="lbl">מיקום האירוע *</label><input type="text" id="in_location" required class="field" placeholder="שם האולם / עיר" onblur="autoDistance()"></div>
-                    <div><label class="lbl">תאריך האירוע *</label><input type="text" id="in_date" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY" oninput="formatDate(this, event); checkDateConflict()" onblur="checkDateConflict()"><div id="date-conflict" class="dc-box hidden" role="status" aria-live="polite"></div></div>
-                    <div><label class="lbl">שעת תחילה *</label><input type="text" id="in_startTime" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="formatTime(this, event); onCalcInputs()"></div>
-                    <div><label class="lbl">שעת סיום *</label><input type="text" id="in_endTime" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="formatTime(this, event); onCalcInputs()"></div>
-                    <div><label class="lbl">כמות מוזמנים (משוער) *</label><input type="text" id="in_guests" required inputmode="numeric" pattern="[1-9][0-9]*" maxlength="5" autocomplete="off" class="field" placeholder="למשל 250" oninput="this.value = this.value.replace(/[^0-9]/g, ''); onCalcInputs()"></div>
-                    <div>
-                        <label class="lbl">מרחק מתל אביב (ק"מ) — מחושב אוטומטית</label>
-                        <input type="number" id="in_distance" min="0" class="field" placeholder="0" oninput="distanceTouched = true; onCalcInputs()">
-                        <p id="distance-status" class="text-[11px] text-zinc-500 mt-1.5 min-h-[14px]"></p>
+            <form id="creator-form" onsubmit="generateShareLink(event)" class="adm-form">
+                <section class="grp">
+                    <h3 class="grp-h"><i data-lucide="user-round"></i> פרטי הלקוח</h3>
+                    <div class="grp-grid">
+                        <div class="c-full md:c-3"><label class="lbl" for="in_clientName">לכבוד (שם הלקוח) *</label><input type="text" id="in_clientName" required class="field" placeholder="שם מלא / חברה"></div>
+                        <div class="c-full md:c-3"><label class="lbl" for="in_clientPhone">טלפון הלקוח</label><input type="tel" id="in_clientPhone" class="field text-left" dir="ltr" inputmode="tel" maxlength="20" autocomplete="off" placeholder="050-0000000"><p class="hint">🔒 לא מוצג ללקוח · נשמר בפרטי האירוע</p></div>
                     </div>
+                </section>
 
-                    <div id="price-breakdown" class="hidden sm:col-span-2 rounded-2xl bg-turq/[.06] border border-turq/20 p-4 text-[13px] space-y-1.5"></div>
-
-                    <div><label class="lbl">מחיר כולל (₪) * — מחושב אוטומטית, ניתן לעריכה</label><input type="number" id="in_price" required class="field" placeholder="מחושב לפי הנתונים" oninput="priceTouched = true; updateDiscountSummary()"></div>
-                    <div class="sm:col-span-2 rounded-2xl bg-white/[.03] border border-white/10 p-4">
-                        <label class="lbl">הנחה (אופציונלי)</label>
-                        <div class="disc-row" role="group" aria-label="בחירת הנחה">
-                            <button type="button" class="disc-btn" data-disc="0" aria-pressed="true" onclick="setDiscount(0)">ללא הנחה</button>
-                            <button type="button" class="disc-btn" data-disc="10" aria-pressed="false" onclick="setDiscount(10)">10% הנחה</button>
-                            <button type="button" class="disc-btn" data-disc="15" aria-pressed="false" onclick="setDiscount(15)">15% הנחה</button>
-                        </div>
-                        <div class="disc-custom">
-                            <label for="in_discount" class="text-xs text-zinc-400 font-bold">או אחוז אחר:</label>
-                            <input type="number" id="in_discount" min="0" max="100" step="1" inputmode="decimal" class="field" placeholder="0" oninput="setDiscount(this.value, true)">
-                            <span class="text-xs text-zinc-400">%</span>
-                        </div>
-                        <p id="discount-summary" class="hidden mt-3 text-sm font-bold text-turq-bright"></p>
+                <section class="grp">
+                    <h3 class="grp-h"><i data-lucide="calendar-days"></i> פרטי האירוע</h3>
+                    <div class="grp-grid">
+                        <div class="c-full md:c-3"><label class="lbl" for="in_eventType">סוג אירוע *</label><input type="text" id="in_eventType" required class="field" placeholder="חתונה / בר מצווה"></div>
+                        <div class="c-full md:c-3"><label class="lbl" for="in_location">מיקום האירוע *</label><input type="text" id="in_location" required class="field" placeholder="שם האולם / עיר" onblur="autoDistance()"></div>
+                        <div class="c-full md:c-2"><label class="lbl" for="in_date">תאריך האירוע *</label><input type="text" id="in_date" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY" oninput="formatDate(this, event); checkDateConflict()" onblur="checkDateConflict()"><div id="date-conflict" class="dc-box hidden" role="status" aria-live="polite"></div></div>
+                        <div class="c-half md:c-2"><label class="lbl" for="in_startTime">שעת התחלה *</label><input type="text" id="in_startTime" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="formatTime(this, event); onCalcInputs()"></div>
+                        <div class="c-half md:c-2"><label class="lbl" for="in_endTime">שעת סיום *</label><input type="text" id="in_endTime" required class="field text-left" dir="ltr" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="formatTime(this, event); onCalcInputs()"></div>
+                        <div class="c-half md:c-3"><label class="lbl" for="in_guests">מוזמנים (משוער) *</label><input type="text" id="in_guests" required inputmode="numeric" pattern="[1-9][0-9]*" maxlength="5" autocomplete="off" class="field" placeholder="למשל 250" oninput="this.value = this.value.replace(/[^0-9]/g, ''); onCalcInputs()"></div>
+                        <div class="c-half md:c-3"><label class="lbl" for="in_distance">מרחק מתל אביב (ק"מ)</label><input type="number" id="in_distance" min="0" inputmode="numeric" class="field" placeholder="אוטומטי" oninput="distanceTouched = true; onCalcInputs()"></div>
+                        <p id="distance-status" class="c-full md:c-6 hint !mt-0 min-h-[14px]"></p>
                     </div>
-                    <div><label class="lbl">מקדמה (₪) — ברירת מחדל 200, ניתן למחוק</label><input type="number" id="in_deposit" value="200" class="field" placeholder="200"></div>
-                    <div class="sm:col-span-2"><label class="lbl">הערות / סיכומים (אופציונלי)</label><textarea id="in_notes" rows="2" class="field" placeholder="לדוגמה: תוספת מגנטים, מיקום חופה..."></textarea></div>
-                </div>
+                </section>
+
+                <section class="grp">
+                    <h3 class="grp-h"><i data-lucide="wallet"></i> מחיר ותשלום</h3>
+                    <div class="grp-grid">
+                        <div id="price-breakdown" class="hidden c-full md:c-6 pb-box"></div>
+                        <div class="c-half md:c-3"><label class="lbl" for="in_price">מחיר כולל (₪) *</label><input type="number" id="in_price" required inputmode="numeric" class="field" placeholder="מחושב אוטומטית" oninput="priceTouched = true; updateDiscountSummary()"><p class="hint">אוטומטי · אפשר לערוך</p></div>
+                        <div class="c-half md:c-3"><label class="lbl" for="in_deposit">מקדמה (₪)</label><input type="number" id="in_deposit" value="200" inputmode="numeric" class="field" placeholder="200"><p class="hint">ברירת מחדל ₪200</p></div>
+                        <div class="c-full md:c-6">
+                            <span class="lbl">הנחה</span>
+                            <div class="disc-wrap">
+                                <div class="disc-row" role="group" aria-label="בחירת הנחה">
+                                    <button type="button" class="disc-btn" data-disc="0" aria-pressed="true" onclick="setDiscount(0)">ללא</button>
+                                    <button type="button" class="disc-btn" data-disc="10" aria-pressed="false" onclick="setDiscount(10)">10%</button>
+                                    <button type="button" class="disc-btn" data-disc="15" aria-pressed="false" onclick="setDiscount(15)">15%</button>
+                                </div>
+                                <div class="disc-custom">
+                                    <label for="in_discount">אחר</label>
+                                    <input type="number" id="in_discount" min="0" max="100" step="1" inputmode="decimal" class="field" placeholder="0" oninput="setDiscount(this.value, true)">
+                                    <span>%</span>
+                                </div>
+                            </div>
+                            <p id="discount-summary" class="hidden mt-3 text-sm font-bold text-turq-bright"></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="grp">
+                    <h3 class="grp-h"><i data-lucide="notebook-pen"></i> הערות</h3>
+                    <textarea id="in_notes" rows="3" class="field" aria-label="הערות / סיכומים" placeholder="לדוגמה: תוספת מגנטים, מיקום חופה..."></textarea>
+                </section>
 
                 <button type="submit" id="gen-btn" class="btn btn-primary btn-lg">
                     <i data-lucide="link" class="w-5 h-5"></i> צור קישור ללקוח
