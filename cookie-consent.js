@@ -15,11 +15,11 @@
     function injectStyles(){
         var css =
             '#cookie-bar{ position:fixed; left:0; right:0; bottom:0; z-index:980;' +
-                'background:rgba(5,6,7,.97); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);' +
+                'background:rgba(17,23,28,.97); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);' +
                 'border-top:1px solid rgba(45,212,191,.25);' +
                 'display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:center;' +
                 'padding:14px 18px; padding-bottom:calc(14px + env(safe-area-inset-bottom));' +
-                'font-family:Assistant,system-ui,sans-serif; color:#F1F3F5; font-size:13px; text-align:center; }' +
+                'font-family:Heebo,system-ui,sans-serif; color:#F1F3F5; font-size:13px; text-align:center; }' +
             '#cookie-bar p{ margin:0; max-width:560px; line-height:1.6; }' +
             '#cookie-bar a{ color:#5EEAD4; text-decoration:underline; }' +
             '#cookie-bar button{ flex:none; border:0; border-radius:999px; padding:9px 20px; font-weight:800;' +

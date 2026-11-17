@@ -26,7 +26,7 @@
 
             '.a11y-opts{ position:absolute; right:4px; bottom:4px; width:46px; height:46px; z-index:1; }' +
             '.a11y-opt{ position:absolute; inset:0; margin:auto; border-radius:50%; cursor:pointer;' +
-                'border:1px solid rgba(255,255,255,.15); background:rgba(10,12,13,.92);' +
+                'border:1px solid rgba(255,255,255,.15); background:rgba(22,29,35,.94);' +
                 '-webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);' +
                 'box-shadow:0 10px 24px -10px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.1);' +
                 'display:grid; place-items:center; color:#F1F3F5; font-family:inherit; font-size:12px; font-weight:800; padding:0;' +
