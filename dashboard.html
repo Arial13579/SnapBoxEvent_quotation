@@ -14,7 +14,7 @@
     --bg:#11171c;
     --turq:#2DD4BF; --turq-br:#5EEAD4; --turq-dp:#0D9488;
     --glow:rgba(45,212,191,.30);
-    --txt:#F1F3F5; --txt-dim:#A9B1BC; --txt-faint:#6E7681;
+    --txt:#F1F3F5; --txt-dim:#A9B1BC; --txt-faint:#8B949E;
     --amber:#FBBF24; --rose:#FB7185;
   }
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -257,6 +257,133 @@
   .tx-del{ border:0; border-radius:50%; display:grid; place-items:center; background:transparent; color:#F87171; cursor:pointer; transition:background .15s, transform .12s; }
   .tx-del:hover{ background:rgba(239,68,68,.14); } .tx-del:active{ transform:scale(.9); background:rgba(239,68,68,.22); }
   .tx-del:focus-visible{ outline:2px solid #F87171; outline-offset:1px; }
+
+  /* ================= סגנון Apple (2026-11-18) — כמו מחולל ההצעות ================= */
+  body{ padding:28px 16px 64px; padding-top:calc(28px + env(safe-area-inset-top));
+    background:
+      radial-gradient(72% 60% at 10% -8%, rgba(45,212,191,.17), transparent 58%),
+      radial-gradient(64% 56% at 108% 110%, rgba(45,212,191,.13), transparent 55%),
+      #11171c; -webkit-font-smoothing:antialiased; }
+  @media(min-width:760px){ body{ padding-left:28px; padding-right:28px; } }
+  .card{ border-radius:20px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 24px 60px -34px rgba(0,0,0,.7); }
+
+  /* כותרת */
+  header.top{ margin-bottom:20px; align-items:center; }
+  .top-t{ display:flex; align-items:center; gap:12px; min-width:0; }
+  .top-ic{ width:42px; height:42px; flex:none; border-radius:13px; display:grid; place-items:center; color:var(--turq-br);
+    background:linear-gradient(145deg, rgba(94,234,212,.24), rgba(45,212,191,.05)); border:1px solid rgba(94,234,212,.32); }
+  header.top h1{ font-size:22px; font-weight:800; letter-spacing:-.01em; line-height:1.2; }
+  .top-mail{ display:block; font-size:12.5px; color:var(--txt-faint); margin-top:2px; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .userchip{ gap:8px; flex-wrap:nowrap; }
+  .hbtn{ display:inline-flex; align-items:center; justify-content:center; gap:7px; height:38px; padding:0 16px; border-radius:999px;
+    font-family:inherit; font-size:14px; font-weight:600; color:var(--txt); cursor:pointer; text-decoration:none; white-space:nowrap;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1); transition:background .2s, transform .15s; touch-action:manipulation; }
+  .hbtn:hover{ background:rgba(255,255,255,.13); } .hbtn:active{ transform:scale(.97); }
+  .hbtn.tint{ color:var(--turq-br); background:rgba(45,212,191,.13); border-color:rgba(94,234,212,.25); }
+  .hbtn.tint:hover{ background:rgba(45,212,191,.2); }
+  .iconbtn{ height:38px; padding:0 14px; border-radius:999px; font-size:13.5px; font-weight:600; color:var(--txt);
+    background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.1); display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+  .iconbtn:hover{ background:rgba(255,255,255,.13); border-color:rgba(255,255,255,.14); }
+  .iconbtn.round{ width:38px; height:38px; }
+
+  /* טאבים = בקרה מפולחת */
+  .tabs{ gap:3px; padding:3px; border-radius:14px; background:rgba(0,0,0,.28); border-color:rgba(255,255,255,.08); flex-wrap:nowrap; }
+  .tabs button{ flex:1 1 0; min-width:0; height:42px; padding:0 8px; border-radius:11px; font-size:15px; font-weight:600; transition:background .2s, color .2s; }
+  .tabs button.on{ background:linear-gradient(135deg,var(--turq-br) 0%,var(--turq) 60%,var(--turq-dp) 100%); box-shadow:0 3px 10px -2px rgba(0,0,0,.45); }
+
+  /* מדדים */
+  .kpis > .card, .charts > .card{ margin-top:0 !important; }
+  .t-sm{ display:none; }
+  @media(max-width:420px){ .t-lg{ display:none; } .t-sm{ display:inline; } .userchip .hbtn svg{ display:none; } .userchip .hbtn{ padding:0 6px; } }
+  .kpis{ gap:12px; }
+  .kpi{ padding:16px 14px; text-align:right; border-radius:18px; }
+  .kpi .n{ font-size:26px; font-weight:800; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+  .kpi .l{ font-size:12.5px; font-weight:600; margin-top:2px; }
+  .chart-card{ padding:20px; } .chart-card h3, .sec-h h3{ font-size:16px; font-weight:700; }
+
+  /* חיפוש וסינון */
+  .toolbar{ gap:10px; }
+  #search{ height:46px; padding:0 15px; font-size:16px; border-radius:13px; background:rgba(0,0,0,.24); }
+  #search:focus, .fld:focus{ outline:none; border-color:var(--turq); box-shadow:0 0 0 4px rgba(45,212,191,.18); }
+  .seg{ gap:3px; padding:3px; border-radius:13px; background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.08); }
+  .seg button{ height:38px; padding:0 16px; border-radius:10px; font-size:14px; font-weight:600; }
+  .seg button.on{ box-shadow:0 3px 10px -2px rgba(0,0,0,.45); }
+  .dangerbtn{ height:46px; border-radius:13px; font-size:14px; font-weight:600; }
+
+  /* שדות */
+  .fld{ min-height:48px; padding:0 14px; font-size:16px; border-radius:13px; background:rgba(0,0,0,.24); border-color:rgba(255,255,255,.1); }
+  textarea.fld{ padding:12px 14px; line-height:1.55; }
+  select.fld{ padding-left:30px; }
+  .lbl{ font-size:13.5px; font-weight:600; color:#D3D9DF; margin-bottom:7px; }
+  .gbtn{ border-radius:13px; font-weight:700; }
+  .gbtn.sm{ height:44px; padding:0 18px; font-size:14px; }
+
+  /* טבלה */
+  th,td{ padding:14px 16px; font-size:14px; }
+  thead th{ font-size:12px; letter-spacing:0; text-transform:none; font-weight:600; color:var(--txt-faint); }
+  td.name{ font-size:15px; white-space:nowrap; }
+  .acts{ display:flex; gap:6px; flex-wrap:nowrap; }
+  .rowbtn{ white-space:nowrap; }
+  .rowbtn{ min-height:34px; padding:0 12px; border-radius:10px; font-size:13px; font-weight:600; color:var(--txt);
+    background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.1); }
+  .rowbtn:hover{ background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.14); }
+  .pill{ font-size:12px; font-weight:700; padding:4px 11px; }
+
+  /* בטלפון: כל הצעה = כרטיס (בלי גלילה לצדדים) */
+  @media(max-width:759px){
+    .kpis > .kpi:last-child:nth-child(odd){ grid-column:1/-1; }
+    .tabs button{ font-size:13.5px; white-space:nowrap; padding:0 4px; }
+  }
+  @media(max-width:1099px){
+    .toolbar #search{ flex:1 1 100%; }
+    .toolbar .seg{ flex:1 1 auto; } .toolbar .seg button{ flex:1; }
+    .dangerbtn{ margin-inline-start:0; flex:1 1 100%; justify-content:center; }
+    .tbl-wrap{ overflow:visible; background:none; border:0; box-shadow:none; border-radius:0; }
+    .tbl-wrap table{ min-width:0; display:block; }
+    .tbl-wrap thead{ display:none; }
+    .tbl-wrap tbody{ display:flex; flex-direction:column; gap:12px; }
+    .tbl-wrap tbody tr{ display:grid; grid-template-columns:1fr auto; gap:6px 12px; padding:16px; border-radius:18px;
+      background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); }
+    .tbl-wrap tbody tr:hover{ background:rgba(255,255,255,.06); }
+    .tbl-wrap tbody td{ display:block; padding:0; white-space:normal; font-size:14px; }
+    .tbl-wrap tbody td.loading{ grid-column:1/-1; padding:20px; }
+    .tbl-wrap td.name{ grid-column:1; grid-row:1; font-size:17px; }
+    .tbl-wrap td.c-status{ grid-column:2; grid-row:1; text-align:left; }
+    .tbl-wrap td.c-type, .tbl-wrap td.c-date, .tbl-wrap td.c-price, .tbl-wrap td.c-created{ grid-column:1/-1; display:flex; justify-content:space-between; gap:10px; color:var(--txt); }
+    .tbl-wrap td[data-l]::before{ content:attr(data-l); color:var(--txt-faint); font-weight:500; }
+    .tbl-wrap td.c-price{ font-weight:800; }
+    .tbl-wrap td.c-created{ font-size:12.5px; color:var(--txt-dim); }
+    .tbl-wrap td.c-type{ border-top:1px solid rgba(255,255,255,.07); padding-top:10px; margin-top:4px; }
+    .tbl-wrap td.c-file, .tbl-wrap td.c-acts{ grid-column:1/-1; }
+    .tbl-wrap td.c-file{ margin-top:6px; }
+    .tbl-wrap .acts{ display:flex; flex-wrap:wrap; }
+    .tbl-wrap .rowbtn{ flex:1 1 auto; min-height:42px; justify-content:center; font-size:14px; }
+    tr.paid.main > td:first-child{ box-shadow:none; }
+    tr.paid > td{ background:none; }
+    .tbl-wrap tbody tr.paid{ background:rgba(74,222,128,.13); border-color:rgba(74,222,128,.35); }
+  }
+  @media(min-width:600px) and (max-width:1099px){
+    .tbl-wrap tbody{ display:grid; grid-template-columns:1fr 1fr; align-items:start; }
+  }
+  @media(max-width:759px){
+    header.top{ gap:12px; }
+    .userchip{ width:100%; } .userchip .hbtn{ flex:1; padding:0 10px; }
+    header.top h1{ font-size:20px; }
+  }
+
+  /* חלונות */
+  dialog.dlg{ background:#182026; border-color:rgba(255,255,255,.1); }
+  .dlg-h, .dlg-f{ background:#1b242a; }
+  .grp{ border-radius:18px; padding:16px; background:rgba(255,255,255,.04); }
+  .grp h3{ font-size:15px; font-weight:700; color:var(--txt); }
+  .info > div{ border-radius:13px; }
+  .disc-row{ gap:3px; padding:3px; border-radius:13px; background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.08); }
+  .disc-btn{ min-height:42px; border-radius:10px; border:0; background:transparent; font-weight:600; font-size:15px; }
+  .disc-btn[aria-pressed="true"]{ box-shadow:0 3px 10px -2px rgba(0,0,0,.45); }
+  .disc-custom{ font-size:14px; font-weight:600; }
+  .disc-custom .fld{ width:84px; }
+  .ev-card, .cal-cell{ border-radius:14px; }
 </style>
 </head>
 <body>
@@ -277,19 +404,21 @@
 
   <div id="app">
     <header class="top">
-      <h1>Snap Box · לוח בקרה</h1>
+      <div class="top-t">
+        <span class="top-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></span>
+        <div style="min-width:0"><h1>Snap Box · לוח בקרה</h1><span id="userEmail" class="top-mail" dir="ltr"></span></div>
+      </div>
       <div class="userchip">
-        <span id="userEmail"></span>
-        <button class="iconbtn" id="refreshBtn">רענן</button>
-        <button class="iconbtn" id="signOutBtn">התנתק</button>
-        <a class="iconbtn" href="index.html">לאתר הראשי</a>
+        <a class="hbtn tint" href="index.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> הצעה חדשה</a>
+        <button class="hbtn" id="refreshBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg> רענן</button>
+        <button class="hbtn" id="signOutBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg> התנתק</button>
       </div>
     </header>
 
     <div class="tabs">
-      <button type="button" class="on" data-tab="quotes">הצעות ולקוחות</button>
-      <button type="button" data-tab="cal">יומן אירועים</button>
-      <button type="button" data-tab="books">הכנסות והוצאות</button>
+      <button type="button" class="on" data-tab="quotes"><span class="t-lg">הצעות ולקוחות</span><span class="t-sm">הצעות</span></button>
+      <button type="button" data-tab="cal"><span class="t-lg">יומן אירועים</span><span class="t-sm">יומן</span></button>
+      <button type="button" data-tab="books"><span class="t-lg">הכנסות והוצאות</span><span class="t-sm">הכנסות</span></button>
     </div>
 
     <section id="tab-quotes">
@@ -394,11 +523,11 @@
       <div><label class="lbl" for="ee-price">מחיר (₪)</label><input class="fld" id="ee-price" type="number" min="0" step="1" inputmode="numeric"><div class="ref" id="ee-ref"></div></div>
       <div class="wide"><span class="lbl">הנחה</span>
         <div class="disc-row" role="group" aria-label="בחירת הנחה">
-          <button type="button" class="disc-btn" data-disc="0" aria-pressed="true">ללא הנחה</button>
-          <button type="button" class="disc-btn" data-disc="10" aria-pressed="false">10% הנחה</button>
-          <button type="button" class="disc-btn" data-disc="15" aria-pressed="false">15% הנחה</button>
+          <button type="button" class="disc-btn" data-disc="0" aria-pressed="true">ללא</button>
+          <button type="button" class="disc-btn" data-disc="10" aria-pressed="false">10%</button>
+          <button type="button" class="disc-btn" data-disc="15" aria-pressed="false">15%</button>
         </div>
-        <div class="disc-custom"><label for="ee-disc">או אחוז אחר:</label><input class="fld" id="ee-disc" type="number" min="0" max="100" step="1" inputmode="decimal" placeholder="0"><span>%</span></div>
+        <div class="disc-custom"><label for="ee-disc">אחר</label><input class="fld" id="ee-disc" type="number" min="0" max="100" step="1" inputmode="decimal" placeholder="0"><span>%</span></div>
         <div class="disc-sum" id="ee-discSum" role="status"></div>
       </div>
       <div><label class="lbl" for="ee-deposit">מקדמה (₪)</label><input class="fld" id="ee-deposit" type="number" min="0" step="1" inputmode="numeric"></div>
@@ -639,7 +768,7 @@
         ? `<span class="pill signed">נחתם</span>${signedAt ? `<div style="font-size:10.5px; color:var(--txt-faint); margin-top:3px;">${signedAt}</div>` : ''}`
         : '<span class="pill pending">ממתין</span>' + viewedLine(q);
       const fileBtn = q.pdfData
-        ? `<div style="display:flex; gap:6px; flex-wrap:wrap;">
+        ? `<div class="acts">
              <button type="button" class="rowbtn view-file" data-id="${q.id}">📄 צפייה</button>
              <button type="button" class="rowbtn upload-file" data-id="${q.id}">🔄 החלף</button>
            </div>`
@@ -647,15 +776,15 @@
       const E = EVENTS[q.id] || {}, v = M(q);
       const tags = signed ? (E.paid ? '<div><span class="tag ok" style="margin:4px 0 0">שולם ✓</span></div>' : E.depositPaid ? '<div><span class="tag wait" style="margin:4px 0 0">מקדמה שולמה</span></div>' : '') : '';
       return `<tr class="main${signed && E.paid ? ' paid' : ''}">
-        <td>${created}</td>
+        <td class="c-created" data-l="נשלח">${created}</td>
         <td class="name">${esc(v.clientName)}${E.couple && signed ? `<div style="font-size:11.5px; color:var(--txt-dim); font-weight:600">${esc(E.couple)}</div>` : ''}</td>
-        <td>${esc(v.eventType)}</td>
-        <td dir="ltr">${esc(v.date)}</td>
-        <td>${money(v.price)}</td>
-        <td>${pill}${tags}</td>
-        <td>${fileBtn}</td>
-        <td>
-          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <td class="c-type" data-l="סוג אירוע">${esc(v.eventType)}</td>
+        <td class="c-date" data-l="תאריך אירוע"><span dir="ltr">${esc(v.date)}</span></td>
+        <td class="c-price" data-l="מחיר">${money(v.price)}</td>
+        <td class="c-status">${pill}${tags}</td>
+        <td class="c-file">${fileBtn}</td>
+        <td class="c-acts">
+          <div class="acts">
             <button type="button" class="rowbtn ev-view" data-id="${q.id}">📋 פרטי אירוע</button>
             <button type="button" class="rowbtn copy-link" data-id="${q.id}">העתק קישור</button>
             <button type="button" class="rowbtn danger delete-row" data-id="${q.id}">מחק</button>
