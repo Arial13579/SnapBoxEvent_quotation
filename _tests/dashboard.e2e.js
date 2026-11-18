@@ -87,7 +87,8 @@ const WRAP = {
     await p.click('#vw-close');
     await p.waitForTimeout(600);
     check(await p.locator('#tbody tr.main.paid').count() === 1, '"שולם" → the client row turns light green');
-    const bg = await p.evaluate(() => getComputedStyle(document.querySelector('#tbody tr.main.paid td')).backgroundColor);
+    // phone width: the row is a card, so the green is on the row itself; wider screens: on the cells
+    const bg = await p.evaluate(() => { const tr = document.querySelector('#tbody tr.main.paid'); const t = getComputedStyle(tr).backgroundColor; return /rgba\(74, 222, 128/.test(t) ? t : getComputedStyle(tr.querySelector('td')).backgroundColor; });
     check(/rgba\(74, 222, 128/.test(bg), 'row background is light green: ' + bg);
     const row = (await p.textContent('#tbody tr.main.paid')).replace(/\s+/g, ' ');
     check(/₪1,350/.test(row) && /מאיה ודניאל/.test(row) && /שולם ✓/.test(row), 'row shows the edited price, bride/groom, paid');
